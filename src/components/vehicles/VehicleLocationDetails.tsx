@@ -1,9 +1,8 @@
 
-import React from 'react';
-import { VehicleLocation } from '../maps/MapView';
-import { Car, Calendar, MapPin, Activity, User, Clock } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { Card } from "@/components/ui/card";
+import { VehicleLocation } from "@/components/maps/MapView";
+import { Gauge, Clock, User, MapPin, Car, CircleAlert } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface VehicleLocationDetailsProps {
   vehicle: VehicleLocation | null;
@@ -12,98 +11,87 @@ interface VehicleLocationDetailsProps {
 const VehicleLocationDetails = ({ vehicle }: VehicleLocationDetailsProps) => {
   if (!vehicle) {
     return (
-      <div className="bg-card rounded-xl border p-4">
-        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <Car className="h-5 w-5 text-primary" />
-          <span>Details</span>
-        </h3>
-        <p className="text-sm text-muted-foreground">Select a vehicle to view details</p>
-      </div>
+      <Card className="p-5 border rounded-xl space-y-4 bg-card">
+        <div className="text-center py-8">
+          <Car className="h-12 w-12 mx-auto text-muted-foreground opacity-20" />
+          <h3 className="mt-4 font-medium text-muted-foreground">Select a vehicle to view details</h3>
+        </div>
+      </Card>
     );
   }
 
-  const getStatusColor = (status: VehicleLocation['status']) => {
-    switch (status) {
-      case 'active': return 'bg-green-500';
-      case 'parked': return 'bg-blue-500';
-      case 'maintenance': return 'bg-amber-500';
-      case 'unavailable': return 'bg-red-500';
-      default: return 'bg-gray-500';
-    }
+  // Status color mapping
+  const statusColorMap = {
+    active: "bg-green-100 text-green-800 border-green-300",
+    parked: "bg-blue-100 text-blue-800 border-blue-300",
+    maintenance: "bg-amber-100 text-amber-800 border-amber-300",
+    unavailable: "bg-red-100 text-red-800 border-red-300",
+  };
+
+  const statusIconMap = {
+    active: <Gauge className="h-4 w-4" />,
+    parked: <MapPin className="h-4 w-4" />,
+    maintenance: <CircleAlert className="h-4 w-4" />,
+    unavailable: <CircleAlert className="h-4 w-4" />,
   };
 
   return (
-    <div className="bg-card rounded-xl border p-4">
-      <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-        <Car className="h-5 w-5 text-primary" />
-        <span>Details</span>
-      </h3>
-      
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <p className="text-lg font-medium">{vehicle.name}</p>
-          <div className="px-2.5 py-1 bg-secondary text-secondary-foreground rounded text-xs font-medium">
-            {vehicle.licensePlate}
+    <Card className="p-5 border rounded-xl space-y-4 bg-card">
+      <div className="flex justify-between items-start">
+        <div>
+          <h3 className="text-lg font-semibold">{vehicle.name}</h3>
+          <p className="text-sm text-muted-foreground">{vehicle.licensePlate}</p>
+        </div>
+        <Badge variant="outline" className={`${statusColorMap[vehicle.status]} flex items-center gap-1.5 px-2.5 py-1`}>
+          {statusIconMap[vehicle.status]}
+          <span className="capitalize">{vehicle.status}</span>
+        </Badge>
+      </div>
+
+      <div className="space-y-3 pt-2">
+        <div className="flex items-center gap-3">
+          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+            <User className="h-4 w-4" />
+          </div>
+          <div>
+            <p className="text-sm text-muted-foreground">Driver</p>
+            <p className="font-medium">{vehicle.driver}</p>
           </div>
         </div>
-        
-        <div className="grid gap-3">
-          <div className="flex items-start gap-3">
-            <Activity className="h-4 w-4 text-muted-foreground mt-0.5" />
-            <div>
-              <p className="text-sm text-muted-foreground">Current Speed</p>
-              <p className="font-medium">{vehicle.speed}</p>
-            </div>
+
+        <div className="flex items-center gap-3">
+          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+            <Gauge className="h-4 w-4" />
           </div>
-          
-          <div className="flex items-start gap-3">
-            <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
-            <div>
-              <p className="text-sm text-muted-foreground">Coordinates</p>
-              <p className="font-medium">{vehicle.latitude.toFixed(4)}, {vehicle.longitude.toFixed(4)}</p>
-            </div>
-          </div>
-          
-          <div className="flex items-start gap-3">
-            <Clock className="h-4 w-4 text-muted-foreground mt-0.5" />
-            <div>
-              <p className="text-sm text-muted-foreground">Last Updated</p>
-              <p className="font-medium">{vehicle.lastUpdated}</p>
-            </div>
-          </div>
-          
-          <div className="flex items-start gap-3">
-            <User className="h-4 w-4 text-muted-foreground mt-0.5" />
-            <div>
-              <p className="text-sm text-muted-foreground">Driver</p>
-              <p className="font-medium">{vehicle.driver}</p>
-            </div>
-          </div>
-          
-          <div className="flex items-start gap-3">
-            <div className={cn("w-4 h-4 rounded-full mt-0.5", getStatusColor(vehicle.status))} />
-            <div>
-              <p className="text-sm text-muted-foreground">Status</p>
-              <p className="font-medium">
-                {vehicle.status.charAt(0).toUpperCase() + vehicle.status.slice(1)}
-              </p>
-            </div>
+          <div>
+            <p className="text-sm text-muted-foreground">Current Speed</p>
+            <p className="font-medium">{vehicle.speed}</p>
           </div>
         </div>
-        
-        <div className="grid grid-cols-2 gap-2 mt-4">
-          <Button variant="outline" size="sm">
-            View History
-          </Button>
-          <Button variant="outline" size="sm">
-            Contact Driver
-          </Button>
-          <Button className="col-span-2 mt-1">
-            Track Route
-          </Button>
+
+        <div className="flex items-center gap-3">
+          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+            <MapPin className="h-4 w-4" />
+          </div>
+          <div>
+            <p className="text-sm text-muted-foreground">Location</p>
+            <p className="font-medium">
+              {vehicle.latitude.toFixed(4)}, {vehicle.longitude.toFixed(4)}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+            <Clock className="h-4 w-4" />
+          </div>
+          <div>
+            <p className="text-sm text-muted-foreground">Last Updated</p>
+            <p className="font-medium">{vehicle.lastUpdated}</p>
+          </div>
         </div>
       </div>
-    </div>
+    </Card>
   );
 };
 

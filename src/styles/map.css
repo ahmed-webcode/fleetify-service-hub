@@ -11,6 +11,7 @@
   background-color: hsl(var(--card));
   color: hsl(var(--card-foreground));
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  min-width: 200px;
 }
 
 .mapboxgl-popup-close-button {
@@ -43,4 +44,63 @@
 
 .vehicle-marker.selected > div {
   animation: bounce 1s ease infinite;
+}
+
+/* Custom marker colors */
+.vehicle-marker .bg-green-500 {
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.25);
+}
+
+.vehicle-marker .bg-blue-500 {
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.25);
+}
+
+.vehicle-marker .bg-amber-500 {
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.25);
+}
+
+.vehicle-marker .bg-red-500 {
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.25);
+}
+
+/* Status indicator in popup */
+.vehicle-status {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+/* Map attribution styling */
+.mapboxgl-ctrl-attrib {
+  font-size: 10px;
+  padding: 2px 4px;
+  background-color: rgba(255, 255, 255, 0.7);
+  border-radius: 4px;
+}
+
+/* Adjust popup arrow color to match theme */
+.mapboxgl-popup-tip {
+  border-top-color: hsl(var(--border)) !important;
+  border-bottom-color: hsl(var(--border)) !important;
+}
+
+/* Dark theme support for map components */
+.dark .mapboxgl-popup-content {
+  background-color: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+}
+
+.dark .mapboxgl-ctrl-group {
+  background-color: hsl(var(--card));
+}
+
+.dark .mapboxgl-ctrl button {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+.dark .mapboxgl-popup-tip {
+  border-top-color: hsl(var(--card)) !important;
+  border-bottom-color: hsl(var(--card)) !important;
 }

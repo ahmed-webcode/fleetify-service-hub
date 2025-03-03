@@ -58,6 +58,59 @@ export const getVehicleLocations = (): VehicleLocation[] => {
       speed: '27 km/h',
       lastUpdated: '8 minutes ago',
       driver: 'Yonas Gebru'
+    },
+    {
+      id: 'vehicle6',
+      name: 'Isuzu Cargo Truck',
+      licensePlate: 'AAU-7812',
+      latitude: 9.0410,
+      longitude: 38.7690, // North of Addis
+      status: 'active',
+      speed: '48 km/h',
+      lastUpdated: '3 minutes ago',
+      driver: 'Kidist Alemu'
+    },
+    {
+      id: 'vehicle7',
+      name: 'Mitsubishi Pickup',
+      licensePlate: 'AAU-4521',
+      latitude: 9.0150,
+      longitude: 38.7510, // South of Addis
+      status: 'maintenance',
+      speed: '0 km/h',
+      lastUpdated: '2 hours ago',
+      driver: 'Henok Girma'
+    },
+    {
+      id: 'vehicle8',
+      name: 'Ford Ranger',
+      licensePlate: 'AAU-9631',
+      latitude: 9.0290,
+      longitude: 38.7720, // East of Addis
+      status: 'parked',
+      speed: '0 km/h',
+      lastUpdated: '30 minutes ago',
+      driver: 'Tigist Hailu'
     }
   ];
+};
+
+// Function to simulate vehicle movement
+export const simulateVehicleMovement = (vehicles: VehicleLocation[]): VehicleLocation[] => {
+  return vehicles.map(vehicle => {
+    if (vehicle.status === 'active') {
+      // Generate small random movements for active vehicles
+      const latChange = (Math.random() - 0.5) * 0.005;
+      const lngChange = (Math.random() - 0.5) * 0.005;
+      
+      return {
+        ...vehicle,
+        latitude: vehicle.latitude + latChange,
+        longitude: vehicle.longitude + lngChange,
+        speed: `${Math.floor(30 + Math.random() * 40)} km/h`,
+        lastUpdated: 'just now'
+      };
+    }
+    return vehicle;
+  });
 };

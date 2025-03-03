@@ -220,7 +220,9 @@ const MapView = ({ selectedVehicle, vehicles }: MapViewProps) => {
         </Dialog>
       </div>
 
-      <style jsx global>{`
+      {/* Add vehicle marker styles using style tag */}
+      <style>
+        {`
         .vehicle-marker {
           position: relative;
           cursor: pointer;
@@ -250,7 +252,8 @@ const MapView = ({ selectedVehicle, vehicles }: MapViewProps) => {
             opacity: 0;
           }
         }
-      `}</style>
+        `}
+      </style>
     </div>
   );
 };

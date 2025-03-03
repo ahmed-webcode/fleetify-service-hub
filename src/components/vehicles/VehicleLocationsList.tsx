@@ -1,7 +1,11 @@
 
-import React from 'react';
-import { VehicleLocation } from '../maps/MapView';
-import { cn } from '@/lib/utils';
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { VehicleLocation } from "@/components/maps/MapView";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
+import { Search } from "lucide-react";
 
 interface VehicleLocationsListProps {
   vehicles: VehicleLocation[];
@@ -9,74 +13,93 @@ interface VehicleLocationsListProps {
   onSelectVehicle: (id: string) => void;
 }
 
-const VehicleLocationsList = ({ 
-  vehicles, 
-  selectedVehicle, 
-  onSelectVehicle 
+const VehicleLocationsList = ({
+  vehicles,
+  selectedVehicle,
+  onSelectVehicle,
 }: VehicleLocationsListProps) => {
-  
-  const getStatusColor = (status: VehicleLocation['status']) => {
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Filter vehicles based on search query
+  const filteredVehicles = vehicles.filter(
+    (vehicle) =>
+      vehicle.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      vehicle.licensePlate.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      vehicle.driver.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Status badge variant mapping
+  const getStatusBadge = (status: VehicleLocation["status"]) => {
     switch (status) {
-      case 'active':
-        return 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400';
-      case 'parked':
-        return 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
-      case 'maintenance':
-        return 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
-      case 'unavailable':
-        return 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400';
+      case "active":
+        return <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">Active</Badge>;
+      case "parked":
+        return <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">Parked</Badge>;
+      case "maintenance":
+        return <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300">Maintenance</Badge>;
+      case "unavailable":
+        return <Badge variant="outline" className="bg-red-100 text-red-800 border-red-300">Unavailable</Badge>;
       default:
-        return 'bg-gray-50 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400';
+        return <Badge variant="outline">Unknown</Badge>;
     }
   };
 
   return (
-    <div className="bg-card rounded-xl border border-border overflow-hidden">
-      <table className="w-full">
-        <thead className="bg-muted/50">
-          <tr>
-            <th className="text-left py-3 px-4 text-sm font-medium">Vehicle</th>
-            <th className="text-left py-3 px-4 text-sm font-medium">Driver</th>
-            <th className="text-left py-3 px-4 text-sm font-medium">Speed</th>
-            <th className="text-left py-3 px-4 text-sm font-medium">Status</th>
-            <th className="text-right py-3 px-4 text-sm font-medium">Last Updated</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-border">
-          {vehicles.map((vehicle) => (
-            <tr 
-              key={vehicle.id} 
-              className={cn(
-                "hover:bg-muted/30 transition-colors cursor-pointer",
-                selectedVehicle === vehicle.id && "bg-primary/5"
+    <Card>
+      <CardHeader className="pb-3">
+        <div className="relative">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search vehicles..."
+            className="pl-8"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Vehicle</TableHead>
+                <TableHead>License Plate</TableHead>
+                <TableHead>Driver</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Speed</TableHead>
+                <TableHead>Last Update</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredVehicles.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
+                    No vehicles found matching your search.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredVehicles.map((vehicle) => (
+                  <TableRow
+                    key={vehicle.id}
+                    className={`cursor-pointer ${
+                      selectedVehicle === vehicle.id ? "bg-primary/5" : ""
+                    }`}
+                    onClick={() => onSelectVehicle(vehicle.id)}
+                  >
+                    <TableCell className="font-medium">{vehicle.name}</TableCell>
+                    <TableCell>{vehicle.licensePlate}</TableCell>
+                    <TableCell>{vehicle.driver}</TableCell>
+                    <TableCell>{getStatusBadge(vehicle.status)}</TableCell>
+                    <TableCell>{vehicle.speed}</TableCell>
+                    <TableCell>{vehicle.lastUpdated}</TableCell>
+                  </TableRow>
+                ))
               )}
-              onClick={() => onSelectVehicle(vehicle.id)}
-            >
-              <td className="py-3 px-4">
-                <div>
-                  <p className="font-medium">{vehicle.name}</p>
-                  <p className="text-xs text-muted-foreground">{vehicle.licensePlate}</p>
-                </div>
-              </td>
-              <td className="py-3 px-4">
-                {vehicle.driver}
-              </td>
-              <td className="py-3 px-4">
-                {vehicle.speed}
-              </td>
-              <td className="py-3 px-4">
-                <span className={cn(`px-2 py-1 rounded-full text-xs`, getStatusColor(vehicle.status))}>
-                  {vehicle.status.charAt(0).toUpperCase() + vehicle.status.slice(1)}
-                </span>
-              </td>
-              <td className="py-3 px-4 text-right">
-                {vehicle.lastUpdated}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

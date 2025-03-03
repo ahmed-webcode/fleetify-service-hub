@@ -1,55 +1,42 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { PageLayout } from "@/components/layout/PageLayout";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Map, CarFront, List, MapPin, RefreshCcw } from "lucide-react";
+import { Map, CarFront, List, MapPin, RefreshCcw, Clock } from "lucide-react";
 import MapView, { VehicleLocation } from "@/components/maps/MapView";
 import VehicleLocationsList from "@/components/vehicles/VehicleLocationsList";
 import VehicleLocationDetails from "@/components/vehicles/VehicleLocationDetails";
-import { getVehicleLocations } from "@/data/vehicleLocations";
+import { getVehicleLocations, simulateVehicleMovement } from "@/data/vehicleLocations";
 import { useToast } from "@/hooks/use-toast";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Card } from "@/components/ui/card";
 
 const GPSTracking = () => {
   const [selectedVehicle, setSelectedVehicle] = useState<string>("");
   const [vehicles, setVehicles] = useState<VehicleLocation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [autoRefresh, setAutoRefresh] = useState(false);
+  const [refreshInterval, setRefreshInterval] = useState<number>(10);
   const { toast } = useToast();
   
-  // Simulate API call to get vehicle locations
-  useEffect(() => {
-    const fetchVehicles = () => {
-      setIsLoading(true);
-      // Simulate network delay
-      setTimeout(() => {
-        const data = getVehicleLocations();
-        setVehicles(data);
-        setIsLoading(false);
-      }, 800);
-    };
-    
-    fetchVehicles();
-  }, []);
-  
-  const handleRefresh = () => {
+  // Function to refresh vehicle data
+  const refreshVehicleData = useCallback(() => {
     setIsLoading(true);
     // Simulate network delay
     setTimeout(() => {
-      // Add some randomness to the vehicle locations
-      const updatedVehicles = getVehicleLocations().map(vehicle => {
-        if (vehicle.status === 'active') {
-          return {
-            ...vehicle,
-            latitude: vehicle.latitude + (Math.random() - 0.5) * 0.005,
-            longitude: vehicle.longitude + (Math.random() - 0.5) * 0.005,
-            lastUpdated: 'just now'
-          };
-        }
-        return vehicle;
-      });
+      if (vehicles.length === 0) {
+        // Initial load
+        const data = getVehicleLocations();
+        setVehicles(data);
+      } else {
+        // Subsequent refreshes - simulate movement
+        const updatedVehicles = simulateVehicleMovement(vehicles);
+        setVehicles(updatedVehicles);
+      }
       
-      setVehicles(updatedVehicles);
       setIsLoading(false);
       
       toast({
@@ -57,22 +44,116 @@ const GPSTracking = () => {
         description: "Vehicle locations have been refreshed.",
       });
     }, 800);
-  };
+  }, [vehicles, toast]);
+  
+  // Initial data load
+  useEffect(() => {
+    refreshVehicleData();
+  }, []);
+  
+  // Set up auto-refresh interval
+  useEffect(() => {
+    if (!autoRefresh) return;
+    
+    const intervalId = setInterval(() => {
+      refreshVehicleData();
+    }, refreshInterval * 1000);
+    
+    return () => clearInterval(intervalId);
+  }, [autoRefresh, refreshInterval, refreshVehicleData]);
   
   const selectedVehicleData = vehicles.find(v => v.id === selectedVehicle) || null;
   
+  // Calculate statistics
+  const activeVehicles = vehicles.filter(v => v.status === 'active').length;
+  const parkedVehicles = vehicles.filter(v => v.status === 'parked').length;
+  const maintenanceVehicles = vehicles.filter(v => v.status === 'maintenance').length;
+  const unavailableVehicles = vehicles.filter(v => v.status === 'unavailable').length;
+  
   return (
     <PageLayout>
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
           <h1 className="text-3xl font-bold">GPS Tracking</h1>
           <p className="text-muted-foreground">Track and monitor your fleet in real-time</p>
         </div>
         
-        <Button variant="outline" onClick={handleRefresh} disabled={isLoading}>
-          <RefreshCcw className="h-4 w-4 mr-2" />
-          {isLoading ? "Refreshing..." : "Refresh"}
-        </Button>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="auto-refresh"
+              checked={autoRefresh}
+              onCheckedChange={setAutoRefresh}
+            />
+            <Label htmlFor="auto-refresh" className="cursor-pointer">Auto Refresh</Label>
+          </div>
+          
+          {autoRefresh && (
+            <Select
+              value={refreshInterval.toString()}
+              onValueChange={(val) => setRefreshInterval(parseInt(val))}
+            >
+              <SelectTrigger className="w-[120px]">
+                <Clock className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Interval" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="5">5 seconds</SelectItem>
+                <SelectItem value="10">10 seconds</SelectItem>
+                <SelectItem value="30">30 seconds</SelectItem>
+                <SelectItem value="60">1 minute</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+          
+          <Button variant="outline" onClick={refreshVehicleData} disabled={isLoading}>
+            <RefreshCcw className="h-4 w-4 mr-2" />
+            {isLoading ? "Refreshing..." : "Refresh"}
+          </Button>
+        </div>
+      </div>
+      
+      {/* Vehicle status overview */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <Card className="p-4 flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-medium text-muted-foreground">Active</h3>
+            <p className="text-2xl font-bold">{activeVehicles}</p>
+          </div>
+          <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
+            <div className="h-3 w-3 rounded-full bg-green-500"></div>
+          </div>
+        </Card>
+        
+        <Card className="p-4 flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-medium text-muted-foreground">Parked</h3>
+            <p className="text-2xl font-bold">{parkedVehicles}</p>
+          </div>
+          <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+            <div className="h-3 w-3 rounded-full bg-blue-500"></div>
+          </div>
+        </Card>
+        
+        <Card className="p-4 flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-medium text-muted-foreground">Maintenance</h3>
+            <p className="text-2xl font-bold">{maintenanceVehicles}</p>
+          </div>
+          <div className="h-10 w-10 rounded-full bg-amber-100 flex items-center justify-center">
+            <div className="h-3 w-3 rounded-full bg-amber-500"></div>
+          </div>
+        </Card>
+        
+        <Card className="p-4 flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-medium text-muted-foreground">Unavailable</h3>
+            <p className="text-2xl font-bold">{unavailableVehicles}</p>
+          </div>
+          <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
+            <div className="h-3 w-3 rounded-full bg-red-500"></div>
+          </div>
+        </Card>
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -97,7 +178,7 @@ const GPSTracking = () => {
                 </SelectContent>
               </Select>
               
-              <div className="space-y-2">
+              <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
                 {vehicles.map((vehicle) => (
                   <div 
                     key={vehicle.id}
