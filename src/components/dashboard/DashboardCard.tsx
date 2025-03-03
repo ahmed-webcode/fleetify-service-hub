@@ -7,13 +7,16 @@ interface DashboardCardProps {
   icon?: ReactNode;
   className?: string;
   children: ReactNode;
+  isLoading?: boolean;
 }
 
-export function DashboardCard({ title, icon, className, children }: DashboardCardProps) {
+export function DashboardCard({ title, icon, className, children, isLoading = false }: DashboardCardProps) {
   return (
     <div 
       className={cn(
-        "bg-card rounded-xl border border-border p-5 hover-lift transition-all duration-300",
+        "bg-card rounded-xl border border-border p-5 transition-all duration-300",
+        "hover:shadow-md hover:-translate-y-1",
+        { "animate-pulse opacity-70": isLoading },
         className
       )}
     >
