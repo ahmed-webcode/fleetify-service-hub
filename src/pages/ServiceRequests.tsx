@@ -1,5 +1,6 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { PageLayout } from "@/components/layout/PageLayout";
 import { ServiceRequestForm } from "@/components/services/ServiceRequestForm";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,23 @@ import { PlusCircle, ListFilter, Clock } from "lucide-react";
 
 const ServiceRequests = () => {
   const [view, setView] = useState("new");
+  const location = useLocation();
+  
+  // Set the default service type based on URL
+  const getServiceTypeFromUrl = () => {
+    if (location.pathname.includes("/fleet")) return "fleet";
+    if (location.pathname.includes("/fuel")) return "fuel";
+    if (location.pathname.includes("/maintenance")) return "maintenance";
+    return "fleet"; // Default
+  };
+  
+  // Pass selected service type to the form
+  const [selectedServiceType, setSelectedServiceType] = useState(getServiceTypeFromUrl());
+  
+  useEffect(() => {
+    // Update service type when route changes
+    setSelectedServiceType(getServiceTypeFromUrl());
+  }, [location.pathname]);
 
   return (
     <PageLayout>
@@ -45,7 +63,7 @@ const ServiceRequests = () => {
         </div>
         
         <TabsContent value="new" className="animate-fade-in">
-          <ServiceRequestForm />
+          <ServiceRequestForm defaultServiceType={selectedServiceType as any} />
         </TabsContent>
         
         <TabsContent value="history" className="animate-fade-in">

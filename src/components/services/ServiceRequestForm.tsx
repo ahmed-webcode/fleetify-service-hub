@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Car, Calendar, Clock, MapPin, User, FileText, Fuel, Wrench, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,12 +8,22 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 type ServiceType = "fleet" | "fuel" | "maintenance";
 
-export function ServiceRequestForm() {
-  const [serviceType, setServiceType] = useState<ServiceType>("fleet");
+interface ServiceRequestFormProps {
+  defaultServiceType?: ServiceType;
+}
+
+export function ServiceRequestForm({ defaultServiceType = "fleet" }: ServiceRequestFormProps) {
+  const [serviceType, setServiceType] = useState<ServiceType>(defaultServiceType);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Update service type when defaultServiceType prop changes
+  useEffect(() => {
+    setServiceType(defaultServiceType);
+  }, [defaultServiceType]);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -22,7 +32,9 @@ export function ServiceRequestForm() {
     // Simulate API call
     setTimeout(() => {
       setIsSubmitting(false);
-      // Show success toast - would need to add this functionality
+      toast.success("Request submitted successfully", {
+        description: `Your ${serviceType} service request has been submitted.`
+      });
     }, 1500);
   };
 

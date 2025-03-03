@@ -2,11 +2,13 @@
 import { useState } from "react";
 import { PageLayout } from "@/components/layout/PageLayout";
 import { VehicleCard } from "@/components/vehicles/VehicleCard";
+import { AddVehicleForm } from "@/components/vehicles/AddVehicleForm";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Car, Plus, Search } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 // Mock vehicle data
 const vehicles = [
@@ -81,6 +83,7 @@ const vehicles = [
 const Vehicles = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [addVehicleOpen, setAddVehicleOpen] = useState(false);
   
   const filteredVehicles = vehicles.filter(vehicle => {
     const matchesSearch = 
@@ -101,7 +104,7 @@ const Vehicles = () => {
           <p className="text-muted-foreground">Manage and monitor your fleet</p>
         </div>
         
-        <Button className="gap-2">
+        <Button className="gap-2" onClick={() => setAddVehicleOpen(true)}>
           <Plus className="h-4 w-4" />
           Add Vehicle
         </Button>
@@ -264,6 +267,15 @@ const Vehicles = () => {
           )}
         </TabsContent>
       </Tabs>
+      
+      <Dialog open={addVehicleOpen} onOpenChange={setAddVehicleOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Add New Vehicle</DialogTitle>
+          </DialogHeader>
+          <AddVehicleForm onClose={() => setAddVehicleOpen(false)} />
+        </DialogContent>
+      </Dialog>
     </PageLayout>
   );
 };
