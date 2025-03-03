@@ -1,13 +1,65 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PageLayout } from "@/components/layout/PageLayout";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Map, CarFront, List, MapPin } from "lucide-react";
+import { Map, CarFront, List, MapPin, RefreshCcw } from "lucide-react";
+import MapView, { VehicleLocation } from "@/components/maps/MapView";
+import VehicleLocationsList from "@/components/vehicles/VehicleLocationsList";
+import VehicleLocationDetails from "@/components/vehicles/VehicleLocationDetails";
+import { getVehicleLocations } from "@/data/vehicleLocations";
+import { useToast } from "@/hooks/use-toast";
 
 const GPSTracking = () => {
   const [selectedVehicle, setSelectedVehicle] = useState<string>("");
+  const [vehicles, setVehicles] = useState<VehicleLocation[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
+  
+  // Simulate API call to get vehicle locations
+  useEffect(() => {
+    const fetchVehicles = () => {
+      setIsLoading(true);
+      // Simulate network delay
+      setTimeout(() => {
+        const data = getVehicleLocations();
+        setVehicles(data);
+        setIsLoading(false);
+      }, 800);
+    };
+    
+    fetchVehicles();
+  }, []);
+  
+  const handleRefresh = () => {
+    setIsLoading(true);
+    // Simulate network delay
+    setTimeout(() => {
+      // Add some randomness to the vehicle locations
+      const updatedVehicles = getVehicleLocations().map(vehicle => {
+        if (vehicle.status === 'active') {
+          return {
+            ...vehicle,
+            latitude: vehicle.latitude + (Math.random() - 0.5) * 0.005,
+            longitude: vehicle.longitude + (Math.random() - 0.5) * 0.005,
+            lastUpdated: 'just now'
+          };
+        }
+        return vehicle;
+      });
+      
+      setVehicles(updatedVehicles);
+      setIsLoading(false);
+      
+      toast({
+        title: "Locations Updated",
+        description: "Vehicle locations have been refreshed.",
+      });
+    }, 800);
+  };
+  
+  const selectedVehicleData = vehicles.find(v => v.id === selectedVehicle) || null;
   
   return (
     <PageLayout>
@@ -16,6 +68,11 @@ const GPSTracking = () => {
           <h1 className="text-3xl font-bold">GPS Tracking</h1>
           <p className="text-muted-foreground">Track and monitor your fleet in real-time</p>
         </div>
+        
+        <Button variant="outline" onClick={handleRefresh} disabled={isLoading}>
+          <RefreshCcw className="h-4 w-4 mr-2" />
+          {isLoading ? "Refreshing..." : "Refresh"}
+        </Button>
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -32,41 +89,33 @@ const GPSTracking = () => {
                   <SelectValue placeholder="Select a vehicle" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="vehicle1">Toyota Land Cruiser (AAU-3201)</SelectItem>
-                  <SelectItem value="vehicle2">Nissan Patrol (AAU-1450)</SelectItem>
-                  <SelectItem value="vehicle3">Toyota Hilux (AAU-8742)</SelectItem>
-                  <SelectItem value="vehicle4">Toyota Corolla (AAU-5214)</SelectItem>
-                  <SelectItem value="vehicle5">Hyundai H-1 (AAU-6390)</SelectItem>
+                  {vehicles.map(vehicle => (
+                    <SelectItem key={vehicle.id} value={vehicle.id}>
+                      {vehicle.name} ({vehicle.licensePlate})
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               
               <div className="space-y-2">
-                {["vehicle1", "vehicle2", "vehicle3", "vehicle4", "vehicle5"].map((id, index) => (
+                {vehicles.map((vehicle) => (
                   <div 
-                    key={id}
+                    key={vehicle.id}
                     className={`p-3 rounded-lg border flex items-center gap-3 cursor-pointer transition-colors ${
-                      selectedVehicle === id 
+                      selectedVehicle === vehicle.id 
                         ? "bg-primary/10 border-primary" 
                         : "hover:bg-muted"
                     }`}
-                    onClick={() => setSelectedVehicle(id)}
+                    onClick={() => setSelectedVehicle(vehicle.id)}
                   >
-                    <div className={`w-2 h-2 rounded-full ${index < 3 ? "bg-green-500" : "bg-amber-500"}`} />
+                    <div className={`w-2 h-2 rounded-full ${
+                      vehicle.status === 'active' ? "bg-green-500" : 
+                      vehicle.status === 'parked' ? "bg-blue-500" : 
+                      vehicle.status === 'maintenance' ? "bg-amber-500" : "bg-red-500"
+                    }`} />
                     <div>
-                      <p className="font-medium text-sm">
-                        {index === 0 && "Toyota Land Cruiser"}
-                        {index === 1 && "Nissan Patrol"}
-                        {index === 2 && "Toyota Hilux"}
-                        {index === 3 && "Toyota Corolla"}
-                        {index === 4 && "Hyundai H-1"}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {index === 0 && "AAU-3201"}
-                        {index === 1 && "AAU-1450"}
-                        {index === 2 && "AAU-8742"}
-                        {index === 3 && "AAU-5214"}
-                        {index === 4 && "AAU-6390"}
-                      </p>
+                      <p className="font-medium text-sm">{vehicle.name}</p>
+                      <p className="text-xs text-muted-foreground">{vehicle.licensePlate}</p>
                     </div>
                   </div>
                 ))}
@@ -74,44 +123,7 @@ const GPSTracking = () => {
             </div>
           </div>
           
-          <div className="bg-card rounded-xl border p-4">
-            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <List className="h-5 w-5 text-primary" />
-              <span>Details</span>
-            </h3>
-            
-            {selectedVehicle ? (
-              <div className="space-y-3">
-                <div>
-                  <p className="text-sm text-muted-foreground">Current Speed</p>
-                  <p className="font-medium">56 km/h</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Current Location</p>
-                  <p className="font-medium">Main Campus, Addis Ababa</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Last Updated</p>
-                  <p className="font-medium">2 minutes ago</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Driver</p>
-                  <p className="font-medium">Mohammed Ahmed</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Status</p>
-                  <p className="font-medium flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-green-500"></span> 
-                    Active
-                  </p>
-                </div>
-                
-                <Button className="w-full mt-2">View Detailed History</Button>
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">Select a vehicle to view details</p>
-            )}
-          </div>
+          <VehicleLocationDetails vehicle={selectedVehicleData} />
         </div>
         
         <div className="lg:col-span-3">
@@ -128,76 +140,18 @@ const GPSTracking = () => {
             </TabsList>
             
             <TabsContent value="map" className="space-y-4">
-              <div className="bg-card rounded-xl border border-border flex items-center justify-center h-[600px] relative">
-                <div className="absolute inset-0 bg-muted/30 flex items-center justify-center rounded-xl overflow-hidden">
-                  <div className="bg-card p-8 rounded-lg flex flex-col items-center justify-center max-w-md text-center space-y-4">
-                    <MapPin className="h-12 w-12 text-muted-foreground" />
-                    <h3 className="text-xl font-medium">Map Integration Required</h3>
-                    <p className="text-muted-foreground">
-                      Real-time GPS tracking will be available after integrating with a maps service like Mapbox or Google Maps.
-                    </p>
-                    <Button>Configure Map Integration</Button>
-                  </div>
-                </div>
-              </div>
+              <MapView 
+                selectedVehicle={selectedVehicle || null} 
+                vehicles={vehicles}
+              />
             </TabsContent>
             
             <TabsContent value="list" className="space-y-4">
-              <div className="bg-card rounded-xl border border-border overflow-hidden">
-                <table className="w-full">
-                  <thead className="bg-muted/50">
-                    <tr>
-                      <th className="text-left py-3 px-4 text-sm font-medium">Vehicle</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium">Driver</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium">Current Location</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium">Speed</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium">Status</th>
-                      <th className="text-right py-3 px-4 text-sm font-medium">Last Updated</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {[
-                      { id: 'v1', vehicle: 'Toyota Land Cruiser', plate: 'AAU-3201', driver: 'Mohammed Ahmed', location: 'Main Campus, Addis Ababa', speed: '56 km/h', status: 'active', updated: '2 minutes ago' },
-                      { id: 'v2', vehicle: 'Nissan Patrol', plate: 'AAU-1450', driver: 'Daniel Bekele', location: 'Science Faculty, Addis Ababa', speed: '0 km/h', status: 'parked', updated: '5 minutes ago' },
-                      { id: 'v3', vehicle: 'Toyota Hilux', plate: 'AAU-8742', driver: 'Abebe Tadesse', location: 'Sidist Kilo Campus', speed: '32 km/h', status: 'active', updated: '1 minute ago' },
-                      { id: 'v4', vehicle: 'Toyota Corolla', plate: 'AAU-5214', driver: 'Sara Haile', location: '6 Kilo Campus', speed: '0 km/h', status: 'inactive', updated: '45 minutes ago' },
-                      { id: 'v5', vehicle: 'Hyundai H-1', plate: 'AAU-6390', driver: 'Yonas Gebru', location: 'Administration Building', speed: '27 km/h', status: 'active', updated: '8 minutes ago' },
-                    ].map((vehicle) => (
-                      <tr key={vehicle.id} className="hover:bg-muted/30 transition-colors">
-                        <td className="py-3 px-4">
-                          <div>
-                            <p className="font-medium">{vehicle.vehicle}</p>
-                            <p className="text-xs text-muted-foreground">{vehicle.plate}</p>
-                          </div>
-                        </td>
-                        <td className="py-3 px-4">
-                          {vehicle.driver}
-                        </td>
-                        <td className="py-3 px-4">
-                          {vehicle.location}
-                        </td>
-                        <td className="py-3 px-4">
-                          {vehicle.speed}
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className={`px-2 py-1 rounded-full text-xs ${
-                            vehicle.status === 'active' 
-                              ? 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                              : vehicle.status === 'parked'
-                              ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                              : 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-                          }`}>
-                            {vehicle.status.charAt(0).toUpperCase() + vehicle.status.slice(1)}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-right">
-                          {vehicle.updated}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <VehicleLocationsList 
+                vehicles={vehicles}
+                selectedVehicle={selectedVehicle || null}
+                onSelectVehicle={setSelectedVehicle}
+              />
             </TabsContent>
           </Tabs>
         </div>

@@ -1,0 +1,46 @@
+
+/* Vehicle marker styling */
+.mapboxgl-marker {
+  cursor: pointer;
+}
+
+.mapboxgl-popup-content {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid hsl(var(--border));
+  background-color: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.mapboxgl-popup-close-button {
+  color: hsl(var(--muted-foreground));
+  font-size: 18px;
+  padding: 2px 6px;
+}
+
+/* Customize controls */
+.mapboxgl-ctrl-group {
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid hsl(var(--border));
+  background-color: hsl(var(--card));
+}
+
+.mapboxgl-ctrl button {
+  color: hsl(var(--foreground));
+}
+
+/* Add some animation for markers */
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.vehicle-marker.selected > div {
+  animation: bounce 1s ease infinite;
+}
