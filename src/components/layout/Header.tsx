@@ -6,7 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
-export function Header({ toggleSidebar }: { toggleSidebar: () => void }) {
+interface HeaderProps {
+  toggleSidebar: () => void;
+  sidebarOpen?: boolean;
+}
+
+export function Header({ toggleSidebar, sidebarOpen }: HeaderProps) {
   const [scrolled, setScrolled] = useState(false);
   const [searchVisible, setSearchVisible] = useState(false);
   const location = useLocation();
