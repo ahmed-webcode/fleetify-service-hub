@@ -12,9 +12,46 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
 import { useIsMobile } from "@/hooks/use-mobile";
 
+// Location Data
+const centralDirectors = [
+  "Executive Director",
+  "Vice Executive Director for Academics",
+  "Vice Executive Director for Research",
+  "Administrative Director",
+  "Finance Director",
+  "Human Resource Director",
+  "ICT Director",
+  "Facility Management Director"
+];
+
+const colleges = [
+  { name: "College of Business and Economics", campus: "FBE Campus, Commerce" },
+  { name: "College of Social Science, Arts and Humanities", campus: "Main Campus, Yared Campus, Art Campus" },
+  { name: "College of Veterinary Medicine and Agriculture", campus: "Debre Zeit Campus" },
+  { name: "College of Technology and Built Environment", campus: "Technology, Built Environment" },
+  { name: "College of Natural and Computational Sciences", campus: "4 Kilo Campus" },
+  { name: "College of Education and Language Studies", campus: "5 Kilo Campus" },
+  { name: "College of Health Science", campus: "Tikur Anbessa, Seferselam" },
+  { name: "School of Law", campus: "Main Campus" }
+];
+
+const institutes = [
+  { name: "Aklilu Lema Institute of Health Research (ALIHR)", location: "Tikur Anbessa" },
+  { name: "Institute of Ethiopian Studies (IES)", location: "Central" },
+  { name: "Institute of Water, Environment and Climate Research", location: "5 Kilo" },
+  { name: "Institute of Social & Economic Research", location: "FBE" },
+  { name: "Institute of Geophysics Space Science and Astronomy", location: "4 Kilo" },
+  { name: "Institute of Peace and Security Studies", location: "Central" },
+  { name: "Institute of Advanced Science and Technology", location: "5 Kilo" }
+];
+
 export function AddVehicleForm({ onClose }: { onClose: () => void }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isMobile = useIsMobile();
+  
+  // Location state
+  const [locationType, setLocationType] = useState<string>("");
+  const [selectedLocation, setSelectedLocation] = useState<string>("");
   
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -28,6 +65,75 @@ export function AddVehicleForm({ onClose }: { onClose: () => void }) {
       });
       onClose();
     }, 1500);
+  };
+
+  // Determine which dropdown to show based on location type
+  const renderLocationDropdown = () => {
+    if (!locationType) return null;
+    
+    switch (locationType) {
+      case "central":
+        return (
+          <div className="space-y-2">
+            <Label htmlFor="centralDirector">Central Director</Label>
+            <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+              <SelectTrigger id="centralDirector">
+                <SelectValue placeholder="Select director" />
+              </SelectTrigger>
+              <SelectContent>
+                {centralDirectors.map((director) => (
+                  <SelectItem key={director} value={director}>
+                    {director}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        );
+      
+      case "college":
+        return (
+          <div className="space-y-2">
+            <Label htmlFor="college">College</Label>
+            <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+              <SelectTrigger id="college">
+                <SelectValue placeholder="Select college" />
+              </SelectTrigger>
+              <SelectContent>
+                {colleges.map((college) => (
+                  <SelectItem key={college.name} value={college.name}>
+                    {college.name}
+                    <span className="block text-xs text-muted-foreground">{college.campus}</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        );
+      
+      case "institute":
+        return (
+          <div className="space-y-2">
+            <Label htmlFor="institute">Institute</Label>
+            <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+              <SelectTrigger id="institute">
+                <SelectValue placeholder="Select institute" />
+              </SelectTrigger>
+              <SelectContent>
+                {institutes.map((institute) => (
+                  <SelectItem key={institute.name} value={institute.name}>
+                    {institute.name}
+                    <span className="block text-xs text-muted-foreground">{institute.location}</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        );
+      
+      default:
+        return null;
+    }
   };
 
   return (
@@ -64,6 +170,35 @@ export function AddVehicleForm({ onClose }: { onClose: () => void }) {
             <Input id="registrationNumber" placeholder="e.g. ኢ.ት-04-01-18006" />
           </div>
         </div>
+      </div>
+
+      <div className="space-y-2 pt-2">
+        <h3 className="text-lg font-medium flex items-center gap-2 flex-wrap">
+          Location Information
+          <Badge variant="outline" className="bg-blue-50 text-blue-800 border-blue-200">የቦታ መረጃ</Badge>
+        </h3>
+        <Separator />
+      </div>
+
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="locationType">Location Type</Label>
+          <Select value={locationType} onValueChange={(value) => {
+            setLocationType(value);
+            setSelectedLocation("");
+          }}>
+            <SelectTrigger id="locationType">
+              <SelectValue placeholder="Select location type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="central">Central</SelectItem>
+              <SelectItem value="college">College</SelectItem>
+              <SelectItem value="institute">Institute</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        
+        {renderLocationDropdown()}
       </div>
 
       <div className="space-y-2 pt-2">
