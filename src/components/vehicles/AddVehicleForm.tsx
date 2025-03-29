@@ -140,40 +140,6 @@ export function AddVehicleForm({ onClose }: { onClose: () => void }) {
     <form onSubmit={handleSubmit} className="space-y-4 max-h-[75vh] overflow-y-auto p-1">
       <div className="space-y-2">
         <h3 className="text-lg font-medium flex items-center gap-2 flex-wrap">
-          Owner Description
-          <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-200">የባለሃብት መረጃ</Badge>
-        </h3>
-        <Separator />
-      </div>
-
-      <div className="space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="ownerName">Name</Label>
-            <Input id="ownerName" placeholder="Full name" />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="ownerAddress">Address</Label>
-            <Input id="ownerAddress" placeholder="Address" />
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="phoneNumber">Phone Number</Label>
-            <Input id="phoneNumber" placeholder="e.g. 0111-239798" />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="registrationNumber">Registration Number</Label>
-            <Input id="registrationNumber" placeholder="e.g. ኢ.ት-04-01-18006" />
-          </div>
-        </div>
-      </div>
-
-      <div className="space-y-2 pt-2">
-        <h3 className="text-lg font-medium flex items-center gap-2 flex-wrap">
           Location Information
           <Badge variant="outline" className="bg-blue-50 text-blue-800 border-blue-200">የቦታ መረጃ</Badge>
         </h3>
