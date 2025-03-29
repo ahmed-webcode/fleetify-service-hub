@@ -10,9 +10,11 @@ import { DialogFooter } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export function AddVehicleForm({ onClose }: { onClose: () => void }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isMobile = useIsMobile();
   
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -29,9 +31,9 @@ export function AddVehicleForm({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4 max-h-[75vh] overflow-y-auto p-1">
       <div className="space-y-2">
-        <h3 className="text-lg font-medium flex items-center gap-2">
+        <h3 className="text-lg font-medium flex items-center gap-2 flex-wrap">
           Owner Description
           <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-200">የባለሃብት መረጃ</Badge>
         </h3>
@@ -39,7 +41,7 @@ export function AddVehicleForm({ onClose }: { onClose: () => void }) {
       </div>
 
       <div className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="ownerName">Name</Label>
             <Input id="ownerName" placeholder="Full name" />
@@ -51,7 +53,7 @@ export function AddVehicleForm({ onClose }: { onClose: () => void }) {
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="phoneNumber">Phone Number</Label>
             <Input id="phoneNumber" placeholder="e.g. 0111-239798" />
@@ -65,7 +67,7 @@ export function AddVehicleForm({ onClose }: { onClose: () => void }) {
       </div>
 
       <div className="space-y-2 pt-2">
-        <h3 className="text-lg font-medium flex items-center gap-2">
+        <h3 className="text-lg font-medium flex items-center gap-2 flex-wrap">
           Vehicle Description
           <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-200">የትራንስፖርት መረጃ</Badge>
         </h3>
@@ -73,7 +75,7 @@ export function AddVehicleForm({ onClose }: { onClose: () => void }) {
       </div>
 
       <div className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="vehicleType">Vehicle Type</Label>
             <Select required>
@@ -97,7 +99,7 @@ export function AddVehicleForm({ onClose }: { onClose: () => void }) {
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="model">Model</Label>
             <Input id="model" placeholder="e.g. Land Cruiser" required />
@@ -109,7 +111,7 @@ export function AddVehicleForm({ onClose }: { onClose: () => void }) {
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="licensePlate">License Plate</Label>
             <Input id="licensePlate" placeholder="e.g. HZJ76L-RKMRS" required />
@@ -121,7 +123,7 @@ export function AddVehicleForm({ onClose }: { onClose: () => void }) {
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="motorNumber">Motor Number</Label>
             <Input id="motorNumber" placeholder="e.g. 1HZ-0720146" />
@@ -133,7 +135,7 @@ export function AddVehicleForm({ onClose }: { onClose: () => void }) {
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="seats">Seats</Label>
             <Input id="seats" type="number" min="1" placeholder="e.g. 4" />
@@ -155,7 +157,7 @@ export function AddVehicleForm({ onClose }: { onClose: () => void }) {
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="tankCapacity">Fuel Tank Capacity (L)</Label>
             <Input id="tankCapacity" type="number" min="0" placeholder="e.g. 130" />
@@ -167,7 +169,7 @@ export function AddVehicleForm({ onClose }: { onClose: () => void }) {
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="mileage">Current Mileage (km)</Label>
             <Input id="mileage" type="number" min="0" placeholder="e.g. 4164" required />
@@ -194,9 +196,9 @@ export function AddVehicleForm({ onClose }: { onClose: () => void }) {
         <Textarea id="notes" placeholder="Any additional information about the vehicle..." rows={3} />
       </div>
       
-      <DialogFooter>
-        <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-        <Button type="submit" disabled={isSubmitting}>
+      <DialogFooter className={`flex ${isMobile ? 'flex-col gap-2' : 'flex-row gap-2'} mt-6`}>
+        <Button type="button" variant="outline" onClick={onClose} className={isMobile ? 'w-full' : ''}>Cancel</Button>
+        <Button type="submit" disabled={isSubmitting} className={isMobile ? 'w-full' : ''}>
           {isSubmitting ? "Adding..." : "Add Vehicle"}
         </Button>
       </DialogFooter>
