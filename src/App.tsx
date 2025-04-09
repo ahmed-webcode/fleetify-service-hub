@@ -48,27 +48,28 @@ const App = () => (
               </ProtectedRoute>
             } />
             
-            {/* Vehicle management routes */}
+            {/* Vehicle management routes - only transport director can add vehicles */}
             <Route path="/vehicles" element={
               <ProtectedRoute>
                 <Vehicles />
               </ProtectedRoute>
             } />
             
+            {/* GPS tracking - transport director only */}
             <Route path="/gps-tracking" element={
               <ProtectedRoute requiredPermission="track_vehicles">
                 <GPSTracking />
               </ProtectedRoute>
             } />
             
-            {/* Trip request routes - accessible to operational directors */}
+            {/* Trip requests - accessible to users who can request fleet */}
             <Route path="/trip-requests" element={
-              <ProtectedRoute roles={["operational_director"]}>
+              <ProtectedRoute requiredPermission="request_fleet">
                 <TripRequests />
               </ProtectedRoute>
             } />
             
-            {/* Fuel management routes */}
+            {/* Fuel management - accessible to users who can approve or request fuel */}
             <Route path="/fuel-management" element={
               <ProtectedRoute>
                 <FuelManagement />
@@ -107,7 +108,7 @@ const App = () => (
               </ProtectedRoute>
             } />
             
-            {/* Settings page */}
+            {/* Settings page - add users requires special permission */}
             <Route path="/settings" element={
               <ProtectedRoute>
                 <Settings />

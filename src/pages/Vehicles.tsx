@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { PageLayout } from "@/components/layout/PageLayout";
 import { VehicleCard } from "@/components/vehicles/VehicleCard";
@@ -9,6 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Car, Plus, Search } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 // Mock vehicle data
 const vehicles = [
@@ -84,6 +85,9 @@ const Vehicles = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [addVehicleOpen, setAddVehicleOpen] = useState(false);
+  const { hasPermission } = useAuth();
+  
+  const canAddVehicle = hasPermission("add_vehicle");
   
   const filteredVehicles = vehicles.filter(vehicle => {
     const matchesSearch = 
@@ -96,6 +100,14 @@ const Vehicles = () => {
     return matchesSearch && matchesStatus;
   });
 
+  const handleAddVehicleClick = () => {
+    if (canAddVehicle) {
+      setAddVehicleOpen(true);
+    } else {
+      toast.error("You don't have permission to add vehicles");
+    }
+  };
+
   return (
     <PageLayout>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
@@ -104,10 +116,12 @@ const Vehicles = () => {
           <p className="text-muted-foreground">Manage and monitor your fleet</p>
         </div>
         
-        <Button className="gap-2" onClick={() => setAddVehicleOpen(true)}>
-          <Plus className="h-4 w-4" />
-          Add Vehicle
-        </Button>
+        {canAddVehicle && (
+          <Button className="gap-2" onClick={handleAddVehicleClick}>
+            <Plus className="h-4 w-4" />
+            Add Vehicle
+          </Button>
+        )}
       </div>
       
       <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">

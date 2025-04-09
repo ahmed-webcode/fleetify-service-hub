@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -70,25 +71,35 @@ const MOCK_USERS = [
   },
 ];
 
-// Role permissions mapping
+// Updated Role permissions mapping based on requirements
 const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
+  // Transport Director: Full authority
   transport_director: [
     "approve_special_fuel",
     "add_users",
     "add_vehicle",
     "view_reports",
-    "track_vehicles"
+    "track_vehicles",
+    "approve_normal_fuel",
+    "approve_fleet",
+    "assign_driver",
+    "request_fuel",
+    "request_fleet",
+    "request_maintenance"
   ],
+  // Operational Director: Can make requests
   operational_director: [
     "request_fuel",
     "request_fleet",
     "request_maintenance",
     "view_reports"
   ],
+  // FOTL: Approves normal fuel requests and sees reports
   fotl: [
     "approve_normal_fuel",
     "view_reports"
   ],
+  // FTL: Approves fleet requests and assigns drivers
   ftl: [
     "approve_fleet",
     "assign_driver",
