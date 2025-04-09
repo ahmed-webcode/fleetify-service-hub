@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   Car, 
   BarChart3, 
@@ -16,7 +17,8 @@ import {
   Bell,
   UserCircle,
   LogOut,
-  HelpCircle
+  HelpCircle,
+  FileBarChart
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -39,6 +41,7 @@ export function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
   const isMobile = useIsMobile();
   const [mounted, setMounted] = useState(false);
   const [activeGroup, setActiveGroup] = useState<string | null>(null);
+  const { user, logout, hasPermission } = useAuth();
   
   // Find out which navigation group is active
   useEffect(() => {
@@ -62,6 +65,7 @@ export function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
     setActiveGroup(prev => prev === path ? null : path);
   };
 
+  // Navigation items - now with permission checks
   const navigationItems = [
     { icon: BarChart3, label: "Dashboard", path: "/dashboard" },
     { icon: Car, label: "Vehicles", path: "/vehicles" },
@@ -75,10 +79,25 @@ export function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
         { label: "Maintenance", path: "/service-requests/maintenance" }
       ]
     },
-    { icon: Map, label: "GPS Tracking", path: "/gps-tracking" },
-    { icon: FileText, label: "Reports", path: "/reports" },
+    { 
+      icon: Map, 
+      label: "GPS Tracking", 
+      path: "/gps-tracking",
+      requiredPermission: "track_vehicles"
+    },
+    { 
+      icon: FileBarChart, 
+      label: "Reports", 
+      path: "/reports",
+      requiredPermission: "view_reports" 
+    },
     { icon: Settings, label: "Settings", path: "/settings" },
   ];
+
+  // Filter navigation items based on user permissions
+  const authorizedNavItems = navigationItems.filter(item => 
+    !item.requiredPermission || (user && hasPermission(item.requiredPermission))
+  );
 
   if (!mounted) return null;
 
@@ -132,7 +151,7 @@ export function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
 
         <nav className="space-y-1 flex-1 overflow-y-auto scrollbar-hidden">
           <TooltipProvider delayDuration={300}>
-            {navigationItems.map((item) => (
+            {authorizedNavItems.map((item) => (
               <div key={item.path} className="relative">
                 {item.subItems ? (
                   <div>
@@ -237,11 +256,13 @@ export function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
         {/* Additional features */}
         {(isOpen || isMobile) && (
           <div className="mt-4 space-y-1 border-t border-sidebar-border pt-4 animate-fade-in">
-            <Button variant="ghost" className="w-full justify-start gap-3 text-sidebar-foreground">
-              <Bell className="h-5 w-5" />
-              <span>Notifications</span>
-              <Badge className="ml-auto" variant="secondary">3</Badge>
-            </Button>
+            <Link to="/notifications">
+              <Button variant="ghost" className="w-full justify-start gap-3 text-sidebar-foreground">
+                <Bell className="h-5 w-5" />
+                <span>Notifications</span>
+                <Badge className="ml-auto" variant="secondary">3</Badge>
+              </Button>
+            </Link>
             <Button variant="ghost" className="w-full justify-start gap-3 text-sidebar-foreground">
               <HelpCircle className="h-5 w-5" />
               <span>Help &amp; Support</span>
@@ -254,14 +275,19 @@ export function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
             <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-primary">
               <UserCircle className="h-5 w-5" />
             </div>
-            {(isOpen || isMobile) && (
+            {(isOpen || isMobile) && user && (
               <div className="animate-fade-in flex-1">
-                <p className="text-sm font-medium leading-none">Addis Ababa University</p>
-                <p className="text-xs text-muted-foreground mt-1">Fleet Management</p>
+                <p className="text-sm font-medium leading-none">{user.fullName}</p>
+                <p className="text-xs text-muted-foreground mt-1 capitalize">{user.role.replace('_', ' ')}</p>
               </div>
             )}
             {(isOpen || isMobile) && (
-              <Button variant="ghost" size="icon" className="text-muted-foreground ml-auto">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="text-muted-foreground ml-auto"
+                onClick={() => logout()}
+              >
                 <LogOut className="h-4 w-4" />
               </Button>
             )}
