@@ -1,115 +1,179 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, Filter, BarChart2, Fuel } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Filter, Fuel, Plus, GasPump, Calendar, FileText, Check, Clock } from "lucide-react";
 import { FuelRecordForm } from "@/components/fuel/FuelRecordForm";
+import { ServiceRequestForm } from "@/components/services/ServiceRequestForm";
+import { useAuth } from "@/contexts/AuthContext";
+
+const fuelRequests = [
+  {
+    id: "FR-2023",
+    vehicle: "Toyota Land Cruiser (AAU-3201)",
+    requestDate: "2025-03-14",
+    amount: "45",
+    fuelType: "Diesel",
+    status: "pending",
+    requestedBy: "Dr. Abebe Kebede"
+  },
+  {
+    id: "FR-2022",
+    vehicle: "Nissan Patrol (AAU-1450)",
+    requestDate: "2025-03-13",
+    amount: "35",
+    fuelType: "Gasoline",
+    status: "approved",
+    requestedBy: "Dr. Tigist Haile"
+  },
+  {
+    id: "FR-2021",
+    vehicle: "Toyota Hilux (AAU-8742)",
+    requestDate: "2025-03-12",
+    amount: "30",
+    fuelType: "Diesel",
+    status: "completed",
+    requestedBy: "Dr. Samuel Gebre"
+  },
+  {
+    id: "FR-2020",
+    vehicle: "Toyota Corolla (AAU-5214)",
+    requestDate: "2025-03-10",
+    amount: "25",
+    fuelType: "Gasoline",
+    status: "rejected",
+    requestedBy: "Dr. Hiwot Tesfaye"
+  }
+];
+
+const fuelRecords = [
+  {
+    id: "FT-4532",
+    vehicle: "Toyota Land Cruiser (AAU-3201)",
+    date: "2025-03-13",
+    amount: "42.5",
+    fuelType: "Diesel",
+    totalCost: "127.50",
+    odometer: "45,230"
+  },
+  {
+    id: "FT-4531",
+    vehicle: "Nissan Patrol (AAU-1450)",
+    date: "2025-03-12",
+    amount: "38.2",
+    fuelType: "Gasoline",
+    totalCost: "114.60",
+    odometer: "28,450"
+  },
+  {
+    id: "FT-4530",
+    vehicle: "Toyota Hilux (AAU-8742)",
+    date: "2025-03-10",
+    amount: "35.0",
+    fuelType: "Diesel",
+    totalCost: "105.00",
+    odometer: "32,680"
+  },
+  {
+    id: "FT-4529",
+    vehicle: "Toyota Corolla (AAU-5214)",
+    date: "2025-03-08",
+    amount: "28.5",
+    fuelType: "Gasoline",
+    totalCost: "85.50",
+    odometer: "15,780"
+  }
+];
 
 export default function FuelManagement() {
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [view, setView] = useState("records");
+  const [activeTab, setActiveTab] = useState("requests");
+  const [isFuelRecordFormOpen, setIsFuelRecordFormOpen] = useState(false);
+  const [isFuelRequestFormOpen, setIsFuelRequestFormOpen] = useState(false);
+  const [requestsView, setRequestsView] = useState("all");
   
-  // Mock fuel record data
-  const fuelRecords = [
-    {
-      id: "FR-1238",
-      vehicleName: "Toyota Land Cruiser",
-      licensePlate: "AAU-3201",
-      date: "2025-03-13",
-      liters: 45.2,
-      cost: 113.00,
-      fuelType: "Diesel"
-    },
-    {
-      id: "FR-1237",
-      vehicleName: "Nissan Patrol",
-      licensePlate: "AAU-1450",
-      date: "2025-03-12",
-      liters: 42.5,
-      cost: 106.25,
-      fuelType: "Diesel"
-    },
-    {
-      id: "FR-1236",
-      vehicleName: "Toyota Corolla",
-      licensePlate: "AAU-5214",
-      date: "2025-03-10",
-      liters: 35.0,
-      cost: 87.50,
-      fuelType: "Gasoline"
-    },
-    {
-      id: "FR-1235",
-      vehicleName: "Hyundai H-1",
-      licensePlate: "AAU-6390",
-      date: "2025-03-08",
-      liters: 50.5,
-      cost: 126.25,
-      fuelType: "Diesel"
-    },
-  ];
-
+  const { hasPermission } = useAuth();
+  const canRequestFuel = hasPermission("request_fuel");
+  const canApprove = hasPermission("approve_normal_fuel") || hasPermission("approve_special_fuel");
+  
+  // Filter fuel requests based on current view
+  const filteredRequests = fuelRequests.filter(request => {
+    if (requestsView === "all") return true;
+    return request.status === requestsView;
+  });
+  
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-bold">Fuel Management</h1>
-          <p className="text-muted-foreground">Track and manage fuel consumption across your fleet</p>
+          <p className="text-muted-foreground">Track fuel consumption and manage fuel requests</p>
         </div>
         
-        <Button className="gap-2" onClick={() => setIsFormOpen(true)}>
-          <Plus className="h-4 w-4" />
-          Add Fuel Record
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+          {canRequestFuel && (
+            <Button 
+              onClick={() => setIsFuelRequestFormOpen(true)}
+              className="gap-2 bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
+            >
+              <Plus className="h-4 w-4" />
+              New Fuel Request
+            </Button>
+          )}
+          
+          <Button 
+            onClick={() => setIsFuelRecordFormOpen(true)}
+            className="gap-2 bg-gray-600 hover:bg-gray-700 text-white w-full sm:w-auto"
+          >
+            <GasPump className="h-4 w-4" />
+            Add Fuel Record
+          </Button>
+        </div>
       </div>
       
-      <div className="grid gap-4 md:grid-cols-3 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Fuel This Month</CardTitle>
-            <Fuel className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Fuel Consumption</CardTitle>
+            <CardDescription>Last 30 days</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">173.2L</div>
-            <p className="text-xs text-muted-foreground">+2.5% from last month</p>
+          <CardContent className="text-3xl font-bold">
+            345.8 <span className="text-base text-muted-foreground font-normal">Liters</span>
           </CardContent>
         </Card>
         
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Average Cost Per Liter</CardTitle>
-            <BarChart2 className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Fuel Expenses</CardTitle>
+            <CardDescription>Last 30 days</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">$2.50</div>
-            <p className="text-xs text-muted-foreground">-0.2% from last month</p>
+          <CardContent className="text-3xl font-bold">
+            $1,037.40
           </CardContent>
         </Card>
         
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Cost This Month</CardTitle>
-            <BarChart2 className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Pending Requests</CardTitle>
+            <CardDescription>Awaiting approval</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">$433.00</div>
-            <p className="text-xs text-muted-foreground">+3.1% from last month</p>
+          <CardContent className="text-3xl font-bold">
+            12
           </CardContent>
         </Card>
       </div>
       
-      <Tabs 
-        defaultValue="records" 
-        value={view} 
-        onValueChange={setView}
-        className="space-y-6"
-      >
-        <div className="flex justify-between items-center">
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <div className="flex items-center justify-between mb-6">
           <TabsList>
-            <TabsTrigger value="records">Fuel Records</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="approvals">Approval Requests</TabsTrigger>
+            <TabsTrigger value="requests" className="px-4">
+              <FileText className="w-4 h-4 mr-2" />
+              Fuel Requests
+            </TabsTrigger>
+            <TabsTrigger value="records" className="px-4">
+              <Calendar className="w-4 h-4 mr-2" />
+              Fuel Records
+            </TabsTrigger>
           </TabsList>
           
           <Button variant="outline" size="sm" className="gap-2">
@@ -118,75 +182,162 @@ export default function FuelManagement() {
           </Button>
         </div>
         
-        <TabsContent value="records" className="animate-fade-in">
-          <div className="rounded-lg border border-border overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-muted/50">
-                <tr>
-                  <th className="text-left py-3 px-4 text-sm font-medium">Record ID</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium">Vehicle</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium hidden md:table-cell">Date</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium hidden lg:table-cell">Amount</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium">Cost</th>
-                  <th className="text-right py-3 px-4 text-sm font-medium">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {fuelRecords.map((record) => (
-                  <tr key={record.id} className="hover:bg-muted/30 transition-colors">
-                    <td className="py-3 px-4 font-medium">{record.id}</td>
-                    <td className="py-3 px-4">
-                      <div>
-                        <p>{record.vehicleName}</p>
-                        <p className="text-xs text-muted-foreground">{record.licensePlate}</p>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4 hidden md:table-cell">
-                      {new Date(record.date).toLocaleDateString()}
-                    </td>
-                    <td className="py-3 px-4 hidden lg:table-cell">
-                      {record.liters.toFixed(1)}L <span className="text-xs text-muted-foreground">({record.fuelType})</span>
-                    </td>
-                    <td className="py-3 px-4">
-                      ${record.cost.toFixed(2)}
-                    </td>
-                    <td className="py-3 px-4 text-right">
-                      <Button variant="ghost" size="sm">View</Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        <TabsContent value="requests" className="space-y-4">
+          {activeTab === "requests" && (
+            <div>
+              <div className="flex overflow-x-auto pb-2 mb-4">
+                <Button
+                  variant={requestsView === "all" ? "default" : "ghost"}
+                  size="sm"
+                  className="mr-2 whitespace-nowrap"
+                  onClick={() => setRequestsView("all")}
+                >
+                  All Requests
+                </Button>
+                <Button
+                  variant={requestsView === "pending" ? "default" : "ghost"}
+                  size="sm"
+                  className="mr-2 whitespace-nowrap"
+                  onClick={() => setRequestsView("pending")}
+                >
+                  <Clock className="w-4 h-4 mr-1" />
+                  Pending
+                </Button>
+                <Button
+                  variant={requestsView === "approved" ? "default" : "ghost"}
+                  size="sm"
+                  className="mr-2 whitespace-nowrap"
+                  onClick={() => setRequestsView("approved")}
+                >
+                  <Check className="w-4 h-4 mr-1" />
+                  Approved
+                </Button>
+                <Button
+                  variant={requestsView === "completed" ? "default" : "ghost"}
+                  size="sm"
+                  className="mr-2 whitespace-nowrap"
+                  onClick={() => setRequestsView("completed")}
+                >
+                  Completed
+                </Button>
+                <Button
+                  variant={requestsView === "rejected" ? "default" : "ghost"}
+                  size="sm"
+                  className="whitespace-nowrap"
+                  onClick={() => setRequestsView("rejected")}
+                >
+                  Rejected
+                </Button>
+              </div>
+              
+              <div className="rounded-lg border border-border overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-muted/50">
+                      <tr>
+                        <th className="text-left py-3 px-4 text-sm font-medium">Request ID</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium">Vehicle</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium hidden md:table-cell">Date</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium hidden lg:table-cell">Amount</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium">Status</th>
+                        <th className="text-right py-3 px-4 text-sm font-medium">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {filteredRequests.map((request) => (
+                        <tr key={request.id} className="hover:bg-muted/30 transition-colors">
+                          <td className="py-3 px-4 font-medium">{request.id}</td>
+                          <td className="py-3 px-4">{request.vehicle}</td>
+                          <td className="py-3 px-4 hidden md:table-cell">{request.requestDate}</td>
+                          <td className="py-3 px-4 hidden lg:table-cell">
+                            {request.amount} L ({request.fuelType})
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className={`px-2 py-1 rounded-full text-xs ${
+                              request.status === 'completed' 
+                                ? 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                : request.status === 'approved'
+                                ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                                : request.status === 'pending'
+                                ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                                : 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                            }`}>
+                              {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button variant="ghost" size="sm">Details</Button>
+                              {canApprove && request.status === "pending" && (
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                >
+                                  Approve
+                                </Button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
         </TabsContent>
         
-        <TabsContent value="analytics" className="animate-fade-in">
-          <Card>
-            <CardHeader>
-              <CardTitle>Fuel Consumption Analytics</CardTitle>
-              <CardDescription>Coming soon: Detailed analytics and consumption trends</CardDescription>
-            </CardHeader>
-            <CardContent className="h-[300px] flex items-center justify-center">
-              <p className="text-muted-foreground">Analytics charts will be displayed here</p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="approvals" className="animate-fade-in">
-          <Card>
-            <CardHeader>
-              <CardTitle>Fuel Request Approvals</CardTitle>
-              <CardDescription>Manage fuel request approvals</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground mb-4">No pending fuel approval requests</p>
-              <Button variant="outline">View Approval History</Button>
-            </CardContent>
-          </Card>
+        <TabsContent value="records" className="space-y-4">
+          {activeTab === "records" && (
+            <div className="rounded-lg border border-border overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-muted/50">
+                    <tr>
+                      <th className="text-left py-3 px-4 text-sm font-medium">Transaction ID</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium">Vehicle</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium hidden md:table-cell">Date</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium hidden md:table-cell">Odometer</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium hidden lg:table-cell">Amount</th>
+                      <th className="text-right py-3 px-4 text-sm font-medium">Cost</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {fuelRecords.map((record) => (
+                      <tr key={record.id} className="hover:bg-muted/30 transition-colors">
+                        <td className="py-3 px-4 font-medium">{record.id}</td>
+                        <td className="py-3 px-4">{record.vehicle}</td>
+                        <td className="py-3 px-4 hidden md:table-cell">{record.date}</td>
+                        <td className="py-3 px-4 hidden md:table-cell">{record.odometer} km</td>
+                        <td className="py-3 px-4 hidden lg:table-cell">
+                          {record.amount} L ({record.fuelType})
+                        </td>
+                        <td className="py-3 px-4 text-right">${record.totalCost}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </TabsContent>
       </Tabs>
-
-      <FuelRecordForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} />
+      
+      {/* Fuel Record Form Dialog */}
+      <FuelRecordForm 
+        isOpen={isFuelRecordFormOpen} 
+        onClose={() => setIsFuelRecordFormOpen(false)} 
+      />
+      
+      {/* Fuel Request Form Dialog */}
+      <ServiceRequestForm 
+        defaultServiceType="fuel" 
+        isDialog={true} 
+        isOpen={isFuelRequestFormOpen}
+        onClose={() => setIsFuelRequestFormOpen(false)}
+      />
     </div>
   );
 }
