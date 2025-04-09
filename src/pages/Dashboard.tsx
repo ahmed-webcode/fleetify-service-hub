@@ -38,7 +38,7 @@ export default function Dashboard() {
           title="Vehicle Status" 
           value="32/40"
           description="Active vehicles"
-          icon={Car}
+          icon={<Car size={20} />}
           trend="up"
           percentage={5}
           link="/vehicles"
@@ -47,7 +47,7 @@ export default function Dashboard() {
           title="Fuel Requests" 
           value="12"
           description="Pending approvals"
-          icon={Fuel}
+          icon={<Fuel size={20} />}
           trend="up"
           percentage={18}
           link="/fuel-management"
@@ -56,7 +56,7 @@ export default function Dashboard() {
           title="Maintenance" 
           value="7"
           description="Vehicles in service"
-          icon={Wrench}
+          icon={<Wrench size={20} />}
           trend="down"
           percentage={3}
           link="/service-requests"
@@ -65,7 +65,7 @@ export default function Dashboard() {
           title="Trip Requests" 
           value="24"
           description="Scheduled this month"
-          icon={Calendar}
+          icon={<Calendar size={20} />}
           trend="up"
           percentage={12}
           link="/trip-requests"
@@ -74,7 +74,7 @@ export default function Dashboard() {
           title="Staff" 
           value="18"
           description="Active drivers"
-          icon={Users}
+          icon={<Users size={20} />}
           trend="same"
           percentage={0}
           link="/settings"
