@@ -33,12 +33,12 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
-      <Sonner />
+      <Sonner position="top-right" closeButton richColors />
       <BrowserRouter>
         <AuthProvider>
           <Routes>
             {/* Public routes */}
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/login" element={<Login />} />
             
             {/* Protected routes */}
@@ -100,19 +100,21 @@ const App = () => (
               </ProtectedRoute>
             } />
 
-            {/* New pages */}
+            {/* Reports page - requires view_reports permission */}
             <Route path="/reports" element={
               <ProtectedRoute requiredPermission="view_reports">
                 <Reports />
               </ProtectedRoute>
             } />
             
+            {/* Settings page */}
             <Route path="/settings" element={
               <ProtectedRoute>
                 <Settings />
               </ProtectedRoute>
             } />
             
+            {/* Notifications page */}
             <Route path="/notifications" element={
               <ProtectedRoute>
                 <Notifications />

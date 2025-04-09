@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -126,11 +125,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { password, ...userWithoutPassword } = foundUser;
       setUser(userWithoutPassword);
       localStorage.setItem("user", JSON.stringify(userWithoutPassword));
-      toast.success(`Welcome back, ${foundUser.fullName}!`);
       return true;
     }
 
-    toast.error("Invalid username or password");
     return false;
   };
 
@@ -138,8 +135,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = () => {
     setUser(null);
     localStorage.removeItem("user");
-    navigate("/login");
-    toast.info("You have been logged out");
+    navigate("/login", { state: { loggedOut: true } });
   };
 
   // Check if user has a specific permission

@@ -1,13 +1,14 @@
 
-import { useState } from "react";
-import { useNavigate, Navigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Car, AlertCircle } from "lucide-react";
+import { Car, AlertCircle, Shield } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { toast } from "sonner";
 
 export default function Login() {
   const [username, setUsername] = useState("");
@@ -16,11 +17,24 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Get the redirect path from location state if available
+  const from = location.state?.from?.pathname || "/dashboard";
 
   // If already logged in, redirect to dashboard
   if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />;
   }
+
+  // Check if user was logged out (via state)
+  useEffect(() => {
+    if (location.state?.loggedOut) {
+      toast.info("You have been logged out");
+      // Clear the state
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,7 +50,10 @@ export default function Login() {
     try {
       const success = await login(username, password);
       if (success) {
-        navigate("/dashboard");
+        toast.success(`Welcome back!`);
+        navigate(from, { replace: true });
+      } else {
+        setError("Invalid username or password");
       }
     } catch (err) {
       setError("An unexpected error occurred");
@@ -48,10 +65,10 @@ export default function Login() {
 
   // Sample credentials to show on the login page
   const credentialInfo = [
-    { role: "Transport Director", username: "transport_director" },
-    { role: "Operational Director", username: "operational_director" },
-    { role: "FOTL", username: "fotl" },
-    { role: "FTL", username: "ftl" },
+    { role: "Transport Director", username: "transport_director", description: "Full system access" },
+    { role: "Operational Director", username: "operational_director", description: "Request services" },
+    { role: "FOTL", username: "fotl", description: "Fuel approvals" },
+    { role: "FTL", username: "ftl", description: "Fleet approvals" },
   ];
 
   return (
@@ -65,7 +82,7 @@ export default function Login() {
           <p className="text-slate-600">Addis Ababa University Fleet Management</p>
         </div>
 
-        <Card>
+        <Card className="border-0 shadow-lg">
           <CardHeader>
             <CardTitle>Login to your account</CardTitle>
             <CardDescription>
@@ -91,6 +108,7 @@ export default function Login() {
                   onChange={(e) => setUsername(e.target.value)}
                   autoComplete="username"
                   disabled={isLoading}
+                  className="border-slate-300"
                 />
               </div>
 
@@ -106,6 +124,7 @@ export default function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   autoComplete="current-password"
                   disabled={isLoading}
+                  className="border-slate-300"
                 />
               </div>
 
@@ -119,9 +138,13 @@ export default function Login() {
               <p className="mb-2 font-medium">Demo credentials (use password: password123)</p>
               <div className="grid grid-cols-2 gap-2">
                 {credentialInfo.map((cred) => (
-                  <div key={cred.username} className="border rounded p-2 text-xs">
-                    <div className="font-medium">{cred.role}</div>
-                    <div className="text-slate-400">Username: {cred.username}</div>
+                  <div key={cred.username} className="border rounded p-2 text-xs hover:bg-slate-50 cursor-pointer" onClick={() => setUsername(cred.username)}>
+                    <div className="font-medium flex items-center gap-1">
+                      <Shield className="h-3 w-3 text-primary" />
+                      {cred.role}
+                    </div>
+                    <div className="text-slate-400">@{cred.username}</div>
+                    <div className="text-slate-500 text-[10px] mt-1">{cred.description}</div>
                   </div>
                 ))}
               </div>

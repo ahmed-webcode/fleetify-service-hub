@@ -24,15 +24,15 @@ export const ProtectedRoute = ({
   }
 
   if (requiredPermission && !hasPermission(requiredPermission)) {
-    // User doesn't have required permission, redirect to dashboard
-    return <Navigate to="/dashboard" replace />;
+    // User doesn't have required permission, redirect to dashboard with message
+    return <Navigate to="/dashboard" state={{ permissionDenied: true }} replace />;
   }
 
   // Check if this route is restricted to specific roles
   if (roles && roles.length > 0 && user) {
     if (!roles.includes(user.role)) {
-      // User doesn't have the required role
-      return <Navigate to="/dashboard" replace />;
+      // User doesn't have the required role, redirect with message
+      return <Navigate to="/dashboard" state={{ roleDenied: true }} replace />;
     }
   }
 
