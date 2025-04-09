@@ -30,6 +30,7 @@ import {
   TooltipTrigger
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
+import { Permission } from "@/contexts/AuthContext";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -65,7 +66,7 @@ export function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
     setActiveGroup(prev => prev === path ? null : path);
   };
 
-  // Navigation items - now with permission checks
+  // Navigation items - now with properly typed permission checks
   const navigationItems = [
     { icon: BarChart3, label: "Dashboard", path: "/dashboard" },
     { icon: Car, label: "Vehicles", path: "/vehicles" },
@@ -83,13 +84,13 @@ export function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
       icon: Map, 
       label: "GPS Tracking", 
       path: "/gps-tracking",
-      requiredPermission: "track_vehicles"
+      requiredPermission: "track_vehicles" as Permission
     },
     { 
       icon: FileBarChart, 
       label: "Reports", 
       path: "/reports",
-      requiredPermission: "view_reports" 
+      requiredPermission: "view_reports" as Permission 
     },
     { icon: Settings, label: "Settings", path: "/settings" },
   ];
