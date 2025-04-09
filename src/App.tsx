@@ -16,6 +16,8 @@ import NotFound from "./pages/NotFound";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import Notifications from "./pages/Notifications";
+import TripRequests from "./pages/TripRequests";
+import FuelManagement from "./pages/FuelManagement";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -56,6 +58,20 @@ const App = () => (
             <Route path="/gps-tracking" element={
               <ProtectedRoute requiredPermission="track_vehicles">
                 <GPSTracking />
+              </ProtectedRoute>
+            } />
+            
+            {/* Trip request routes - accessible to operational directors */}
+            <Route path="/trip-requests" element={
+              <ProtectedRoute roles={["operational_director"]}>
+                <TripRequests />
+              </ProtectedRoute>
+            } />
+            
+            {/* Fuel management routes */}
+            <Route path="/fuel-management" element={
+              <ProtectedRoute>
+                <FuelManagement />
               </ProtectedRoute>
             } />
             
