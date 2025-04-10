@@ -1,3 +1,4 @@
+
 import {
   LayoutDashboard,
   Settings,
@@ -11,6 +12,8 @@ import {
   Fuel,
   UserPlus,
   ShieldCheck,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 
@@ -34,6 +37,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -41,8 +45,9 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
-  const { user, logout } = useAuth();
+  const { user, logout, hasPermission } = useAuth();
   const location = useLocation();
+  const isMobile = useIsMobile();
 
   const sidebarItems = [
     {
@@ -130,9 +135,8 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
       <Sheet>
         <aside
           className={cn(
-            "group/sidebar fixed left-0 top-0 z-50 flex h-full w-64 flex-col overflow-y-auto border-r bg-background py-4 transition-all duration-300 ease-in-out data-[collapsed=true]:w-16",
-            isCollapsed && "data-[collapsed=true]:w-16",
-            !isCollapsed && "w-64",
+            "group/sidebar fixed left-0 top-0 z-30 flex h-full flex-col overflow-y-auto border-r bg-background py-4 transition-all duration-300 ease-in-out",
+            isCollapsed ? "w-16" : "w-64",
             "md:hidden"
           )}
         >
@@ -169,9 +173,8 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
       </Sheet>
       <aside
         className={cn(
-          "group/sidebar fixed left-0 top-0 z-50 hidden h-full w-64 flex-col overflow-y-auto border-r bg-background py-4 transition-all duration-300 ease-in-out data-[collapsed=true]:w-16",
-          isCollapsed && "data-[collapsed=true]:w-16",
-          !isCollapsed && "w-64",
+          "group/sidebar fixed left-0 top-0 z-30 hidden h-full flex-col overflow-y-auto border-r bg-background py-4 transition-all duration-300 ease-in-out",
+          isCollapsed ? "w-16" : "w-64",
           "md:flex"
         )}
       >
@@ -210,13 +213,15 @@ function SidebarContent({
   user,
   setIsCollapsed,
 }: SidebarContentProps) {
+  const { hasPermission } = useAuth();
+  
   return (
     <ScrollArea className="flex h-full flex-1 flex-col gap-2">
       <div className="flex flex-col items-center gap-4 px-3 pb-2">
         <NavLink to="/dashboard">
           <Button variant="ghost" className="h-9 w-full justify-start px-2">
             <LayoutDashboard className="mr-2 h-4 w-4" />
-            <span>{isCollapsed ? "Dashboard" : "Dashboard"}</span>
+            <span className={isCollapsed ? "hidden" : "block"}>Dashboard</span>
           </Button>
         </NavLink>
         <DropdownMenu>
@@ -226,7 +231,7 @@ function SidebarContent({
                 <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
                 <AvatarFallback>CN</AvatarFallback>
               </Avatar>
-              <span>{isCollapsed ? "Profile" : "Profile"}</span>
+              <span className={isCollapsed ? "hidden" : "block"}>Profile</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-80" align="end" forceMount>
@@ -251,7 +256,8 @@ function SidebarContent({
         <ul className="space-y-1 px-3">
           {sidebarItems.map((item) => {
             const Icon = item.icon;
-            if (item.permission && !useAuth().hasPermission(item.permission)) {
+            // Fix the type error by checking if the permission is null
+            if (item.permission !== null && !hasPermission(item.permission)) {
               return null;
             }
             return (
@@ -268,7 +274,7 @@ function SidebarContent({
                   }
                 >
                   <Icon className="mr-2 h-4 w-4" />
-                  <span>{isCollapsed ? item.label : item.label}</span>
+                  <span className={isCollapsed ? "hidden" : "block"}>{item.label}</span>
                 </NavLink>
               </li>
             );
@@ -281,7 +287,8 @@ function SidebarContent({
           className="w-full justify-center"
           onClick={() => setIsCollapsed(!isCollapsed)}
         >
-          {isCollapsed ? "Expand" : "Collapse"}
+          {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          {!isCollapsed && <span className="ml-2">Collapse</span>}
         </Button>
       </div>
     </ScrollArea>
