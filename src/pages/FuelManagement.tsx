@@ -1,11 +1,10 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Filter, Fuel, Plus, GasPump, Calendar, FileText, Check, Clock } from "lucide-react";
+import { Filter, Fuel, Plus, Calendar, FileText, Check, Clock } from "lucide-react";
 import { FuelRecordForm } from "@/components/fuel/FuelRecordForm";
-import { ServiceRequestForm } from "@/components/services/ServiceRequestForm";
+import { FuelServiceRequestDialog } from "@/components/fuel/FuelServiceRequestDialog";
 import { useAuth } from "@/contexts/AuthContext";
 
 const fuelRequests = [
@@ -96,7 +95,6 @@ export default function FuelManagement() {
   const canRequestFuel = hasPermission("request_fuel");
   const canApprove = hasPermission("approve_normal_fuel") || hasPermission("approve_special_fuel");
   
-  // Filter fuel requests based on current view
   const filteredRequests = fuelRequests.filter(request => {
     if (requestsView === "all") return true;
     return request.status === requestsView;
@@ -125,7 +123,7 @@ export default function FuelManagement() {
             onClick={() => setIsFuelRecordFormOpen(true)}
             className="gap-2 bg-gray-600 hover:bg-gray-700 text-white w-full sm:w-auto"
           >
-            <GasPump className="h-4 w-4" />
+            <Fuel className="h-4 w-4" />
             Add Fuel Record
           </Button>
         </div>
@@ -325,16 +323,12 @@ export default function FuelManagement() {
         </TabsContent>
       </Tabs>
       
-      {/* Fuel Record Form Dialog */}
       <FuelRecordForm 
         isOpen={isFuelRecordFormOpen} 
         onClose={() => setIsFuelRecordFormOpen(false)} 
       />
       
-      {/* Fuel Request Form Dialog */}
-      <ServiceRequestForm 
-        defaultServiceType="fuel" 
-        isDialog={true} 
+      <FuelServiceRequestDialog
         isOpen={isFuelRequestFormOpen}
         onClose={() => setIsFuelRequestFormOpen(false)}
       />

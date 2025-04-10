@@ -1,6 +1,5 @@
-
 import { useState, useEffect } from "react";
-import { Car, Calendar, Clock, MapPin, User, FileText, Fuel, Wrench, Truck } from "lucide-react";
+import { Car, Calendar, Clock, MapPin, User, FileText, Fuel, Wrench, Truck, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,7 +28,6 @@ export function ServiceRequestForm({
   const [serviceType, setServiceType] = useState<ServiceType>(defaultServiceType);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Form data state
   const [formData, setFormData] = useState({
     vehicle: "",
     requestDate: new Date().toISOString().split('T')[0],
@@ -46,7 +44,6 @@ export function ServiceRequestForm({
     notes: ""
   });
 
-  // Update service type when defaultServiceType prop changes
   useEffect(() => {
     setServiceType(defaultServiceType);
   }, [defaultServiceType]);
@@ -64,7 +61,6 @@ export function ServiceRequestForm({
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Validate required fields based on service type
     let requiredFields: string[] = ['vehicle', 'requestDate'];
     
     if (serviceType === 'fleet') {
@@ -83,7 +79,6 @@ export function ServiceRequestForm({
       return;
     }
     
-    // Simulate API call
     setTimeout(() => {
       setIsSubmitting(false);
       toast.success("Request submitted successfully", {
@@ -367,7 +362,6 @@ export function ServiceRequestForm({
     </form>
   );
 
-  // If this is a dialog, render inside DialogContent
   if (isDialog) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
@@ -393,7 +387,6 @@ export function ServiceRequestForm({
     );
   }
 
-  // Return regular form for non-dialog usage
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
       {formContent}
