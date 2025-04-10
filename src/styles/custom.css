@@ -31,6 +31,9 @@
   flex-direction: column;
   align-items: center;
   width: 100%;
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* Ensure proper z-index for dropdown menus */

@@ -28,7 +28,7 @@ export function PageLayout({ children }: PageLayoutProps) {
       
       <main className={`flex-1 transition-all duration-300 ${!isCollapsed && !isMobile ? 'ml-64' : 'ml-0 md:ml-16'} pt-16`}>
         <Header toggleSidebar={() => setIsCollapsed(!isCollapsed)} sidebarOpen={!isCollapsed} />
-        <div className="px-4 py-6 md:px-6 md:py-8 max-w-7xl mx-auto animate-fade-in">
+        <div className="px-4 py-6 md:px-6 md:py-8 content-centered animate-fade-in">
           {children}
         </div>
       </main>

@@ -1,4 +1,3 @@
-
 import {
   LayoutDashboard,
   Settings,
@@ -39,6 +38,8 @@ import {
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 
+type Permission = 'track_vehicles' | 'request_fleet' | 'view_reports' | 'add_users' | 'add_vehicle';
+
 interface SidebarProps {
   isCollapsed: boolean;
   setIsCollapsed: (isCollapsed: boolean) => void;
@@ -54,79 +55,79 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
       path: "/dashboard",
       icon: LayoutDashboard,
       label: "Dashboard",
-      permission: null,
+      permission: null as null,
     },
     {
       path: "/vehicles",
       icon: Car,
       label: "Vehicles",
-      permission: null,
+      permission: null as null,
     },
     {
       path: "/gps-tracking",
       icon: MapPin,
       label: "GPS Tracking",
-      permission: "track_vehicles",
+      permission: "track_vehicles" as Permission,
     },
     {
       path: "/trip-requests",
       icon: Calendar,
       label: "Trip Requests",
-      permission: "request_fleet",
+      permission: "request_fleet" as Permission,
     },
     {
       path: "/fuel-management",
       icon: Fuel,
       label: "Fuel Management",
-      permission: null,
+      permission: null as null,
     },
     {
       path: "/service-requests",
       icon: FileText,
       label: "Service Requests",
-      permission: null,
+      permission: null as null,
     },
     {
       path: "/reports",
       icon: FileText,
       label: "Reports",
-      permission: "view_reports",
+      permission: "view_reports" as Permission,
     },
     {
       path: "/manage-users",
       icon: UserPlus,
       label: "Manage Users",
-      permission: "add_users",
+      permission: "add_users" as Permission,
     },
     {
       path: "/manage-staff",
       icon: Users,
       label: "Manage Staff",
-      permission: "add_users",
+      permission: "add_users" as Permission,
     },
     {
       path: "/driver-management",
       icon: ShieldCheck,
       label: "Manage Drivers",
-      permission: "add_users",
+      permission: "add_users" as Permission,
     },
     {
       path: "/manage-colleges",
       icon: Users,
       label: "Manage Colleges",
-      permission: "add_users",
+      permission: "add_users" as Permission,
     },
     {
       path: "/notifications",
       icon: Bell,
       label: "Notifications",
-      permission: null,
+      permission: null as null,
     },
     {
       path: "/settings",
       icon: Settings,
       label: "Settings",
-      permission: null,
+      permission: null as null,
     },
   ];
 
@@ -256,7 +257,6 @@ function SidebarContent({
         <ul className="space-y-1 px-3">
           {sidebarItems.map((item) => {
             const Icon = item.icon;
-            // Fix the type error by checking if the permission is null
             if (item.permission !== null && !hasPermission(item.permission)) {
               return null;
             }

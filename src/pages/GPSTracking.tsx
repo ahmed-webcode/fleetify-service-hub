@@ -1,10 +1,9 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { PageLayout } from "@/components/layout/PageLayout";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Map, CarFront, List, MapPin, RefreshCcw, Clock } from "lucide-react";
+import { Map, CarFront, List, RefreshCcw, Clock } from "lucide-react";
 import MapView, { VehicleLocation } from "@/components/maps/MapView";
 import VehicleLocationsList from "@/components/vehicles/VehicleLocationsList";
 import VehicleLocationDetails from "@/components/vehicles/VehicleLocationDetails";
@@ -22,17 +21,13 @@ const GPSTracking = () => {
   const [refreshInterval, setRefreshInterval] = useState<number>(10);
   const { toast } = useToast();
   
-  // Function to refresh vehicle data
   const refreshVehicleData = useCallback(() => {
     setIsLoading(true);
-    // Simulate network delay
     setTimeout(() => {
       if (vehicles.length === 0) {
-        // Initial load
         const data = getVehicleLocations();
         setVehicles(data);
       } else {
-        // Subsequent refreshes - simulate movement
         const updatedVehicles = simulateVehicleMovement(vehicles);
         setVehicles(updatedVehicles);
       }
@@ -46,12 +41,10 @@ const GPSTracking = () => {
     }, 800);
   }, [vehicles, toast]);
   
-  // Initial data load
   useEffect(() => {
     refreshVehicleData();
   }, []);
   
-  // Set up auto-refresh interval
   useEffect(() => {
     if (!autoRefresh) return;
     
@@ -64,7 +57,6 @@ const GPSTracking = () => {
   
   const selectedVehicleData = vehicles.find(v => v.id === selectedVehicle) || null;
   
-  // Calculate statistics
   const activeVehicles = vehicles.filter(v => v.status === 'active').length;
   const parkedVehicles = vehicles.filter(v => v.status === 'parked').length;
   const maintenanceVehicles = vehicles.filter(v => v.status === 'maintenance').length;
@@ -72,169 +64,170 @@ const GPSTracking = () => {
   
   return (
     <PageLayout>
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">GPS Tracking</h1>
-          <p className="text-muted-foreground">Track and monitor your fleet in real-time</p>
-        </div>
-        
-        <div className="flex items-center gap-4">
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="auto-refresh"
-              checked={autoRefresh}
-              onCheckedChange={setAutoRefresh}
-            />
-            <Label htmlFor="auto-refresh" className="cursor-pointer">Auto Refresh</Label>
+      <div className="gps-container">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+          <div>
+            <h1 className="text-3xl font-bold">GPS Tracking</h1>
+            <p className="text-muted-foreground">Track and monitor your fleet in real-time</p>
           </div>
           
-          {autoRefresh && (
-            <Select
-              value={refreshInterval.toString()}
-              onValueChange={(val) => setRefreshInterval(parseInt(val))}
-            >
-              <SelectTrigger className="w-[120px]">
-                <Clock className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Interval" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="5">5 seconds</SelectItem>
-                <SelectItem value="10">10 seconds</SelectItem>
-                <SelectItem value="30">30 seconds</SelectItem>
-                <SelectItem value="60">1 minute</SelectItem>
-              </SelectContent>
-            </Select>
-          )}
-          
-          <Button variant="outline" onClick={refreshVehicleData} disabled={isLoading}>
-            <RefreshCcw className="h-4 w-4 mr-2" />
-            {isLoading ? "Refreshing..." : "Refresh"}
-          </Button>
-        </div>
-      </div>
-      
-      {/* Vehicle status overview */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <Card className="p-4 flex items-center justify-between">
-          <div>
-            <h3 className="text-sm font-medium text-muted-foreground">Active</h3>
-            <p className="text-2xl font-bold">{activeVehicles}</p>
-          </div>
-          <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
-            <div className="h-3 w-3 rounded-full bg-green-500"></div>
-          </div>
-        </Card>
-        
-        <Card className="p-4 flex items-center justify-between">
-          <div>
-            <h3 className="text-sm font-medium text-muted-foreground">Parked</h3>
-            <p className="text-2xl font-bold">{parkedVehicles}</p>
-          </div>
-          <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-            <div className="h-3 w-3 rounded-full bg-blue-500"></div>
-          </div>
-        </Card>
-        
-        <Card className="p-4 flex items-center justify-between">
-          <div>
-            <h3 className="text-sm font-medium text-muted-foreground">Maintenance</h3>
-            <p className="text-2xl font-bold">{maintenanceVehicles}</p>
-          </div>
-          <div className="h-10 w-10 rounded-full bg-amber-100 flex items-center justify-center">
-            <div className="h-3 w-3 rounded-full bg-amber-500"></div>
-          </div>
-        </Card>
-        
-        <Card className="p-4 flex items-center justify-between">
-          <div>
-            <h3 className="text-sm font-medium text-muted-foreground">Unavailable</h3>
-            <p className="text-2xl font-bold">{unavailableVehicles}</p>
-          </div>
-          <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
-            <div className="h-3 w-3 rounded-full bg-red-500"></div>
-          </div>
-        </Card>
-      </div>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div className="lg:col-span-1 space-y-6">
-          <div className="bg-card rounded-xl border p-4">
-            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <CarFront className="h-5 w-5 text-primary" />
-              <span>Vehicles</span>
-            </h3>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="auto-refresh"
+                checked={autoRefresh}
+                onCheckedChange={setAutoRefresh}
+              />
+              <Label htmlFor="auto-refresh" className="cursor-pointer">Auto Refresh</Label>
+            </div>
             
-            <div className="space-y-4">
-              <Select value={selectedVehicle} onValueChange={setSelectedVehicle}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a vehicle" />
+            {autoRefresh && (
+              <Select
+                value={refreshInterval.toString()}
+                onValueChange={(val) => setRefreshInterval(parseInt(val))}
+              >
+                <SelectTrigger className="w-[120px]">
+                  <Clock className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Interval" />
                 </SelectTrigger>
                 <SelectContent>
-                  {vehicles.map(vehicle => (
-                    <SelectItem key={vehicle.id} value={vehicle.id}>
-                      {vehicle.name} ({vehicle.licensePlate})
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="5">5 seconds</SelectItem>
+                  <SelectItem value="10">10 seconds</SelectItem>
+                  <SelectItem value="30">30 seconds</SelectItem>
+                  <SelectItem value="60">1 minute</SelectItem>
                 </SelectContent>
               </Select>
-              
-              <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
-                {vehicles.map((vehicle) => (
-                  <div 
-                    key={vehicle.id}
-                    className={`p-3 rounded-lg border flex items-center gap-3 cursor-pointer transition-colors ${
-                      selectedVehicle === vehicle.id 
-                        ? "bg-primary/10 border-primary" 
-                        : "hover:bg-muted"
-                    }`}
-                    onClick={() => setSelectedVehicle(vehicle.id)}
-                  >
-                    <div className={`w-2 h-2 rounded-full ${
-                      vehicle.status === 'active' ? "bg-green-500" : 
-                      vehicle.status === 'parked' ? "bg-blue-500" : 
-                      vehicle.status === 'maintenance' ? "bg-amber-500" : "bg-red-500"
-                    }`} />
-                    <div>
-                      <p className="font-medium text-sm">{vehicle.name}</p>
-                      <p className="text-xs text-muted-foreground">{vehicle.licensePlate}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            )}
+            
+            <Button variant="outline" onClick={refreshVehicleData} disabled={isLoading}>
+              <RefreshCcw className="h-4 w-4 mr-2" />
+              {isLoading ? "Refreshing..." : "Refresh"}
+            </Button>
           </div>
-          
-          <VehicleLocationDetails vehicle={selectedVehicleData} />
         </div>
         
-        <div className="lg:col-span-3">
-          <Tabs defaultValue="map" className="space-y-4">
-            <TabsList className="grid grid-cols-2 w-full max-w-md">
-              <TabsTrigger value="map" className="gap-2">
-                <Map className="h-4 w-4" />
-                Map View
-              </TabsTrigger>
-              <TabsTrigger value="list" className="gap-2">
-                <List className="h-4 w-4" />
-                List View
-              </TabsTrigger>
-            </TabsList>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <Card className="p-4 flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-medium text-muted-foreground">Active</h3>
+              <p className="text-2xl font-bold">{activeVehicles}</p>
+            </div>
+            <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
+              <div className="h-3 w-3 rounded-full bg-green-500"></div>
+            </div>
+          </Card>
+          
+          <Card className="p-4 flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-medium text-muted-foreground">Parked</h3>
+              <p className="text-2xl font-bold">{parkedVehicles}</p>
+            </div>
+            <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+              <div className="h-3 w-3 rounded-full bg-blue-500"></div>
+            </div>
+          </Card>
+          
+          <Card className="p-4 flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-medium text-muted-foreground">Maintenance</h3>
+              <p className="text-2xl font-bold">{maintenanceVehicles}</p>
+            </div>
+            <div className="h-10 w-10 rounded-full bg-amber-100 flex items-center justify-center">
+              <div className="h-3 w-3 rounded-full bg-amber-500"></div>
+            </div>
+          </Card>
+          
+          <Card className="p-4 flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-medium text-muted-foreground">Unavailable</h3>
+              <p className="text-2xl font-bold">{unavailableVehicles}</p>
+            </div>
+            <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
+              <div className="h-3 w-3 rounded-full bg-red-500"></div>
+            </div>
+          </Card>
+        </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div className="lg:col-span-1 space-y-6">
+            <div className="bg-card rounded-xl border p-4">
+              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <CarFront className="h-5 w-5 text-primary" />
+                <span>Vehicles</span>
+              </h3>
+              
+              <div className="space-y-4">
+                <Select value={selectedVehicle} onValueChange={setSelectedVehicle}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a vehicle" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {vehicles.map(vehicle => (
+                      <SelectItem key={vehicle.id} value={vehicle.id}>
+                        {vehicle.name} ({vehicle.licensePlate})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                
+                <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+                  {vehicles.map((vehicle) => (
+                    <div 
+                      key={vehicle.id}
+                      className={`p-3 rounded-lg border flex items-center gap-3 cursor-pointer transition-colors ${
+                        selectedVehicle === vehicle.id 
+                          ? "bg-primary/10 border-primary" 
+                          : "hover:bg-muted"
+                      }`}
+                      onClick={() => setSelectedVehicle(vehicle.id)}
+                    >
+                      <div className={`w-2 h-2 rounded-full ${
+                        vehicle.status === 'active' ? "bg-green-500" : 
+                        vehicle.status === 'parked' ? "bg-blue-500" : 
+                        vehicle.status === 'maintenance' ? "bg-amber-500" : "bg-red-500"
+                      }`} />
+                      <div>
+                        <p className="font-medium text-sm">{vehicle.name}</p>
+                        <p className="text-xs text-muted-foreground">{vehicle.licensePlate}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
             
-            <TabsContent value="map" className="space-y-4">
-              <MapView 
-                selectedVehicle={selectedVehicle || null} 
-                vehicles={vehicles}
-              />
-            </TabsContent>
-            
-            <TabsContent value="list" className="space-y-4">
-              <VehicleLocationsList 
-                vehicles={vehicles}
-                selectedVehicle={selectedVehicle || null}
-                onSelectVehicle={setSelectedVehicle}
-              />
-            </TabsContent>
-          </Tabs>
+            <VehicleLocationDetails vehicle={selectedVehicleData} />
+          </div>
+          
+          <div className="lg:col-span-3">
+            <Tabs defaultValue="map" className="space-y-4">
+              <TabsList className="grid grid-cols-2 w-full max-w-md">
+                <TabsTrigger value="map" className="gap-2">
+                  <Map className="h-4 w-4" />
+                  Map View
+                </TabsTrigger>
+                <TabsTrigger value="list" className="gap-2">
+                  <List className="h-4 w-4" />
+                  List View
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="map" className="space-y-4">
+                <MapView 
+                  selectedVehicle={selectedVehicle || null} 
+                  vehicles={vehicles}
+                />
+              </TabsContent>
+              
+              <TabsContent value="list" className="space-y-4">
+                <VehicleLocationsList 
+                  vehicles={vehicles}
+                  selectedVehicle={selectedVehicle || null}
+                  onSelectVehicle={setSelectedVehicle}
+                />
+              </TabsContent>
+            </Tabs>
+          </div>
         </div>
       </div>
     </PageLayout>
