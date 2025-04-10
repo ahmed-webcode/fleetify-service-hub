@@ -18,7 +18,10 @@ import {
   UserCircle,
   LogOut,
   HelpCircle,
-  FileBarChart
+  FileBarChart,
+  Users,
+  Building,
+  ServerCog
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -91,6 +94,16 @@ export function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
       label: "Reports", 
       path: "/reports",
       requiredPermission: "view_reports" as Permission 
+    },
+    { 
+      icon: ServerCog, 
+      label: "Administration", 
+      path: "/administration",
+      requiredPermission: "add_users" as Permission,
+      subItems: [
+        { label: "Manage Users", path: "/manage-users" },
+        { label: "Colleges & Institutes", path: "/manage-colleges" }
+      ]
     },
     { icon: Settings, label: "Settings", path: "/settings" },
   ];

@@ -6,7 +6,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Vehicles from "./pages/Vehicles";
@@ -18,6 +17,8 @@ import Settings from "./pages/Settings";
 import Notifications from "./pages/Notifications";
 import TripRequests from "./pages/TripRequests";
 import FuelManagement from "./pages/FuelManagement";
+import ManageUsers from "./pages/ManageUsers";
+import ManageColleges from "./pages/ManageColleges";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -108,10 +109,24 @@ const App = () => (
               </ProtectedRoute>
             } />
             
-            {/* Settings page - add users requires special permission */}
+            {/* Settings page */}
             <Route path="/settings" element={
               <ProtectedRoute>
                 <Settings />
+              </ProtectedRoute>
+            } />
+            
+            {/* User management - transport director only */}
+            <Route path="/manage-users" element={
+              <ProtectedRoute requiredPermission="add_users">
+                <ManageUsers />
+              </ProtectedRoute>
+            } />
+
+            {/* College/Institute management - transport director only */}
+            <Route path="/manage-colleges" element={
+              <ProtectedRoute requiredPermission="add_users">
+                <ManageColleges />
               </ProtectedRoute>
             } />
             

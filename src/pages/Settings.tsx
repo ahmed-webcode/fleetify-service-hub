@@ -8,7 +8,17 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { UserCircle, Bell, Shield, Languages, Monitor } from "lucide-react";
+import { Link } from "react-router-dom";
+import { 
+  UserCircle, 
+  Bell, 
+  Shield, 
+  Languages, 
+  Monitor, 
+  Users, 
+  Building,
+  ArrowRight
+} from "lucide-react";
 import { toast } from "sonner";
 
 export default function Settings() {
@@ -43,9 +53,9 @@ export default function Settings() {
             <span>Notifications</span>
           </TabsTrigger>
           {hasPermission("add_users") && (
-            <TabsTrigger value="permissions" className="flex items-center gap-2">
+            <TabsTrigger value="administration" className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
-              <span>Permissions</span>
+              <span>Administration</span>
             </TabsTrigger>
           )}
           <TabsTrigger value="appearance" className="flex items-center gap-2">
@@ -201,19 +211,48 @@ export default function Settings() {
         </TabsContent>
 
         {hasPermission("add_users") && (
-          <TabsContent value="permissions" className="space-y-4 mt-4">
+          <TabsContent value="administration" className="space-y-4 mt-4">
             <Card>
               <CardHeader>
-                <CardTitle>User Permissions</CardTitle>
-                <CardDescription>Manage roles and permissions (Transport Director only)</CardDescription>
+                <CardTitle>System Administration</CardTitle>
+                <CardDescription>Manage system users and organizational structure</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <p>This section is available only to Transport Directors for managing user roles and permissions.</p>
-                  <Button onClick={() => toast.info("User management functionality will be implemented here")}>
-                    Manage Users
-                  </Button>
-                </div>
+              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center gap-2">
+                      <Users className="h-5 w-5 text-primary" />
+                      <CardTitle>User Management</CardTitle>
+                    </div>
+                    <CardDescription>Manage user accounts and permissions</CardDescription>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <p className="text-sm mb-4">Create, edit, and manage user accounts for the fleet management system.</p>
+                    <Link to="/manage-users">
+                      <Button className="w-full gap-1">
+                        Manage Users <ArrowRight className="h-4 w-4" />
+                      </Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center gap-2">
+                      <Building className="h-5 w-5 text-primary" />
+                      <CardTitle>Organizational Structure</CardTitle>
+                    </div>
+                    <CardDescription>Manage colleges, institutes, and campuses</CardDescription>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <p className="text-sm mb-4">Define the organizational hierarchy for Addis Ababa University.</p>
+                    <Link to="/manage-colleges">
+                      <Button className="w-full gap-1">
+                        Manage Structure <ArrowRight className="h-4 w-4" />
+                      </Button>
+                    </Link>
+                  </CardContent>
+                </Card>
               </CardContent>
             </Card>
           </TabsContent>
