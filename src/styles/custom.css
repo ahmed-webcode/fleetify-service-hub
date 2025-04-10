@@ -1,0 +1,26 @@
+
+/* Custom styles to adjust the sidebar positioning */
+.sidebar-item-centered {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+/* Responsive adjustments for vehicle and service pages */
+@media (min-width: 768px) {
+  .vehicle-container,
+  .service-container,
+  .gps-container {
+    max-width: 90%;
+    margin: 0 auto;
+  }
+}
+
+/* Make table cells more compact on smaller screens */
+@media (max-width: 768px) {
+  .responsive-table td,
+  .responsive-table th {
+    padding: 0.5rem;
+    font-size: 0.875rem;
+  }
+}

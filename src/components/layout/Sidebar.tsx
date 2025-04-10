@@ -1,313 +1,289 @@
-
-import { useState, useEffect } from "react";
-import { NavLink, useLocation, Link } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
-import { 
-  Car, 
-  BarChart3, 
-  Fuel, 
-  Wrench, 
-  FileText, 
-  Settings, 
-  ChevronRight, 
-  Map, 
-  X,
-  ChevronLeft,
-  PanelLeft,
-  Bell,
-  UserCircle,
-  LogOut,
-  HelpCircle,
-  FileBarChart,
+import {
+  LayoutDashboard,
+  Settings,
   Users,
-  Building,
-  ServerCog
+  Calendar,
+  Car,
+  MapPin,
+  FileText,
+  Bell,
+  ArrowLeft,
+  Fuel,
+  UserPlus,
+  ShieldCheck,
 } from "lucide-react";
+import { NavLink, useLocation } from "react-router-dom";
+
+import { useAuth } from "@/contexts/AuthContext";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { 
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger
-} from "@/components/ui/tooltip";
-import { Badge } from "@/components/ui/badge";
-import { Permission } from "@/contexts/AuthContext";
 
 interface SidebarProps {
-  isOpen: boolean;
-  toggleSidebar: () => void;
+  isCollapsed: boolean;
+  setIsCollapsed: (isCollapsed: boolean) => void;
 }
 
-export function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
+export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
+  const { user, logout } = useAuth();
   const location = useLocation();
-  const isMobile = useIsMobile();
-  const [mounted, setMounted] = useState(false);
-  const [activeGroup, setActiveGroup] = useState<string | null>(null);
-  const { user, logout, hasPermission } = useAuth();
-  
-  // Find out which navigation group is active
-  useEffect(() => {
-    const currentItem = navigationItems.find(item => 
-      location.pathname === item.path || 
-      (item.subItems && item.subItems.some(subItem => location.pathname === subItem.path))
-    );
-    
-    if (currentItem && currentItem.subItems) {
-      setActiveGroup(currentItem.path);
-    } else {
-      setActiveGroup(null);
-    }
-  }, [location.pathname]);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const toggleGroup = (path: string) => {
-    setActiveGroup(prev => prev === path ? null : path);
-  };
-
-  // Navigation items - now with properly typed permission checks
-  const navigationItems = [
-    { icon: BarChart3, label: "Dashboard", path: "/dashboard" },
-    { icon: Car, label: "Vehicles", path: "/vehicles" },
-    { 
-      icon: FileText, 
-      label: "Service Requests", 
-      path: "/service-requests",
-      subItems: [
-        { label: "Fleet Service", path: "/service-requests/fleet" },
-        { label: "Fuel Service", path: "/service-requests/fuel" },
-        { label: "Maintenance", path: "/service-requests/maintenance" }
-      ]
+  const sidebarItems = [
+    {
+      path: "/dashboard",
+      icon: LayoutDashboard,
+      label: "Dashboard",
+      permission: null,
     },
-    { 
-      icon: Map, 
-      label: "GPS Tracking", 
+    {
+      path: "/vehicles",
+      icon: Car,
+      label: "Vehicles",
+      permission: null,
+    },
+    {
       path: "/gps-tracking",
-      requiredPermission: "track_vehicles" as Permission
+      icon: MapPin,
+      label: "GPS Tracking",
+      permission: "track_vehicles",
     },
-    { 
-      icon: FileBarChart, 
-      label: "Reports", 
+    {
+      path: "/trip-requests",
+      icon: Calendar,
+      label: "Trip Requests",
+      permission: "request_fleet",
+    },
+    {
+      path: "/fuel-management",
+      icon: Fuel,
+      label: "Fuel Management",
+      permission: null,
+    },
+    {
+      path: "/service-requests",
+      icon: FileText,
+      label: "Service Requests",
+      permission: null,
+    },
+    {
       path: "/reports",
-      requiredPermission: "view_reports" as Permission 
+      icon: FileText,
+      label: "Reports",
+      permission: "view_reports",
     },
-    { 
-      icon: ServerCog, 
-      label: "Administration", 
-      path: "/administration",
-      requiredPermission: "add_users" as Permission,
-      subItems: [
-        { label: "Manage Users", path: "/manage-users" },
-        { label: "Colleges & Institutes", path: "/manage-colleges" }
-      ]
+    {
+      path: "/manage-users",
+      icon: UserPlus,
+      label: "Manage Users",
+      permission: "add_users",
     },
-    { icon: Settings, label: "Settings", path: "/settings" },
+    {
+      path: "/manage-staff",
+      icon: Users,
+      label: "Manage Staff",
+      permission: "add_users",
+    },
+    {
+      path: "/driver-management",
+      icon: ShieldCheck,
+      label: "Manage Drivers",
+      permission: "add_users",
+    },
+    {
+      path: "/manage-colleges",
+      icon: Users,
+      label: "Manage Colleges",
+      permission: "add_users",
+    },
+    {
+      path: "/notifications",
+      icon: Bell,
+      label: "Notifications",
+      permission: null,
+    },
+    {
+      path: "/settings",
+      icon: Settings,
+      label: "Settings",
+      permission: null,
+    },
   ];
-
-  // Filter navigation items based on user permissions
-  const authorizedNavItems = navigationItems.filter(item => 
-    !item.requiredPermission || (user && hasPermission(item.requiredPermission))
-  );
-
-  if (!mounted) return null;
 
   return (
     <>
-      {/* Backdrop for mobile */}
-      {isOpen && isMobile && (
-        <div 
-          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 transition-all duration-300 ease-in-out animate-fade-in"
-          onClick={toggleSidebar}
-        />
-      )}
-      
+      <Sheet>
+        <aside
+          className={cn(
+            "group/sidebar fixed left-0 top-0 z-50 flex h-full w-64 flex-col overflow-y-auto border-r bg-background py-4 transition-all duration-300 ease-in-out data-[collapsed=true]:w-16",
+            isCollapsed && "data-[collapsed=true]:w-16",
+            !isCollapsed && "w-64",
+            "md:hidden"
+          )}
+        >
+          <SheetTrigger asChild>
+            <Button
+              variant="ghost"
+              className="absolute right-2 top-2 rounded-sm p-2 text-muted-foreground md:hidden"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          </SheetTrigger>
+          <SidebarContent
+            sidebarItems={sidebarItems}
+            location={location}
+            isCollapsed={isCollapsed}
+            logout={logout}
+            user={user}
+            setIsCollapsed={setIsCollapsed}
+          />
+        </aside>
+        <SheetContent side="left" className="p-0 data-[state=open]:md:hidden">
+          <SheetHeader className="text-left">
+            <SheetTitle>Dashboard</SheetTitle>
+          </SheetHeader>
+          <SidebarContent
+            sidebarItems={sidebarItems}
+            location={location}
+            isCollapsed={isCollapsed}
+            logout={logout}
+            user={user}
+            setIsCollapsed={setIsCollapsed}
+          />
+        </SheetContent>
+      </Sheet>
       <aside
         className={cn(
-          "fixed top-0 bottom-0 left-0 z-50 flex flex-col w-64 bg-sidebar p-4 border-r border-sidebar-border transition-all duration-300 ease-in-out",
-          {
-            "translate-x-0": isOpen,
-            "-translate-x-full": !isOpen && isMobile,
-            "w-20": !isOpen && !isMobile,
-          }
+          "group/sidebar fixed left-0 top-0 z-50 hidden h-full w-64 flex-col overflow-y-auto border-r bg-background py-4 transition-all duration-300 ease-in-out data-[collapsed=true]:w-16",
+          isCollapsed && "data-[collapsed=true]:w-16",
+          !isCollapsed && "w-64",
+          "md:flex"
         )}
       >
-        <div className="flex items-center justify-between mb-8">
-          <div className={cn("flex items-center gap-2", { "justify-center w-full": !isOpen && !isMobile })}>
-            <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center">
-              <Car className="h-5 w-5 text-primary-foreground" />
-            </div>
-            {(isOpen || isMobile) && (
-              <span className="text-lg font-semibold animate-fade-in">FleetHub</span>
-            )}
-          </div>
-          
-          {isMobile ? (
-            <Button variant="ghost" size="icon" onClick={toggleSidebar} className="text-muted-foreground">
-              <X className="h-5 w-5" />
-            </Button>
-          ) : (
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={toggleSidebar} 
-              className="text-muted-foreground hidden md:flex"
-            >
-              <PanelLeft className={cn("h-5 w-5 transition-transform", { 
-                "rotate-180": !isOpen 
-              })} />
-            </Button>
-          )}
-        </div>
-
-        <nav className="space-y-1 flex-1 overflow-y-auto scrollbar-hidden">
-          <TooltipProvider delayDuration={300}>
-            {authorizedNavItems.map((item) => (
-              <div key={item.path} className="relative">
-                {item.subItems ? (
-                  <div>
-                    <Button
-                      variant="ghost"
-                      onClick={() => toggleGroup(item.path)}
-                      className={cn(
-                        "flex items-center w-full gap-3 px-3 py-2.5 rounded-md text-sidebar-foreground hover:bg-sidebar-accent transition-all duration-300 group",
-                        {
-                          "bg-sidebar-accent text-sidebar-accent-foreground font-medium": 
-                            activeGroup === item.path || location.pathname.startsWith(item.path),
-                          "justify-center": !isOpen && !isMobile,
-                        }
-                      )}
-                    >
-                      <item.icon className={cn("h-5 w-5 flex-shrink-0", { "h-6 w-6": !isOpen && !isMobile })} />
-                      
-                      {(isOpen || isMobile) && (
-                        <>
-                          <span className="animate-fade-in truncate flex-1 text-left">{item.label}</span>
-                          <ChevronRight 
-                            className={cn(
-                              "h-4 w-4 transition-transform", 
-                              { "transform rotate-90": activeGroup === item.path }
-                            )} 
-                          />
-                        </>
-                      )}
-                    </Button>
-                    
-                    {!isOpen && !isMobile ? (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <span className="sr-only">{item.label}</span>
-                        </TooltipTrigger>
-                        <TooltipContent side="right" className="bg-sidebar text-sidebar-foreground border-sidebar-border">
-                          {item.label}
-                        </TooltipContent>
-                      </Tooltip>
-                    ) : null}
-                    
-                    {activeGroup === item.path && (isOpen || isMobile) && (
-                      <div className="pl-10 mt-1 space-y-1 animate-fade-in">
-                        {item.subItems.map((subItem) => (
-                          <NavLink
-                            key={subItem.path}
-                            to={subItem.path}
-                            className={({ isActive }) =>
-                              cn(
-                                "block text-sm px-2 py-1.5 rounded-md transition-colors hover:bg-sidebar-accent/70",
-                                {
-                                  "bg-sidebar-accent/80 text-sidebar-accent-foreground font-medium": 
-                                    isActive || location.pathname === subItem.path,
-                                }
-                              )
-                            }
-                          >
-                            {subItem.label}
-                          </NavLink>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <>
-                    <NavLink
-                      to={item.path}
-                      className={({ isActive }) =>
-                        cn(
-                          "flex items-center gap-3 px-3 py-2.5 rounded-md text-sidebar-foreground hover:bg-sidebar-accent transition-all duration-300 group",
-                          {
-                            "bg-sidebar-accent text-sidebar-accent-foreground font-medium": isActive,
-                            "justify-center": !isOpen && !isMobile,
-                          }
-                        )
-                      }
-                    >
-                      <item.icon className={cn("h-5 w-5 flex-shrink-0", { "h-6 w-6": !isOpen && !isMobile })} />
-                      
-                      {(isOpen || isMobile) && (
-                        <span className="animate-fade-in truncate">{item.label}</span>
-                      )}
-                    </NavLink>
-                    
-                    {!isOpen && !isMobile ? (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <span className="sr-only">{item.label}</span>
-                        </TooltipTrigger>
-                        <TooltipContent side="right" className="bg-sidebar text-sidebar-foreground border-sidebar-border">
-                          {item.label}
-                        </TooltipContent>
-                      </Tooltip>
-                    ) : null}
-                  </>
-                )}
-              </div>
-            ))}
-          </TooltipProvider>
-        </nav>
-
-        {/* Additional features */}
-        {(isOpen || isMobile) && (
-          <div className="mt-4 space-y-1 border-t border-sidebar-border pt-4 animate-fade-in">
-            <Link to="/notifications">
-              <Button variant="ghost" className="w-full justify-start gap-3 text-sidebar-foreground">
-                <Bell className="h-5 w-5" />
-                <span>Notifications</span>
-                <Badge className="ml-auto" variant="secondary">3</Badge>
-              </Button>
-            </Link>
-            <Button variant="ghost" className="w-full justify-start gap-3 text-sidebar-foreground">
-              <HelpCircle className="h-5 w-5" />
-              <span>Help &amp; Support</span>
-            </Button>
-          </div>
-        )}
-
-        <div className={cn("mt-auto pt-4 border-t border-sidebar-border", { "flex justify-center": !isOpen && !isMobile })}>
-          <div className={cn("flex items-center gap-2 p-2", { "flex-col": !isOpen && !isMobile })}>
-            <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-primary">
-              <UserCircle className="h-5 w-5" />
-            </div>
-            {(isOpen || isMobile) && user && (
-              <div className="animate-fade-in flex-1">
-                <p className="text-sm font-medium leading-none">{user.fullName}</p>
-                <p className="text-xs text-muted-foreground mt-1 capitalize">{user.role.replace('_', ' ')}</p>
-              </div>
-            )}
-            {(isOpen || isMobile) && (
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="text-muted-foreground ml-auto"
-                onClick={() => logout()}
-              >
-                <LogOut className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
-        </div>
+        <SidebarContent
+          sidebarItems={sidebarItems}
+          location={location}
+          isCollapsed={isCollapsed}
+          logout={logout}
+          user={user}
+          setIsCollapsed={setIsCollapsed}
+        />
       </aside>
     </>
+  );
+}
+
+interface SidebarContentProps {
+  sidebarItems: {
+    path: string;
+    icon: any;
+    label: string;
+    permission: string | null;
+  }[];
+  location: any;
+  isCollapsed: boolean;
+  logout: () => void;
+  user: any;
+  setIsCollapsed: (isCollapsed: boolean) => void;
+}
+
+function SidebarContent({
+  sidebarItems,
+  location,
+  isCollapsed,
+  logout,
+  user,
+  setIsCollapsed,
+}: SidebarContentProps) {
+  return (
+    <ScrollArea className="flex h-full flex-1 flex-col gap-2">
+      <div className="flex flex-col items-center gap-4 px-3 pb-2">
+        <NavLink to="/dashboard">
+          <Button variant="ghost" className="h-9 w-full justify-start px-2">
+            <LayoutDashboard className="mr-2 h-4 w-4" />
+            <span>{isCollapsed ? "Dashboard" : "Dashboard"}</span>
+          </Button>
+        </NavLink>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-9 w-full justify-start px-2">
+              <Avatar className="mr-2 h-4 w-4">
+                <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
+                <AvatarFallback>CN</AvatarFallback>
+              </Avatar>
+              <span>{isCollapsed ? "Profile" : "Profile"}</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-80" align="end" forceMount>
+            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>
+              <div className="flex flex-col space-y-1">
+                <div>
+                  <span className="text-sm font-medium leading-none">
+                    {user?.fullName}
+                  </span>
+                  <p className="text-sm text-muted-foreground">{user?.email}</p>
+                </div>
+              </div>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={logout}>Log out</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+      <div className="flex-1">
+        <ul className="space-y-1 px-3">
+          {sidebarItems.map((item) => {
+            const Icon = item.icon;
+            if (item.permission && !useAuth().hasPermission(item.permission)) {
+              return null;
+            }
+            return (
+              <li key={item.path}>
+                <NavLink
+                  to={item.path}
+                  className={({ isActive }) =>
+                    cn(
+                      "group flex w-full items-center rounded-md border border-transparent px-2 py-1 hover:bg-secondary hover:text-foreground",
+                      isActive
+                        ? "bg-secondary text-foreground"
+                        : "text-muted-foreground"
+                    )
+                  }
+                >
+                  <Icon className="mr-2 h-4 w-4" />
+                  <span>{isCollapsed ? item.label : item.label}</span>
+                </NavLink>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+      <div className="px-3 py-2">
+        <Button
+          variant="outline"
+          className="w-full justify-center"
+          onClick={() => setIsCollapsed(!isCollapsed)}
+        >
+          {isCollapsed ? "Expand" : "Collapse"}
+        </Button>
+      </div>
+    </ScrollArea>
   );
 }

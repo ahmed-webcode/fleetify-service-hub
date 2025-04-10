@@ -19,6 +19,8 @@ import TripRequests from "./pages/TripRequests";
 import FuelManagement from "./pages/FuelManagement";
 import ManageUsers from "./pages/ManageUsers";
 import ManageColleges from "./pages/ManageColleges";
+import ManageStaff from "./pages/ManageStaff";
+import DriverManagement from "./pages/DriverManagement";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -127,6 +129,20 @@ const App = () => (
             <Route path="/manage-colleges" element={
               <ProtectedRoute requiredPermission="add_users">
                 <ManageColleges />
+              </ProtectedRoute>
+            } />
+            
+            {/* Staff management - transport director only */}
+            <Route path="/manage-staff" element={
+              <ProtectedRoute requiredPermission="add_users">
+                <ManageStaff />
+              </ProtectedRoute>
+            } />
+
+            {/* Driver management - transport director only */}
+            <Route path="/driver-management" element={
+              <ProtectedRoute requiredPermission="add_users">
+                <DriverManagement />
               </ProtectedRoute>
             } />
             

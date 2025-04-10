@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -23,7 +22,8 @@ export type Permission =
   | "request_maintenance"
   | "approve_normal_fuel"
   | "approve_fleet"
-  | "assign_driver";
+  | "assign_driver"
+  | "manage_drivers";
 
 export interface User {
   id: string;
@@ -123,6 +123,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "approve_normal_fuel",
     "approve_fleet",
     "assign_driver",
+    "manage_drivers",
     "request_fuel",
     "request_fleet",
     "request_maintenance"

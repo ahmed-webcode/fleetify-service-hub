@@ -45,6 +45,26 @@ const institutes = [
   { name: "Institute of Advanced Science and Technology", location: "5 Kilo" }
 ];
 
+const projects = [
+  { name: "NORHED Project", duration: "2023-2027", sponsor: "Norwegian Agency for Development Cooperation" },
+  { name: "Thematic Research", duration: "2022-2025", sponsor: "Addis Ababa University" },
+  { name: "Bill & Melinda Gates Project", duration: "2024-2026", sponsor: "Gates Foundation" },
+  { name: "WHO Collaborative Research", duration: "2023-2024", sponsor: "World Health Organization" },
+  { name: "National Science Foundation", duration: "2021-2026", sponsor: "NSF" }
+];
+
+// Campus data based on college
+const campuses = {
+  "College of Business and Economics": ["FBE Campus", "Commerce Campus"],
+  "College of Social Science, Arts and Humanities": ["Main Campus", "Yared Campus", "Art Campus"],
+  "College of Veterinary Medicine and Agriculture": ["Debre Zeit Campus"],
+  "College of Technology and Built Environment": ["Technology Campus", "Built Environment Campus"],
+  "College of Natural and Computational Sciences": ["4 Kilo Campus"],
+  "College of Education and Language Studies": ["5 Kilo Campus"],
+  "College of Health Science": ["Tikur Anbessa Campus", "Seferselam Campus"],
+  "School of Law": ["Main Campus"]
+};
+
 export function AddVehicleForm({ onClose }: { onClose: () => void }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isMobile = useIsMobile();
@@ -52,6 +72,10 @@ export function AddVehicleForm({ onClose }: { onClose: () => void }) {
   // Location state
   const [locationType, setLocationType] = useState<string>("");
   const [selectedLocation, setSelectedLocation] = useState<string>("");
+  const [selectedCollege, setSelectedCollege] = useState<string>("");
+  const [selectedCampus, setSelectedCampus] = useState<string>("");
+  const [selectedProject, setSelectedProject] = useState<string>("");
+  const [showProjectFields, setShowProjectFields] = useState(false);
   
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -93,21 +117,43 @@ export function AddVehicleForm({ onClose }: { onClose: () => void }) {
       
       case "college":
         return (
-          <div className="space-y-2">
-            <Label htmlFor="college">College</Label>
-            <Select value={selectedLocation} onValueChange={setSelectedLocation}>
-              <SelectTrigger id="college">
-                <SelectValue placeholder="Select college" />
-              </SelectTrigger>
-              <SelectContent>
-                {colleges.map((college) => (
-                  <SelectItem key={college.name} value={college.name}>
-                    {college.name}
-                    <span className="block text-xs text-muted-foreground">{college.campus}</span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="college">College</Label>
+              <Select value={selectedCollege} onValueChange={(value) => {
+                setSelectedCollege(value);
+                setSelectedCampus("");
+              }}>
+                <SelectTrigger id="college">
+                  <SelectValue placeholder="Select college" />
+                </SelectTrigger>
+                <SelectContent>
+                  {colleges.map((college) => (
+                    <SelectItem key={college.name} value={college.name}>
+                      {college.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {selectedCollege && (
+              <div className="space-y-2">
+                <Label htmlFor="campus">Campus</Label>
+                <Select value={selectedCampus} onValueChange={setSelectedCampus}>
+                  <SelectTrigger id="campus">
+                    <SelectValue placeholder="Select campus" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {campuses[selectedCollege as keyof typeof campuses]?.map((campus) => (
+                      <SelectItem key={campus} value={campus}>
+                        {campus}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
         );
       
@@ -128,6 +174,59 @@ export function AddVehicleForm({ onClose }: { onClose: () => void }) {
                 ))}
               </SelectContent>
             </Select>
+          </div>
+        );
+      
+      case "project":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="project">Project</Label>
+              <Select value={selectedProject} onValueChange={setSelectedProject}>
+                <SelectTrigger id="project">
+                  <SelectValue placeholder="Select project" />
+                </SelectTrigger>
+                <SelectContent>
+                  {projects.map((project) => (
+                    <SelectItem key={project.name} value={project.name}>
+                      {project.name}
+                      <span className="block text-xs text-muted-foreground">
+                        Duration: {project.duration} | Sponsor: {project.sponsor}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {selectedProject && (
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="showProjectFields"
+                    checked={showProjectFields}
+                    onChange={(e) => setShowProjectFields(e.target.checked)}
+                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                  />
+                  <Label htmlFor="showProjectFields">Add project details</Label>
+                </div>
+                
+                {showProjectFields && (
+                  <div className="space-y-4 border rounded-md p-3 mt-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="projectDuration">Project Duration</Label>
+                      <Input id="projectDuration" placeholder="e.g. 2023-2026" />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="projectDocument">Project Document</Label>
+                      <Input id="projectDocument" type="file" />
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         );
       
@@ -152,6 +251,9 @@ export function AddVehicleForm({ onClose }: { onClose: () => void }) {
           <Select value={locationType} onValueChange={(value) => {
             setLocationType(value);
             setSelectedLocation("");
+            setSelectedCollege("");
+            setSelectedCampus("");
+            setSelectedProject("");
           }}>
             <SelectTrigger id="locationType">
               <SelectValue placeholder="Select location type" />
@@ -160,6 +262,7 @@ export function AddVehicleForm({ onClose }: { onClose: () => void }) {
               <SelectItem value="central">Central</SelectItem>
               <SelectItem value="college">College</SelectItem>
               <SelectItem value="institute">Institute</SelectItem>
+              <SelectItem value="project">Project</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -288,6 +391,42 @@ export function AddVehicleForm({ onClose }: { onClose: () => void }) {
                 <SelectItem value="unavailable">Unavailable</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="horsePower">Horse Power</Label>
+            <Input id="horsePower" type="number" min="0" placeholder="e.g. 150" />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="cylinderCount">Cylinder Count</Label>
+            <Input id="cylinderCount" type="number" min="0" placeholder="e.g. 4" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="singleWeight">Single Weight (kg)</Label>
+            <Input id="singleWeight" type="number" min="0" placeholder="e.g. 1500" />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="totalWeight">Total Weight (kg)</Label>
+            <Input id="totalWeight" type="number" min="0" placeholder="e.g. 2200" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="axleCount">Axle Count</Label>
+            <Input id="axleCount" type="number" min="0" placeholder="e.g. 2" />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="madeIn">Made In</Label>
+            <Input id="madeIn" placeholder="e.g. Japan" />
           </div>
         </div>
       </div>
