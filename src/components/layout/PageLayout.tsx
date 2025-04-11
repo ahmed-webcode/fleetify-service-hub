@@ -1,14 +1,13 @@
-
 import { useState, useEffect } from "react";
 import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
-
 interface PageLayoutProps {
   children: React.ReactNode;
 }
-
-export function PageLayout({ children }: PageLayoutProps) {
+export function PageLayout({
+  children
+}: PageLayoutProps) {
   const isMobile = useIsMobile();
   const [isCollapsed, setIsCollapsed] = useState(() => {
     // Get saved preference from localStorage if available
@@ -21,12 +20,10 @@ export function PageLayout({ children }: PageLayoutProps) {
   useEffect(() => {
     localStorage.setItem("sidebarState", isCollapsed ? "closed" : "open");
   }, [isCollapsed]);
-
-  return (
-    <div className="min-h-screen flex bg-background">
+  return <div className="min-h-screen flex bg-background">
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
       
-      <main className={`flex-1 transition-all duration-300 ${!isCollapsed && !isMobile ? 'ml-64' : 'ml-0 md:ml-16'} pt-16`}>
+      <main className="">
         <Header toggleSidebar={() => setIsCollapsed(!isCollapsed)} sidebarOpen={!isCollapsed} />
         <div className="px-4 py-6 md:px-6 md:py-8 flex flex-col items-center">
           <div className="w-full max-w-7xl">
@@ -34,6 +31,5 @@ export function PageLayout({ children }: PageLayoutProps) {
           </div>
         </div>
       </main>
-    </div>
-  );
+    </div>;
 }
