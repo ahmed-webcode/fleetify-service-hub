@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { PageLayout } from "@/components/layout/PageLayout";
-import { VehicleCard } from "@/components/vehicles/VehicleCard";
-import { AddVehicleForm } from "@/components/vehicles/AddVehicleForm";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Car, Plus, Search } from "lucide-react";
+import { Car, Plus } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AddVehicleForm } from "@/components/vehicles/AddVehicleForm";
+import { VehiclesSearch } from "@/components/vehicles/VehiclesSearch";
+import { VehiclesGrid } from "@/components/vehicles/VehiclesGrid";
+import { VehiclesList } from "@/components/vehicles/VehiclesList";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
@@ -107,6 +107,11 @@ const Vehicles = () => {
     }
   };
 
+  const resetFilters = () => {
+    setSearchQuery("");
+    setFilterStatus("all");
+  };
+
   return (
     <PageLayout>
       <div className="page-container">
@@ -124,32 +129,12 @@ const Vehicles = () => {
               </Button>
             )}
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full md:w-auto">
-              <div className="md:col-span-2 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input 
-                  placeholder="Search vehicles..." 
-                  className="pl-9"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-              
-              <Select 
-                value={filterStatus}
-                onValueChange={setFilterStatus}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Filter by status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="maintenance">In Maintenance</SelectItem>
-                  <SelectItem value="unavailable">Unavailable</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <VehiclesSearch
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              filterStatus={filterStatus}
+              setFilterStatus={setFilterStatus}
+            />
           </div>
         
           <div className="mb-4 flex justify-between items-center">
@@ -179,107 +164,11 @@ const Vehicles = () => {
               </TabsList>
               
               <TabsContent value="grid" className="animate-fade-in">
-                {filteredVehicles.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredVehicles.map((vehicle) => (
-                      <VehicleCard key={vehicle.id} vehicle={vehicle} />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center py-12 text-center">
-                    <div className="bg-muted rounded-full p-4 mb-4">
-                      <Car className="h-8 w-8 text-muted-foreground" />
-                    </div>
-                    <h3 className="text-lg font-medium mb-2">No vehicles found</h3>
-                    <p className="text-muted-foreground max-w-sm">
-                      No vehicles match your current search criteria. Try adjusting your filters.
-                    </p>
-                    <Button 
-                      variant="outline" 
-                      className="mt-4"
-                      onClick={() => {
-                        setSearchQuery("");
-                        setFilterStatus("all");
-                      }}
-                    >
-                      Reset Filters
-                    </Button>
-                  </div>
-                )}
+                <VehiclesGrid vehicles={filteredVehicles} resetFilters={resetFilters} />
               </TabsContent>
               
               <TabsContent value="list" className="animate-fade-in">
-                {filteredVehicles.length > 0 ? (
-                  <div className="rounded-lg border border-border overflow-hidden">
-                    <table className="w-full responsive-table">
-                      <thead className="bg-muted/50">
-                        <tr>
-                          <th>Vehicle</th>
-                          <th className="hidden md:table-cell">License Plate</th>
-                          <th className="hidden lg:table-cell">Year</th>
-                          <th className="hidden lg:table-cell">Mileage</th>
-                          <th>Status</th>
-                          <th className="text-right">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-border">
-                        {filteredVehicles.map((vehicle) => (
-                          <tr key={vehicle.id} className="hover:bg-muted/30 transition-colors">
-                            <td>
-                              <div>
-                                <p className="font-medium">{vehicle.name}</p>
-                                <p className="text-xs text-muted-foreground">{vehicle.model}</p>
-                              </div>
-                            </td>
-                            <td className="hidden md:table-cell">
-                              {vehicle.licensePlate}
-                            </td>
-                            <td className="hidden lg:table-cell">
-                              {vehicle.year}
-                            </td>
-                            <td className="hidden lg:table-cell">
-                              {vehicle.mileage.toLocaleString()} km
-                            </td>
-                            <td>
-                              <span className={`status-badge ${
-                                vehicle.status === 'active' 
-                                  ? 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                  : vehicle.status === 'maintenance'
-                                  ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-                                  : 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                              }`}>
-                                {vehicle.status.charAt(0).toUpperCase() + vehicle.status.slice(1)}
-                              </span>
-                            </td>
-                            <td className="text-right">
-                              <Button variant="ghost" size="sm">Details</Button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center py-12 text-center">
-                    <div className="bg-muted rounded-full p-4 mb-4">
-                      <Car className="h-8 w-8 text-muted-foreground" />
-                    </div>
-                    <h3 className="text-lg font-medium mb-2">No vehicles found</h3>
-                    <p className="text-muted-foreground max-w-sm">
-                      No vehicles match your current search criteria. Try adjusting your filters.
-                    </p>
-                    <Button 
-                      variant="outline" 
-                      className="mt-4"
-                      onClick={() => {
-                        setSearchQuery("");
-                        setFilterStatus("all");
-                      }}
-                    >
-                      Reset Filters
-                    </Button>
-                  </div>
-                )}
+                <VehiclesList vehicles={filteredVehicles} resetFilters={resetFilters} />
               </TabsContent>
             </Tabs>
           </div>
