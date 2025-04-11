@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
@@ -20,16 +21,19 @@ export function PageLayout({
   useEffect(() => {
     localStorage.setItem("sidebarState", isCollapsed ? "closed" : "open");
   }, [isCollapsed]);
-  return <div className="min-h-screen flex bg-background">
+  
+  return (
+    <div className="min-h-screen flex bg-background">
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
       
-      <main className="">
+      <main className="flex-1 max-w-full overflow-x-hidden">
         <Header toggleSidebar={() => setIsCollapsed(!isCollapsed)} sidebarOpen={!isCollapsed} />
         <div className="px-4 py-6 md:px-6 md:py-8 flex flex-col items-center">
-          <div className="w-full max-w-7xl">
+          <div className="w-full max-w-7xl mx-auto">
             {children}
           </div>
         </div>
       </main>
-    </div>;
+    </div>
+  );
 }

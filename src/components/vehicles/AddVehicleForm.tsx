@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,11 +45,11 @@ const institutes = [
 ];
 
 const projects = [
-  { name: "NORHED Project", duration: "2023-2027", sponsor: "Norwegian Agency for Development Cooperation" },
-  { name: "Thematic Research", duration: "2022-2025", sponsor: "Addis Ababa University" },
-  { name: "Bill & Melinda Gates Project", duration: "2024-2026", sponsor: "Gates Foundation" },
-  { name: "WHO Collaborative Research", duration: "2023-2024", sponsor: "World Health Organization" },
-  { name: "National Science Foundation", duration: "2021-2026", sponsor: "NSF" }
+  { name: "NORHED Project", duration: "2023-2027", sponsor: "Norwegian Agency for Development Cooperation", cars: ["Toyota Land Cruiser", "Nissan Patrol"] },
+  { name: "Thematic Research", duration: "2022-2025", sponsor: "Addis Ababa University", cars: ["Toyota Hilux", "Mitsubishi L200"] },
+  { name: "Bill & Melinda Gates Project", duration: "2024-2026", sponsor: "Gates Foundation", cars: ["Toyota Land Cruiser", "Hyundai H-1"] },
+  { name: "WHO Collaborative Research", duration: "2023-2024", sponsor: "World Health Organization", cars: ["Toyota Corolla", "Toyota Hilux"] },
+  { name: "National Science Foundation", duration: "2021-2026", sponsor: "NSF", cars: ["Nissan Patrol", "Toyota Land Cruiser"] }
 ];
 
 // Campus data based on college
@@ -76,6 +75,8 @@ export function AddVehicleForm({ onClose }: { onClose: () => void }) {
   const [selectedCampus, setSelectedCampus] = useState<string>("");
   const [selectedProject, setSelectedProject] = useState<string>("");
   const [showProjectFields, setShowProjectFields] = useState(false);
+  const [showProjectCars, setShowProjectCars] = useState(false);
+  const [selectedProjectCar, setSelectedProjectCar] = useState<string>("");
   
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -89,6 +90,12 @@ export function AddVehicleForm({ onClose }: { onClose: () => void }) {
       });
       onClose();
     }, 1500);
+  };
+
+  // Get project cars for the selected project
+  const getProjectCars = () => {
+    const project = projects.find(p => p.name === selectedProject);
+    return project ? project.cars : [];
   };
 
   // Determine which dropdown to show based on location type
@@ -182,7 +189,10 @@ export function AddVehicleForm({ onClose }: { onClose: () => void }) {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="project">Project</Label>
-              <Select value={selectedProject} onValueChange={setSelectedProject}>
+              <Select value={selectedProject} onValueChange={(value) => {
+                setSelectedProject(value);
+                setSelectedProjectCar("");
+              }}>
                 <SelectTrigger id="project">
                   <SelectValue placeholder="Select project" />
                 </SelectTrigger>
@@ -201,30 +211,68 @@ export function AddVehicleForm({ onClose }: { onClose: () => void }) {
 
             {selectedProject && (
               <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="showProjectFields"
-                    checked={showProjectFields}
-                    onChange={(e) => setShowProjectFields(e.target.checked)}
-                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                  />
-                  <Label htmlFor="showProjectFields">Add project details</Label>
-                </div>
-                
-                {showProjectFields && (
-                  <div className="space-y-4 border rounded-md p-3 mt-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="projectDuration">Project Duration</Label>
-                      <Input id="projectDuration" placeholder="e.g. 2023-2026" />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="projectDocument">Project Document</Label>
-                      <Input id="projectDocument" type="file" />
-                    </div>
+                <div className="flex flex-col space-y-4">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="showProjectFields"
+                      checked={showProjectFields}
+                      onChange={(e) => setShowProjectFields(e.target.checked)}
+                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                    />
+                    <Label htmlFor="showProjectFields">Add project details</Label>
                   </div>
-                )}
+                  
+                  {showProjectFields && (
+                    <div className="space-y-4 border rounded-md p-3 mt-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="projectDuration">Project Duration</Label>
+                        <Input id="projectDuration" placeholder="e.g. 2023-2026" />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="projectDocument">Project Document</Label>
+                        <Input id="projectDocument" type="file" />
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div className="flex items-center space-x-2 pt-2">
+                    <input
+                      type="checkbox"
+                      id="showProjectCars"
+                      checked={showProjectCars}
+                      onChange={(e) => setShowProjectCars(e.target.checked)}
+                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                    />
+                    <Label htmlFor="showProjectCars">Select from project vehicles</Label>
+                  </div>
+                  
+                  {showProjectCars && (
+                    <div className="space-y-4 border rounded-md p-3 mt-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="projectCars">Project Vehicles</Label>
+                        <Select value={selectedProjectCar} onValueChange={setSelectedProjectCar}>
+                          <SelectTrigger id="projectCars">
+                            <SelectValue placeholder="Select vehicle" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {getProjectCars().map((car) => (
+                              <SelectItem key={car} value={car}>
+                                {car}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {selectedProjectCar && (
+                          <p className="text-xs text-muted-foreground mt-2">
+                            Selected vehicle: {selectedProjectCar}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -254,6 +302,8 @@ export function AddVehicleForm({ onClose }: { onClose: () => void }) {
             setSelectedCollege("");
             setSelectedCampus("");
             setSelectedProject("");
+            setSelectedProjectCar("");
+            setShowProjectCars(false);
           }}>
             <SelectTrigger id="locationType">
               <SelectValue placeholder="Select location type" />
@@ -273,7 +323,7 @@ export function AddVehicleForm({ onClose }: { onClose: () => void }) {
       <div className="space-y-2 pt-2">
         <h3 className="text-lg font-medium flex items-center gap-2 flex-wrap">
           Vehicle Description
-          <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-200">የትራንስፖርት መረጃ</Badge>
+          <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-200">የትራንስportoርት መረጃ</Badge>
         </h3>
         <Separator />
       </div>

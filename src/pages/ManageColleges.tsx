@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import {
   Card,
@@ -36,12 +35,26 @@ import {
 } from "@/components/ui/select";
 import { useAuth, College, Institute, Campus, MOCK_COLLEGES, MOCK_INSTITUTES, MOCK_CAMPUSES } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Search, Plus, Edit2, Trash2, Building, Building2, MapPin, User } from "lucide-react";
+import { Search, Plus, Edit2, Trash2, Building, Building2, MapPin, User, FolderKanban } from "lucide-react";
+
+interface Project {
+  id: string;
+  name: string;
+  duration: string;
+  sponsor: string;
+}
 
 export default function ManageColleges() {
   const [colleges, setColleges] = useState<College[]>([]);
   const [institutes, setInstitutes] = useState<Institute[]>([]);
   const [campuses, setCampuses] = useState<Campus[]>([]);
+  const [projects, setProjects] = useState<Project[]>([
+    { id: "p1", name: "NORHED Project", duration: "2023-2027", sponsor: "Norwegian Agency for Development Cooperation" },
+    { id: "p2", name: "Thematic Research", duration: "2022-2025", sponsor: "Addis Ababa University" },
+    { id: "p3", name: "Bill & Melinda Gates Project", duration: "2024-2026", sponsor: "Gates Foundation" },
+    { id: "p4", name: "WHO Collaborative Research", duration: "2023-2024", sponsor: "World Health Organization" },
+    { id: "p5", name: "National Science Foundation", duration: "2021-2026", sponsor: "NSF" }
+  ]);
   
   const [activeTab, setActiveTab] = useState("colleges");
   const [searchTerm, setSearchTerm] = useState("");
@@ -50,31 +63,34 @@ export default function ManageColleges() {
   const [isEditCollegeOpen, setIsEditCollegeOpen] = useState(false);
   const [isDeleteCollegeOpen, setIsDeleteCollegeOpen] = useState(false);
   const [selectedCollege, setSelectedCollege] = useState<College | null>(null);
+  const [newCollege, setNewCollege] = useState({ name: "" });
   
   const [isAddInstituteOpen, setIsAddInstituteOpen] = useState(false);
   const [isEditInstituteOpen, setIsEditInstituteOpen] = useState(false);
   const [isDeleteInstituteOpen, setIsDeleteInstituteOpen] = useState(false);
   const [selectedInstitute, setSelectedInstitute] = useState<Institute | null>(null);
+  const [newInstitute, setNewInstitute] = useState({ name: "", collegeId: "" });
   
   const [isAddCampusOpen, setIsAddCampusOpen] = useState(false);
   const [isEditCampusOpen, setIsEditCampusOpen] = useState(false);
   const [isDeleteCampusOpen, setIsDeleteCampusOpen] = useState(false);
   const [selectedCampus, setSelectedCampus] = useState<Campus | null>(null);
-  
-  const [newCollege, setNewCollege] = useState({ name: "" });
-  const [newInstitute, setNewInstitute] = useState({ name: "", collegeId: "" });
   const [newCampus, setNewCampus] = useState({ name: "", instituteId: "" });
+  
+  const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
+  const [isEditProjectOpen, setIsEditProjectOpen] = useState(false);
+  const [isDeleteProjectOpen, setIsDeleteProjectOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [newProject, setNewProject] = useState({ name: "", duration: "", sponsor: "" });
   
   const { hasPermission } = useAuth();
 
   useEffect(() => {
-    // Load initial data (in a real app, this would be API calls)
     setColleges(MOCK_COLLEGES);
     setInstitutes(MOCK_INSTITUTES);
     setCampuses(MOCK_CAMPUSES);
   }, []);
 
-  // Filter data based on search term
   const filteredColleges = colleges.filter(college => 
     college.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -86,8 +102,12 @@ export default function ManageColleges() {
   const filteredCampuses = campuses.filter(campus => 
     campus.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  
+  const filteredProjects = projects.filter(project => 
+    project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    project.sponsor.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-  // College handlers
   const handleAddCollege = () => {
     if (!newCollege.name) {
       toast.error("College name is required");
@@ -121,7 +141,6 @@ export default function ManageColleges() {
   const handleDeleteCollege = () => {
     if (!selectedCollege) return;
     
-    // Check if there are related institutes
     const relatedInstitutes = institutes.filter(institute => institute.collegeId === selectedCollege.id);
     if (relatedInstitutes.length > 0) {
       toast.error("Cannot delete college with associated institutes");
@@ -136,7 +155,6 @@ export default function ManageColleges() {
     setSelectedCollege(null);
   };
 
-  // Institute handlers
   const handleAddInstitute = () => {
     if (!newInstitute.name || !newInstitute.collegeId) {
       toast.error("Institute name and college are required");
@@ -171,7 +189,6 @@ export default function ManageColleges() {
   const handleDeleteInstitute = () => {
     if (!selectedInstitute) return;
     
-    // Check if there are related campuses
     const relatedCampuses = campuses.filter(campus => campus.instituteId === selectedInstitute.id);
     if (relatedCampuses.length > 0) {
       toast.error("Cannot delete institute with associated campuses");
@@ -186,7 +203,6 @@ export default function ManageColleges() {
     setSelectedInstitute(null);
   };
 
-  // Campus handlers
   const handleAddCampus = () => {
     if (!newCampus.name || !newCampus.instituteId) {
       toast.error("Campus name and institute are required");
@@ -228,13 +244,53 @@ export default function ManageColleges() {
     setSelectedCampus(null);
   };
 
-  // Helper function to get college name from ID
+  const handleAddProject = () => {
+    if (!newProject.name || !newProject.duration || !newProject.sponsor) {
+      toast.error("All project fields are required");
+      return;
+    }
+    
+    const newProjectObj: Project = {
+      id: `p${Date.now()}`,
+      name: newProject.name,
+      duration: newProject.duration,
+      sponsor: newProject.sponsor
+    };
+    
+    setProjects([...projects, newProjectObj]);
+    toast.success("Project added successfully");
+    setIsAddProjectOpen(false);
+    setNewProject({ name: "", duration: "", sponsor: "" });
+  };
+  
+  const handleEditProject = () => {
+    if (!selectedProject) return;
+    
+    const updatedProjects = projects.map(project => 
+      project.id === selectedProject.id ? selectedProject : project
+    );
+    
+    setProjects(updatedProjects);
+    toast.success("Project updated successfully");
+    setIsEditProjectOpen(false);
+    setSelectedProject(null);
+  };
+  
+  const handleDeleteProject = () => {
+    if (!selectedProject) return;
+    
+    const updatedProjects = projects.filter(project => project.id !== selectedProject.id);
+    setProjects(updatedProjects);
+    toast.success("Project deleted successfully");
+    setIsDeleteProjectOpen(false);
+    setSelectedProject(null);
+  };
+
   const getCollegeName = (id: string) => {
     const college = colleges.find(c => c.id === id);
     return college ? college.name : "Unknown";
   };
 
-  // Helper function to get institute name from ID
   const getInstituteName = (id: string) => {
     const institute = institutes.find(i => i.id === id);
     return institute ? institute.name : "Unknown";
@@ -254,10 +310,10 @@ export default function ManageColleges() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Organizational Structure</h1>
-        <p className="text-muted-foreground">Manage colleges, institutes, and campuses</p>
+        <p className="text-muted-foreground">Manage colleges, institutes, campuses, and projects</p>
       </div>
 
-      <Card>
+      <Card className="w-full">
         <CardHeader className="pb-3">
           <CardTitle>AAU Academic Structure</CardTitle>
           <CardDescription>
@@ -279,7 +335,8 @@ export default function ManageColleges() {
               onClick={() => {
                 if (activeTab === "colleges") setIsAddCollegeOpen(true);
                 else if (activeTab === "institutes") setIsAddInstituteOpen(true);
-                else setIsAddCampusOpen(true);
+                else if (activeTab === "campuses") setIsAddCampusOpen(true);
+                else setIsAddProjectOpen(true);
               }} 
               className="w-full sm:w-auto gap-1.5"
             >
@@ -289,23 +346,27 @@ export default function ManageColleges() {
           </div>
 
           <Tabs onValueChange={setActiveTab} defaultValue="colleges">
-            <TabsList className="mb-4 w-full max-w-md">
+            <TabsList className="mb-4 w-full max-w-md flex flex-wrap">
               <TabsTrigger value="colleges" className="flex-1">
                 <Building className="h-4 w-4 mr-2" />
-                Colleges
+                <span className="hidden xs:inline">Colleges</span>
               </TabsTrigger>
               <TabsTrigger value="institutes" className="flex-1">
                 <Building2 className="h-4 w-4 mr-2" />
-                Institutes
+                <span className="hidden xs:inline">Institutes</span>
               </TabsTrigger>
               <TabsTrigger value="campuses" className="flex-1">
                 <MapPin className="h-4 w-4 mr-2" />
-                Campuses
+                <span className="hidden xs:inline">Campuses</span>
+              </TabsTrigger>
+              <TabsTrigger value="projects" className="flex-1">
+                <FolderKanban className="h-4 w-4 mr-2" />
+                <span className="hidden xs:inline">Projects</span>
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="colleges">
-              <div className="rounded-md border">
+              <div className="rounded-md border overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -359,7 +420,7 @@ export default function ManageColleges() {
             </TabsContent>
             
             <TabsContent value="institutes">
-              <div className="rounded-md border">
+              <div className="rounded-md border overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -415,7 +476,7 @@ export default function ManageColleges() {
             </TabsContent>
             
             <TabsContent value="campuses">
-              <div className="rounded-md border">
+              <div className="rounded-md border overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -469,12 +530,68 @@ export default function ManageColleges() {
                 </Table>
               </div>
             </TabsContent>
+            
+            <TabsContent value="projects">
+              <div className="rounded-md border overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Project Name</TableHead>
+                      <TableHead>Duration</TableHead>
+                      <TableHead>Sponsor</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredProjects.length > 0 ? (
+                      filteredProjects.map((project) => (
+                        <TableRow key={project.id}>
+                          <TableCell className="font-medium">{project.name}</TableCell>
+                          <TableCell>{project.duration}</TableCell>
+                          <TableCell>{project.sponsor}</TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => {
+                                  setSelectedProject(project);
+                                  setIsEditProjectOpen(true);
+                                }}
+                              >
+                                <Edit2 className="h-4 w-4" />
+                                <span className="sr-only">Edit</span>
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedProject(project);
+                                  setIsDeleteProjectOpen(true);
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                                <span className="sr-only">Delete</span>
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={4} className="h-24 text-center">
+                          No projects found.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </TabsContent>
           </Tabs>
         </CardContent>
       </Card>
 
-      {/* College Dialogs */}
-      {/* Add College Dialog */}
       <Dialog open={isAddCollegeOpen} onOpenChange={setIsAddCollegeOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -503,7 +620,6 @@ export default function ManageColleges() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit College Dialog */}
       <Dialog open={isEditCollegeOpen} onOpenChange={setIsEditCollegeOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -534,7 +650,6 @@ export default function ManageColleges() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete College Dialog */}
       <Dialog open={isDeleteCollegeOpen} onOpenChange={setIsDeleteCollegeOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -550,8 +665,6 @@ export default function ManageColleges() {
         </DialogContent>
       </Dialog>
 
-      {/* Institute Dialogs */}
-      {/* Add Institute Dialog */}
       <Dialog open={isAddInstituteOpen} onOpenChange={setIsAddInstituteOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -600,7 +713,6 @@ export default function ManageColleges() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Institute Dialog */}
       <Dialog open={isEditInstituteOpen} onOpenChange={setIsEditInstituteOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -651,7 +763,6 @@ export default function ManageColleges() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Institute Dialog */}
       <Dialog open={isDeleteInstituteOpen} onOpenChange={setIsDeleteInstituteOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -667,8 +778,6 @@ export default function ManageColleges() {
         </DialogContent>
       </Dialog>
 
-      {/* Campus Dialogs */}
-      {/* Add Campus Dialog */}
       <Dialog open={isAddCampusOpen} onOpenChange={setIsAddCampusOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -717,7 +826,6 @@ export default function ManageColleges() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Campus Dialog */}
       <Dialog open={isEditCampusOpen} onOpenChange={setIsEditCampusOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -768,7 +876,6 @@ export default function ManageColleges() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Campus Dialog */}
       <Dialog open={isDeleteCampusOpen} onOpenChange={setIsDeleteCampusOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -780,6 +887,123 @@ export default function ManageColleges() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDeleteCampusOpen(false)}>Cancel</Button>
             <Button variant="destructive" onClick={handleDeleteCampus}>Delete Campus</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isAddProjectOpen} onOpenChange={setIsAddProjectOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add New Project</DialogTitle>
+            <DialogDescription>
+              Create a new project
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="project-name">
+                Project Name <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="project-name"
+                value={newProject.name}
+                onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
+                placeholder="Enter project name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="project-duration">
+                Duration <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="project-duration"
+                value={newProject.duration}
+                onChange={(e) => setNewProject({ ...newProject, duration: e.target.value })}
+                placeholder="e.g. 2023-2027"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="project-sponsor">
+                Sponsor <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="project-sponsor"
+                value={newProject.sponsor}
+                onChange={(e) => setNewProject({ ...newProject, sponsor: e.target.value })}
+                placeholder="Enter sponsor name"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddProjectOpen(false)}>Cancel</Button>
+            <Button onClick={handleAddProject}>Add Project</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isEditProjectOpen} onOpenChange={setIsEditProjectOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Project</DialogTitle>
+            <DialogDescription>
+              Update project information
+            </DialogDescription>
+          </DialogHeader>
+          {selectedProject && (
+            <div className="grid gap-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-project-name">
+                  Project Name <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="edit-project-name"
+                  value={selectedProject.name}
+                  onChange={(e) => setSelectedProject({ ...selectedProject, name: e.target.value })}
+                  placeholder="Enter project name"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-project-duration">
+                  Duration <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="edit-project-duration"
+                  value={selectedProject.duration}
+                  onChange={(e) => setSelectedProject({ ...selectedProject, duration: e.target.value })}
+                  placeholder="e.g. 2023-2027"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-project-sponsor">
+                  Sponsor <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="edit-project-sponsor"
+                  value={selectedProject.sponsor}
+                  onChange={(e) => setSelectedProject({ ...selectedProject, sponsor: e.target.value })}
+                  placeholder="Enter sponsor name"
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditProjectOpen(false)}>Cancel</Button>
+            <Button onClick={handleEditProject}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isDeleteProjectOpen} onOpenChange={setIsDeleteProjectOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete Project</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete {selectedProject?.name}? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteProjectOpen(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleDeleteProject}>Delete Project</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

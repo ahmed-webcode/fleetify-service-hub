@@ -1,4 +1,5 @@
 
+
 /* Custom styles to adjust the sidebar positioning */
 .sidebar-item-centered {
   display: flex;
@@ -37,6 +38,7 @@
   padding: 1.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   margin-bottom: 1.5rem;
+  width: 100%;
 }
 
 /* Table styling */
@@ -144,3 +146,67 @@
 .form-group {
   margin-bottom: 1rem;
 }
+
+/* Responsive utilities */
+.xs\:inline {
+  display: inline;
+}
+
+@media (max-width: 475px) {
+  .hidden.xs\:inline {
+    display: none;
+  }
+}
+
+/* Table overflow handling */
+.overflow-scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Flex wrapping for responsive layouts */
+.flex-wrap-responsive {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* Card grid for responsive layouts */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  width: 100%;
+}
+
+/* Mobile-first padding adjustments */
+.p-responsive {
+  padding: 1rem;
+}
+
+@media (min-width: 768px) {
+  .p-responsive {
+    padding: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .p-responsive {
+    padding: 2rem;
+  }
+}
+
+/* Make all modals/dialogs responsive */
+.dialog-responsive {
+  width: 90vw;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+@media (max-width: 640px) {
+  .dialog-responsive {
+    width: 95vw;
+    padding: 1rem;
+  }
+}
+
