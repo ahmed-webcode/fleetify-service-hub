@@ -7,12 +7,15 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PlusCircle, ListFilter, Clock } from "lucide-react";
 
+// Define the ServiceType type to match what's expected in ServiceRequestForm
+type ServiceType = "fleet" | "fuel" | "maintenance";
+
 const ServiceRequests = () => {
   const [view, setView] = useState("new");
   const location = useLocation();
   
   // Set the default service type based on URL
-  const getServiceTypeFromUrl = () => {
+  const getServiceTypeFromUrl = (): ServiceType => {
     if (location.pathname.includes("/fleet")) return "fleet";
     if (location.pathname.includes("/fuel")) return "fuel";
     if (location.pathname.includes("/maintenance")) return "maintenance";
@@ -20,7 +23,7 @@ const ServiceRequests = () => {
   };
   
   // Pass selected service type to the form
-  const [selectedServiceType, setSelectedServiceType] = useState(getServiceTypeFromUrl());
+  const [selectedServiceType, setSelectedServiceType] = useState<ServiceType>(getServiceTypeFromUrl());
   
   useEffect(() => {
     // Update service type when route changes
@@ -29,13 +32,13 @@ const ServiceRequests = () => {
 
   return (
     <PageLayout>
-      <div className="service-container page-container">
+      <div className="page-container">
         <div className="page-title-container">
           <h1 className="page-title">Service Requests</h1>
           <p className="page-description">Submit and manage service requests for your fleet</p>
         </div>
         
-        <div className="card-uniform section-spacing">
+        <div className="card-uniform">
           <Tabs 
             defaultValue="new" 
             value={view} 

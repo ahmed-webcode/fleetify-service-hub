@@ -75,13 +75,13 @@ export default function TripRequests() {
 
   return (
     <PageLayout>
-      <div className="trip-container page-container">
+      <div className="page-container">
         <div className="page-title-container">
           <h1 className="page-title">Trip Requests</h1>
           <p className="page-description">Request and manage vehicle trips</p>
         </div>
         
-        <div className="card-uniform section-spacing">
+        <div className="card-uniform">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
             {canRequestTrip && (
               <Button 

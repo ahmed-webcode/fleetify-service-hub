@@ -6,31 +6,96 @@
   width: 100%;
 }
 
-/* Responsive adjustments for all page containers */
-@media (min-width: 768px) {
-  .vehicle-container,
-  .service-container,
-  .gps-container,
-  .trip-container,
-  .report-container,
-  .staff-container,
-  .driver-container,
-  .fuel-container,
-  .user-container,
-  .college-container,
-  .notification-container,
-  .settings-container {
-    max-width: 90%;
-    margin: 0 auto;
-  }
+/* Global page container */
+.page-container {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1rem;
 }
 
-/* Make table cells more compact on smaller screens */
+/* Consistent page title container */
+.page-title-container {
+  margin-bottom: 2rem;
+}
+
+.page-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.page-description {
+  color: var(--muted-foreground);
+}
+
+/* Card styling */
+.card-uniform {
+  background-color: var(--card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  margin-bottom: 1.5rem;
+}
+
+/* Table styling */
+.responsive-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.responsive-table th {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.responsive-table td {
+  padding: 0.75rem 1rem;
+  vertical-align: middle;
+}
+
+.responsive-table tbody tr:hover {
+  background-color: var(--muted/30);
+}
+
+/* Badge status styling */
+.status-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Add animation for page transitions */
+.animate-fade-in {
+  opacity: 0;
+  animation: fadeIn 0.3s ease forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Consistent spacing for sections */
+.section-spacing {
+  margin-bottom: 2rem;
+}
+
+/* Responsive adjustments */
 @media (max-width: 768px) {
   .responsive-table td,
   .responsive-table th {
     padding: 0.5rem;
     font-size: 0.875rem;
+  }
+  
+  .page-title {
+    font-size: 1.5rem;
   }
 }
 
@@ -56,62 +121,26 @@
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
-/* Uniform card and container styling */
-.page-container {
-  width: 100%;
-  max-width: 1280px;
-  margin: 0 auto;
-}
-
-.card-uniform {
-  background-color: var(--card);
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-/* Add animation for page transitions */
-.animate-fade-in {
-  opacity: 0;
-  animation: fadeIn 0.3s ease forwards;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-/* Consistent spacing for page titles */
-.page-title-container {
-  margin-bottom: 2rem;
-}
-
-.page-title {
-  font-size: 1.875rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-}
-
-.page-description {
-  color: var(--muted-foreground);
-}
-
-/* Consistent form styling */
+/* Form styling */
 .form-container {
   max-width: 800px;
   margin: 0 auto;
 }
 
-/* Proper contrast for status badges */
-.status-badge {
-  padding: 0.25rem 0.5rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 500;
+/* Make form layouts more consistent */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1rem;
 }
 
-/* Add consistent spacing between page sections */
-.section-spacing {
-  margin-bottom: 2rem;
+@media (min-width: 640px) {
+  .form-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Common form group styling */
+.form-group {
+  margin-bottom: 1rem;
 }
