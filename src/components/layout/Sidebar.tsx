@@ -1,3 +1,4 @@
+
 import {
   LayoutDashboard,
   Settings,
@@ -46,7 +47,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
-  const { user, logout, hasPermission } = useAuth();
+  const { user, logout } = useAuth();
   const location = useLocation();
   const isMobile = useIsMobile();
 
@@ -147,6 +148,7 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
               className="absolute right-2 top-2 rounded-sm p-2 text-muted-foreground md:hidden"
             >
               <ArrowLeft className="h-4 w-4" />
+              <span className="sr-only">Toggle sidebar</span>
             </Button>
           </SheetTrigger>
           <SidebarContent
@@ -197,7 +199,7 @@ interface SidebarContentProps {
     path: string;
     icon: any;
     label: string;
-    permission: string | null;
+    permission: Permission | null;
   }[];
   location: any;
   isCollapsed: boolean;
@@ -235,7 +237,7 @@ function SidebarContent({
               <span className={isCollapsed ? "hidden" : "block"}>Profile</span>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-80" align="end" forceMount>
+          <DropdownMenuContent className="dropdown-menu w-80" align="end" forceMount>
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
@@ -257,6 +259,7 @@ function SidebarContent({
         <ul className="space-y-1 px-3">
           {sidebarItems.map((item) => {
             const Icon = item.icon;
+            // Properly handle permission checking now
             if (item.permission !== null && !hasPermission(item.permission)) {
               return null;
             }
