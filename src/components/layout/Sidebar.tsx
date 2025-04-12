@@ -73,7 +73,6 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
       label: "Fuel Management",
       permission: null as null,
     },
-    // Service Requests page removed as requested
     {
       path: "/reports",
       icon: FileText,
@@ -120,6 +119,7 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
 
   return (
     <>
+      {/* Mobile sidebar */}
       <Sheet>
         <aside
           className={cn(
@@ -160,6 +160,8 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
           />
         </SheetContent>
       </Sheet>
+      
+      {/* Desktop sidebar */}
       <aside
         className={cn(
           "group/sidebar fixed left-0 top-0 z-30 hidden h-full flex-col overflow-y-auto border-r bg-background py-4 transition-all duration-300 ease-in-out",
@@ -213,13 +215,12 @@ function SidebarContent({
             <span className={isCollapsed ? "hidden" : "block"}>Dashboard</span>
           </Button>
         </NavLink>
-        {/* Removed profile section from sidebar as requested */}
       </div>
       <div className="flex-1">
         <ul className="space-y-1 px-3">
           {sidebarItems.map((item) => {
             const Icon = item.icon;
-            // Properly handle permission checking
+            // Properly handle permission checking - ensure hasPermission is always called
             if (item.permission !== null && !hasPermission(item.permission)) {
               return null;
             }
