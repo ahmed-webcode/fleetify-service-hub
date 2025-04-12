@@ -124,7 +124,7 @@
   }
 }
 
-/* Center content on pages */
+/* Center content on pages - updated for better responsiveness */
 .content-centered {
   display: flex;
   flex-direction: column;
@@ -263,8 +263,9 @@
   padding-top: 4rem;
 }
 
-/* CSS to handle the sidebar-main content relationship */
+/* CSS to handle the sidebar-main content relationship - updated for better alignment */
 .main-content {
+  width: 100%;
   transition: margin-left 0.3s ease-in-out;
 }
 
@@ -305,5 +306,38 @@
     width: 45%;
     text-align: left;
     font-weight: 500;
+  }
+}
+
+/* New utility classes for better responsiveness and centering */
+.container-fluid {
+  width: 100%;
+  padding-right: 1rem;
+  padding-left: 1rem;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.container-centered {
+  width: 100%;
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Responsive padding utility */
+.page-padding {
+  padding: 1rem;
+}
+
+@media (min-width: 768px) {
+  .page-padding {
+    padding: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .page-padding {
+    padding: 2rem;
   }
 }
