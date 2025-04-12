@@ -1,5 +1,4 @@
 
-
 /* Custom styles to adjust the sidebar positioning */
 .sidebar-item-centered {
   display: flex;
@@ -17,13 +16,28 @@
 
 /* Consistent page title container */
 .page-title-container {
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
+  padding-top: 1rem;
+}
+
+@media (min-width: 768px) {
+  .page-title-container {
+    margin-bottom: 2rem;
+    padding-top: 0;
+  }
 }
 
 .page-title {
-  font-size: 1.875rem;
+  font-size: 1.5rem;
   font-weight: 700;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+@media (min-width: 768px) {
+  .page-title {
+    font-size: 1.875rem;
+    margin-bottom: 0.5rem;
+  }
 }
 
 .page-description {
@@ -35,10 +49,17 @@
   background-color: var(--card);
   border-radius: var(--radius);
   border: 1px solid var(--border);
-  padding: 1.5rem;
+  padding: 1rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   width: 100%;
+}
+
+@media (min-width: 768px) {
+  .card-uniform {
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
 }
 
 /* Table styling */
@@ -50,14 +71,23 @@
 
 .responsive-table th {
   text-align: left;
-  padding: 0.75rem 1rem;
-  font-size: 0.875rem;
+  padding: 0.5rem;
+  font-size: 0.75rem;
   font-weight: 500;
 }
 
 .responsive-table td {
-  padding: 0.75rem 1rem;
+  padding: 0.5rem;
   vertical-align: middle;
+  font-size: 0.875rem;
+}
+
+@media (min-width: 768px) {
+  .responsive-table th,
+  .responsive-table td {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+  }
 }
 
 .responsive-table tbody tr:hover {
@@ -85,19 +115,12 @@
 
 /* Consistent spacing for sections */
 .section-spacing {
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .responsive-table td,
-  .responsive-table th {
-    padding: 0.5rem;
-    font-size: 0.875rem;
-  }
-  
-  .page-title {
-    font-size: 1.5rem;
+@media (min-width: 768px) {
+  .section-spacing {
+    margin-bottom: 2rem;
   }
 }
 
@@ -125,6 +148,7 @@
 
 /* Form styling */
 .form-container {
+  width: 100%;
   max-width: 800px;
   margin: 0 auto;
 }
@@ -175,38 +199,111 @@
 .card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.5rem;
+  gap: 1rem;
   width: 100%;
+}
+
+@media (min-width: 768px) {
+  .card-grid {
+    gap: 1.5rem;
+  }
 }
 
 /* Mobile-first padding adjustments */
 .p-responsive {
-  padding: 1rem;
+  padding: 0.75rem;
 }
 
 @media (min-width: 768px) {
   .p-responsive {
-    padding: 1.5rem;
+    padding: 1rem;
   }
 }
 
 @media (min-width: 1024px) {
   .p-responsive {
-    padding: 2rem;
+    padding: 1.5rem;
   }
 }
 
 /* Make all modals/dialogs responsive */
 .dialog-responsive {
-  width: 90vw;
+  width: 95vw;
   max-width: 500px;
   margin: 0 auto;
+  padding: 0.75rem;
 }
 
-@media (max-width: 640px) {
+@media (min-width: 640px) {
   .dialog-responsive {
-    width: 95vw;
+    width: 90vw;
     padding: 1rem;
   }
 }
 
+/* Fix sidebar transition */
+.sidebar-transition {
+  transition: margin-left 0.3s ease-in-out;
+}
+
+/* Collapsible sidebar content */
+.sidebar-collapsed-content {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.sidebar-expanded-content {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Fixed position for mobile headers */
+.fixed-header-spacing {
+  padding-top: 4rem;
+}
+
+/* CSS to handle the sidebar-main content relationship */
+.main-content {
+  transition: margin-left 0.3s ease-in-out;
+}
+
+.main-content.sidebar-open {
+  margin-left: 16rem;
+}
+
+.main-content.sidebar-closed {
+  margin-left: 4rem;
+}
+
+@media (max-width: 768px) {
+  .main-content.sidebar-open,
+  .main-content.sidebar-closed {
+    margin-left: 0;
+  }
+}
+
+/* Improve table responsiveness */
+.table-responsive-stack {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 640px) {
+  .table-responsive-stack td {
+    display: block;
+    width: 100%;
+    text-align: right;
+    padding-left: 50%;
+    position: relative;
+  }
+
+  .table-responsive-stack td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 1rem;
+    width: 45%;
+    text-align: left;
+    font-weight: 500;
+  }
+}

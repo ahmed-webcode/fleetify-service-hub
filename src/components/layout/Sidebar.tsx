@@ -18,17 +18,7 @@ import {
 import { NavLink, useLocation } from "react-router-dom";
 
 import { useAuth } from "@/contexts/AuthContext";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Sheet,
   SheetContent,
@@ -38,6 +28,7 @@ import {
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 type Permission = 'track_vehicles' | 'request_fleet' | 'view_reports' | 'add_users' | 'add_vehicle';
 
@@ -82,12 +73,7 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
       label: "Fuel Management",
       permission: null as null,
     },
-    {
-      path: "/service-requests",
-      icon: FileText,
-      label: "Service Requests",
-      permission: null as null,
-    },
+    // Service Requests page removed as requested
     {
       path: "/reports",
       icon: FileText,
@@ -227,39 +213,13 @@ function SidebarContent({
             <span className={isCollapsed ? "hidden" : "block"}>Dashboard</span>
           </Button>
         </NavLink>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-9 w-full justify-start px-2">
-              <Avatar className="mr-2 h-4 w-4">
-                <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-                <AvatarFallback>CN</AvatarFallback>
-              </Avatar>
-              <span className={isCollapsed ? "hidden" : "block"}>Profile</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="dropdown-menu w-80" align="end" forceMount>
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <div className="flex flex-col space-y-1">
-                <div>
-                  <span className="text-sm font-medium leading-none">
-                    {user?.fullName}
-                  </span>
-                  <p className="text-sm text-muted-foreground">{user?.email}</p>
-                </div>
-              </div>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={logout}>Log out</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {/* Removed profile section from sidebar as requested */}
       </div>
       <div className="flex-1">
         <ul className="space-y-1 px-3">
           {sidebarItems.map((item) => {
             const Icon = item.icon;
-            // Properly handle permission checking now
+            // Properly handle permission checking
             if (item.permission !== null && !hasPermission(item.permission)) {
               return null;
             }
