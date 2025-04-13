@@ -57,10 +57,9 @@ export function Header({ toggleSidebar, sidebarOpen }: HeaderProps) {
   return (
     <header
       className={cn(
-        "fixed top-0 left-0 right-0 z-40 transition-all duration-300 py-3 px-4 md:px-6 flex items-center justify-between",
+        "fixed top-0 left-0 right-0 z-40 transition-all duration-300 py-3 px-4 md:px-6 flex items-center justify-between bg-background/80 backdrop-blur-md",
         {
-          "bg-background/80 backdrop-blur-md shadow-sm": scrolled,
-          "bg-transparent": !scrolled,
+          "shadow-sm": scrolled
         }
       )}
     >
@@ -75,12 +74,12 @@ export function Header({ toggleSidebar, sidebarOpen }: HeaderProps) {
           <span className="sr-only">Toggle sidebar</span>
         </Button>
         
-        <h1 className="text-xl font-medium hidden md:block">{pageTitle()}</h1>
+        <h1 className="text-xl font-medium truncate max-w-[200px] sm:max-w-none">{pageTitle()}</h1>
       </div>
 
       <div className="flex items-center gap-2">
         {searchVisible ? (
-          <div className="relative animate-fade-in md:w-64 w-full">
+          <div className="relative animate-fade-in w-full max-w-[200px] sm:max-w-[300px]">
             <Input
               placeholder="Search..."
               className="pr-8 border-none bg-secondary/80 backdrop-blur-md focus-visible:ring-1"
@@ -123,15 +122,17 @@ export function Header({ toggleSidebar, sidebarOpen }: HeaderProps) {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <div className="w-9 h-9 bg-primary rounded-full flex items-center justify-center text-primary-foreground hover:opacity-90 transition-opacity cursor-pointer">
-                <span className="text-sm font-medium">{user.fullName.split(" ").map(n => n[0]).join("").slice(0, 2)}</span>
+                <span className="text-sm font-medium">
+                  {user.fullName?.split(" ").map(n => n[0]).join("").slice(0, 2) || "U"}
+                </span>
               </div>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuContent align="end" className="w-56 z-50 bg-background">
               <DropdownMenuLabel>
                 <div className="flex flex-col">
                   <span>{user.fullName}</span>
                   <span className="text-xs text-muted-foreground capitalize">
-                    {user.role.replace('_', ' ')}
+                    {user.role?.replace('_', ' ') || "User"}
                   </span>
                 </div>
               </DropdownMenuLabel>

@@ -12,12 +12,17 @@ export function PageLayout({
   children
 }: PageLayoutProps) {
   const isMobile = useIsMobile();
-  const [isCollapsed, setIsCollapsed] = useState(() => {
-    // Get saved preference from localStorage if available
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  
+  // Initialize sidebar state from localStorage or based on device
+  useEffect(() => {
     const savedState = localStorage.getItem("sidebarState");
-    // Default to open on desktop, closed on mobile
-    return savedState ? savedState === "closed" : isMobile;
-  });
+    if (savedState) {
+      setIsCollapsed(savedState === "closed");
+    } else {
+      setIsCollapsed(isMobile);
+    }
+  }, [isMobile]);
 
   // Save sidebar state to localStorage when it changes
   useEffect(() => {
@@ -30,10 +35,8 @@ export function PageLayout({
       
       <main className={`flex-1 w-full transition-all duration-300 ${isCollapsed ? 'md:ml-16' : 'md:ml-64'}`}>
         <Header toggleSidebar={() => setIsCollapsed(!isCollapsed)} sidebarOpen={!isCollapsed} />
-        <div className="px-4 py-6 md:px-6 md:py-8">
-          <div className="w-full max-w-7xl mx-auto">
-            {children}
-          </div>
+        <div className="container-centered px-4 py-6 md:px-6 md:py-8">
+          {children}
         </div>
       </main>
     </div>

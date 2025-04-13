@@ -1,8 +1,8 @@
+
 import { useState } from "react";
-import { PageLayout } from "@/components/layout/PageLayout";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Car, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AddVehicleForm } from "@/components/vehicles/AddVehicleForm";
 import { VehiclesSearch } from "@/components/vehicles/VehiclesSearch";
@@ -10,6 +10,7 @@ import { VehiclesGrid } from "@/components/vehicles/VehiclesGrid";
 import { VehiclesList } from "@/components/vehicles/VehiclesList";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { PageLayout } from "@/components/layout/PageLayout";
 
 const vehicles = [
   {
@@ -112,14 +113,14 @@ const Vehicles = () => {
   
   return (
     <PageLayout>
-      <div className="page-container">
+      <div className="container-centered">
         <div className="page-title-container">
           <h1 className="page-title">Vehicles</h1>
           <p className="page-description">Manage and monitor your fleet</p>
         </div>
         
         <div className="card-uniform">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 md:mb-6 gap-4">
             {canAddVehicle && (
               <Button className="gap-2 w-full md:w-auto" onClick={handleAddVehicleClick}>
                 <Plus className="h-4 w-4" />

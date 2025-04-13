@@ -41,6 +41,7 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
   const { user, logout } = useAuth();
   const location = useLocation();
   const isMobile = useIsMobile();
+  const { hasPermission } = useAuth();
 
   const sidebarItems = [
     {
@@ -121,7 +122,7 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
     <>
       {/* Mobile sidebar */}
       <Sheet>
-        <aside
+        <div
           className={cn(
             "group/sidebar fixed left-0 top-0 z-30 flex h-full flex-col overflow-y-auto border-r bg-background py-4 transition-all duration-300 ease-in-out",
             isCollapsed ? "w-16" : "w-64",
@@ -144,8 +145,9 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
             logout={logout}
             user={user}
             setIsCollapsed={setIsCollapsed}
+            hasPermission={hasPermission}
           />
-        </aside>
+        </div>
         <SheetContent side="left" className="p-0 data-[state=open]:md:hidden">
           <SheetHeader className="text-left">
             <SheetTitle>Dashboard</SheetTitle>
@@ -157,12 +159,13 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
             logout={logout}
             user={user}
             setIsCollapsed={setIsCollapsed}
+            hasPermission={hasPermission}
           />
         </SheetContent>
       </Sheet>
       
       {/* Desktop sidebar */}
-      <aside
+      <div
         className={cn(
           "group/sidebar fixed left-0 top-0 z-30 hidden h-full flex-col overflow-y-auto border-r bg-background py-4 transition-all duration-300 ease-in-out",
           isCollapsed ? "w-16" : "w-64",
@@ -176,8 +179,9 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
           logout={logout}
           user={user}
           setIsCollapsed={setIsCollapsed}
+          hasPermission={hasPermission}
         />
-      </aside>
+      </div>
     </>
   );
 }
@@ -194,6 +198,7 @@ interface SidebarContentProps {
   logout: () => void;
   user: any;
   setIsCollapsed: (isCollapsed: boolean) => void;
+  hasPermission: (permission: Permission) => boolean;
 }
 
 function SidebarContent({
@@ -203,9 +208,8 @@ function SidebarContent({
   logout,
   user,
   setIsCollapsed,
+  hasPermission,
 }: SidebarContentProps) {
-  const { hasPermission } = useAuth();
-  
   return (
     <ScrollArea className="flex h-full flex-1 flex-col gap-2">
       <div className="flex flex-col items-center gap-4 px-3 pb-2">
@@ -218,14 +222,14 @@ function SidebarContent({
       </div>
       <div className="flex-1">
         <ul className="space-y-1 px-3">
-          {sidebarItems.map((item) => {
+          {sidebarItems.map((item, index) => {
             const Icon = item.icon;
-            // Properly handle permission checking - ensure hasPermission is always called
+            // Check permission before rendering the item
             if (item.permission !== null && !hasPermission(item.permission)) {
               return null;
             }
             return (
-              <li key={item.path}>
+              <li key={`${item.path}-${index}`}>
                 <NavLink
                   to={item.path}
                   className={({ isActive }) =>

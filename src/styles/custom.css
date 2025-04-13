@@ -137,6 +137,14 @@
   padding-right: 1rem;
 }
 
+/* Container centered - new class for consistent content centering */
+.container-centered {
+  width: 100%;
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 /* Ensure proper z-index for dropdown menus */
 .dropdown-menu {
   z-index: 50;
@@ -271,16 +279,19 @@
 
 .main-content.sidebar-open {
   margin-left: 16rem;
+  width: calc(100% - 16rem);
 }
 
 .main-content.sidebar-closed {
   margin-left: 4rem;
+  width: calc(100% - 4rem);
 }
 
 @media (max-width: 768px) {
   .main-content.sidebar-open,
   .main-content.sidebar-closed {
     margin-left: 0;
+    width: 100%;
   }
 }
 
@@ -340,4 +351,92 @@
   .page-padding {
     padding: 2rem;
   }
+}
+
+/* Main content - maximized responsiveness */
+.main-responsive {
+  width: 100%;
+  padding-left: 0;
+  padding-right: 0;
+  margin-top: 4rem;
+  transition: all 0.3s ease;
+}
+
+@media (min-width: 768px) {
+  .main-responsive {
+    margin-top: 5rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .main-responsive {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+/* Content wrapper with proper spacing relative to header and sidebar */
+.content-wrapper {
+  padding-top: 6rem;
+  padding-bottom: 2rem;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .content-wrapper {
+    padding-top: 5rem;
+  }
+}
+
+/* Improved grid layouts for dashboard sections */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1rem;
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Improved form responsiveness */
+.form-responsive {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .form-responsive {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Fix for header to ensure it's always at the top */
+.header-fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  z-index: 40;
+  backdrop-filter: blur(8px);
+}
+
+/* Ensure content doesn't get hidden behind fixed header */
+.header-spacer {
+  height: 4rem;
 }

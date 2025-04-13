@@ -17,8 +17,8 @@ export function VehiclesSearch({
   setFilterStatus
 }: VehiclesSearchProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full md:w-auto">
-      <div className="md:col-span-2 relative">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 w-full md:max-w-md lg:max-w-lg">
+      <div className="sm:col-span-1 md:col-span-2 relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input 
           placeholder="Search vehicles..." 
@@ -35,7 +35,7 @@ export function VehiclesSearch({
         <SelectTrigger>
           <SelectValue placeholder="Filter by status" />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="z-50">
           <SelectItem value="all">All Statuses</SelectItem>
           <SelectItem value="active">Active</SelectItem>
           <SelectItem value="maintenance">In Maintenance</SelectItem>
