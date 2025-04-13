@@ -17,7 +17,7 @@ export function VehiclesSearch({
   setFilterStatus
 }: VehiclesSearchProps) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 w-full md:max-w-md lg:max-w-lg">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 w-full">
       <div className="sm:col-span-1 md:col-span-2 relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input 

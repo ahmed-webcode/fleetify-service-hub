@@ -33,9 +33,9 @@ export function PageLayout({
     <div className="min-h-screen flex bg-background">
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
       
-      <main className={`flex-1 w-full transition-all duration-300 ${isCollapsed ? 'md:ml-16' : 'md:ml-64'}`}>
+      <main className={`flex-1 transition-all duration-300 ${isCollapsed ? 'md:ml-16' : 'md:ml-64'}`}>
         <Header toggleSidebar={() => setIsCollapsed(!isCollapsed)} sidebarOpen={!isCollapsed} />
-        <div className="container-centered px-4 py-6 md:px-6 md:py-8">
+        <div className="container mx-auto px-4 py-6 md:px-6 md:py-8 max-w-full">
           {children}
         </div>
       </main>
