@@ -20,7 +20,7 @@ interface MetricCardProps {
 
 export function MetricsOverview() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
       <MetricCard
         title="Total Vehicles"
         value="42"
@@ -50,7 +50,7 @@ export function MetricsOverview() {
 function MetricCard({ title, value, icon, trend, trendLabel, className }: MetricCardProps) {
   return (
     <div className={cn(
-      "bg-card rounded-xl p-5 border border-border animate-scale-in transition-all duration-300 hover:shadow-soft",
+      "bg-card rounded-lg p-5 border shadow-sm transition-all duration-300 hover:shadow-md",
       className
     )}>
       <div className="flex justify-between items-start">
@@ -118,7 +118,7 @@ function StatusCard({
   color: string;
 }) {
   return (
-    <div className="bg-card rounded-lg border border-border p-4 hover:shadow-soft transition-all duration-300">
+    <div className="bg-card rounded-lg border shadow-sm p-4 hover:shadow-md transition-all duration-300">
       <div className="flex items-center gap-3">
         <div className={cn("rounded-full p-2", color)}>
           {icon}

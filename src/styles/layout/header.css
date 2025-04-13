@@ -1,10 +1,9 @@
-
 /* Fixed position for mobile headers */
 .fixed-header-spacing {
   padding-top: 4rem;
 }
 
-/* Fix for header to ensure it's always at the top */
+/* Header styling has been moved to Tailwind classes in the Header component */
 .header-fixed {
   position: fixed;
   top: 0;
@@ -12,7 +11,6 @@
   right: 0;
   width: 100%;
   z-index: 40;
-  backdrop-filter: blur(8px);
 }
 
 /* Ensure content doesn't get hidden behind fixed header */

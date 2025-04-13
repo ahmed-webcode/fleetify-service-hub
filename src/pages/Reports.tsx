@@ -5,21 +5,21 @@ import { FileBarChart, FileText, FileSpreadsheet, Filter } from "lucide-react";
 
 export default function Reports() {
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6">
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold tracking-tight">Reports</h1>
         <p className="text-muted-foreground">View and generate reports for fleet operations</p>
       </div>
 
-      <Tabs defaultValue="fuel">
-        <TabsList className="grid grid-cols-4 md:w-[600px]">
+      <Tabs defaultValue="fuel" className="w-full">
+        <TabsList className="grid grid-cols-4 w-full md:w-[600px]">
           <TabsTrigger value="fuel">Fuel</TabsTrigger>
           <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
           <TabsTrigger value="usage">Vehicle Usage</TabsTrigger>
           <TabsTrigger value="fleet">Fleet Status</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="fuel" className="space-y-4 mt-4">
+        <TabsContent value="fuel" className="mt-4">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <ReportCard 
               title="Fuel Consumption"
@@ -39,7 +39,7 @@ export default function Reports() {
           </div>
         </TabsContent>
         
-        <TabsContent value="maintenance" className="space-y-4 mt-4">
+        <TabsContent value="maintenance" className="mt-4">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <ReportCard 
               title="Maintenance Costs"
@@ -54,7 +54,7 @@ export default function Reports() {
           </div>
         </TabsContent>
         
-        <TabsContent value="usage" className="space-y-4 mt-4">
+        <TabsContent value="usage" className="mt-4">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <ReportCard 
               title="Vehicle Utilization"
@@ -69,7 +69,7 @@ export default function Reports() {
           </div>
         </TabsContent>
         
-        <TabsContent value="fleet" className="space-y-4 mt-4">
+        <TabsContent value="fleet" className="mt-4">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <ReportCard 
               title="Fleet Overview"

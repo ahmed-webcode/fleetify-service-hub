@@ -1,3 +1,19 @@
+/* Keep essential map styles */
+.mapboxgl-popup-content {
+  @apply p-3 rounded-lg border border-border bg-card text-card-foreground shadow-md min-w-[200px];
+}
+
+.mapboxgl-popup-close-button {
+  @apply text-muted-foreground text-lg px-2 py-0.5;
+}
+
+.mapboxgl-ctrl-group {
+  @apply rounded-lg overflow-hidden border border-border bg-card;
+}
+
+.vehicle-status {
+  @apply inline-block w-2 h-2 rounded-full mr-1.5;
+}
 
 /* Vehicle marker styling */
 .mapboxgl-marker {

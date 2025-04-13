@@ -27,8 +27,7 @@ export function DashboardCard({
 }: DashboardCardProps) {
   return (
     <div className={cn(
-      "bg-card rounded-xl border border-border p-5 transition-all duration-300",
-      "hover:shadow-md hover:-translate-y-1",
+      "bg-card rounded-lg border shadow-sm p-5 transition-all duration-300 hover:shadow-md hover:translate-y-[-2px]",
       className
     )}>
       <div className="flex items-center justify-between mb-4">
