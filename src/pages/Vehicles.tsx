@@ -113,7 +113,7 @@ const Vehicles = () => {
   
   return (
     <PageLayout>
-      <div className="container-centered">
+      <div className="w-full">
         <div className="page-title-container">
           <h1 className="page-title">Vehicles</h1>
           <p className="page-description">Manage and monitor your fleet</p>
