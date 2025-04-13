@@ -131,3 +131,6 @@
     display: none;
   }
 }
+
+/* Import all custom styles */
+@import './styles/custom.css';

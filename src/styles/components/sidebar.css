@@ -1,0 +1,48 @@
+
+/* Custom styles to adjust the sidebar positioning */
+.sidebar-item-centered {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+/* Fix sidebar transition */
+.sidebar-transition {
+  transition: margin-left 0.3s ease-in-out;
+}
+
+/* Collapsible sidebar content */
+.sidebar-collapsed-content {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.sidebar-expanded-content {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* CSS to handle the sidebar-main content relationship */
+.main-content {
+  width: 100%;
+  transition: margin-left 0.3s ease-in-out;
+}
+
+.main-content.sidebar-open {
+  margin-left: 16rem;
+  width: calc(100% - 16rem);
+}
+
+.main-content.sidebar-closed {
+  margin-left: 4rem;
+  width: calc(100% - 4rem);
+}
+
+@media (max-width: 768px) {
+  .main-content.sidebar-open,
+  .main-content.sidebar-closed {
+    margin-left: 0;
+    width: 100%;
+  }
+}

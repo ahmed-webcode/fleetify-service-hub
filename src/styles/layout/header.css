@@ -1,0 +1,21 @@
+
+/* Fixed position for mobile headers */
+.fixed-header-spacing {
+  padding-top: 4rem;
+}
+
+/* Fix for header to ensure it's always at the top */
+.header-fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  z-index: 40;
+  backdrop-filter: blur(8px);
+}
+
+/* Ensure content doesn't get hidden behind fixed header */
+.header-spacer {
+  height: 4rem;
+}

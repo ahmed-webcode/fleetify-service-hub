@@ -1,0 +1,30 @@
+
+/* Add animation for page transitions */
+.animate-fade-in {
+  opacity: 0;
+  animation: fadeIn 0.3s ease forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Button press animation */
+.press-animation {
+  transition-transform: transform 0.2s;
+}
+
+.press-animation:active {
+  transform: scale(0.95);
+}
+
+/* Hover lift animation */
+.hover-lift {
+  transition: all 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}

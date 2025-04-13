@@ -1,0 +1,47 @@
+
+/* Responsive utilities */
+.xs\:inline {
+  display: inline;
+}
+
+@media (max-width: 475px) {
+  .hidden.xs\:inline {
+    display: none;
+  }
+}
+
+/* Flex wrapping for responsive layouts */
+.flex-wrap-responsive {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* Container fluid utility */
+.container-fluid {
+  width: 100%;
+  padding-right: 1rem;
+  padding-left: 1rem;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+/* Improved grid layouts for dashboard sections */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1rem;
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
