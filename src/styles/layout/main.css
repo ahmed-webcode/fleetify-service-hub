@@ -21,3 +21,38 @@
 .card-uniform {
   @apply bg-card rounded-lg border p-6 shadow-sm;
 }
+
+/* Dashboard-style cards */
+.stats-card {
+  @apply bg-card rounded-lg border shadow-sm p-4 flex items-center justify-between;
+}
+
+.stats-card-value {
+  @apply text-2xl font-bold;
+}
+
+.stats-card-label {
+  @apply text-sm font-medium text-muted-foreground;
+}
+
+/* Table styling consistency */
+.responsive-table {
+  @apply w-full;
+}
+
+.responsive-table th {
+  @apply text-left py-3 px-4 text-sm font-medium;
+}
+
+.responsive-table td {
+  @apply py-3 px-4;
+}
+
+/* Ensure consistent empty state styling */
+.empty-state {
+  @apply flex flex-col items-center justify-center py-12 text-center;
+}
+
+.empty-state-icon {
+  @apply bg-muted rounded-full p-4 mb-4;
+}
