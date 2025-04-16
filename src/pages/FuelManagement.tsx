@@ -1,11 +1,9 @@
-
 import React, { useState } from 'react';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Filter, Fuel, Plus, Calendar, FileText, Check, Clock } from "lucide-react";
-import { FuelRecordForm } from "@/components/fuel/FuelRecordForm";
 import { FuelServiceRequestDialog } from "@/components/fuel/FuelServiceRequestDialog";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -89,7 +87,6 @@ const fuelRecords = [
 
 const FuelManagement = () => {
   const [activeTab, setActiveTab] = useState("requests");
-  const [isFuelRecordFormOpen, setIsFuelRecordFormOpen] = useState(false);
   const [isFuelRequestFormOpen, setIsFuelRequestFormOpen] = useState(false);
   const [requestsView, setRequestsView] = useState("all");
   
@@ -127,14 +124,6 @@ const FuelManagement = () => {
                   New Fuel Request
                 </Button>
               )}
-              
-              <Button 
-                onClick={() => setIsFuelRecordFormOpen(true)}
-                className="gap-2 bg-gray-600 hover:bg-gray-700 text-white w-full sm:w-auto"
-              >
-                <Fuel className="h-4 w-4" />
-                Add Fuel Record
-              </Button>
             </div>
           </div>
           
@@ -334,11 +323,6 @@ const FuelManagement = () => {
               )}
             </TabsContent>
           </Tabs>
-          
-          <FuelRecordForm 
-            isOpen={isFuelRecordFormOpen} 
-            onClose={() => setIsFuelRecordFormOpen(false)} 
-          />
           
           <FuelServiceRequestDialog
             isOpen={isFuelRequestFormOpen}

@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { MetricsOverview } from "@/components/dashboard/MetricsOverview";
 import { DashboardCard } from "@/components/dashboard/DashboardCard";
+import { DashboardCharts } from "@/components/dashboard/DashboardCharts";
 import { Car, Fuel, Wrench, Users, Calendar } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -32,6 +33,9 @@ export default function Dashboard() {
       </div>
       
       <MetricsOverview />
+      
+      {/* Add the new charts component */}
+      <DashboardCharts />
       
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <DashboardCard 

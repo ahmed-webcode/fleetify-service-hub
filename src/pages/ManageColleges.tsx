@@ -19,29 +19,22 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Search, Plus, Trash2, Edit, Building, School, MapPin } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Search, Plus, Building, School, MapPin, FileText } from "lucide-react";
 import { toast } from "sonner";
 
 // Types for organization structure
 type College = {
   id: string;
   name: string;
-  description?: string;
-  positions?: CollegePosition[];
   campuses?: string[];
-};
-
-type CollegePosition = {
-  title: string;
-  name: string;
+  projects?: string[];
 };
 
 type Institute = {
   id: string;
   name: string;
   location?: string;
-  description?: string;
 };
 
 type Campus = {
@@ -56,97 +49,47 @@ const MOCK_COLLEGES: College[] = [
   {
     id: "col1",
     name: "College of Business and Economics",
-    description: "Offers programs in business, economics, accounting and finance",
-    positions: [
-      { title: "Executive Dean", name: "Dr. Samuel Tadesse" },
-      { title: "Vice Executive Dean (Campus)", name: "Dr. Helen Abebe" },
-      { title: "Vice Executive Dean for Academics", name: "Dr. Michael Hailu" },
-      { title: "Vice Executive Dean for Research and Engagement", name: "Dr. Meron Tesfaye" },
-      { title: "Operational Director for FBE Campus", name: "Mr. Dawit Nega" },
-      { title: "Operational Director for Commerce", name: "Ms. Tigist Demeke" }
-    ],
-    campuses: ["FBE Campus", "Commerce"]
+    campuses: ["FBE Campus", "Commerce"],
+    projects: ["Library Renovation", "Computer Lab Upgrade"]
   },
   {
     id: "col2",
     name: "College of Social Science, Arts and Humanities",
-    description: "Offers programs in social sciences, arts, literature and humanities",
-    positions: [
-      { title: "Executive Dean", name: "Dr. Tigist Alemu" },
-      { title: "Vice Executive Dean (Campus)", name: "Dr. Abebe Kebede" },
-      { title: "Vice Executive Dean for Academics", name: "Dr. Sara Mengiste" },
-      { title: "Vice Executive Dean for Research and Engagement", name: "Dr. Daniel Gebre" }
-    ],
-    campuses: ["Main Campus", "Yared Campus", "Art Campus"]
+    campuses: ["Main Campus", "Yared Campus", "Art Campus"],
+    projects: ["Theatre Expansion", "Resource Center"]
   },
   {
     id: "col3",
     name: "College of Veterinary Medicine and Agriculture",
-    description: "Focuses on veterinary medicine and agricultural sciences",
-    positions: [
-      { title: "Executive Dean", name: "Dr. Fekadu Bekele" },
-      { title: "Vice Executive Dean (Campus)", name: "Dr. Hanna Tesfaye" },
-      { title: "Vice Executive Dean for Academics", name: "Dr. Solomon Abera" },
-      { title: "Vice Executive Dean for Research and Engagement", name: "Dr. Bethel Tadesse" }
-    ],
-    campuses: ["Veterinary Campus"]
+    campuses: ["Veterinary Campus"],
+    projects: ["Animal Health Center"]
   },
   {
     id: "col4",
     name: "College of Technology and Built Environment",
-    description: "Focuses on engineering, technology and built environment disciplines",
-    positions: [
-      { title: "Executive Dean", name: "Dr. Dawit Haile" },
-      { title: "Vice Executive Dean (Campus)", name: "Dr. Yonas Arega" },
-      { title: "Vice Executive Dean for Academics", name: "Dr. Elizabeth Tadesse" },
-      { title: "Vice Executive Dean for Research and Engagement", name: "Dr. Mekonnen Abebe" }
-    ],
-    campuses: ["Technology", "Built Environment"]
+    campuses: ["Technology", "Built Environment"],
+    projects: ["Research Lab Construction", "Workshop Renovation"]
   },
   {
     id: "col5",
     name: "College of Natural and Computational Sciences",
-    description: "Focuses on natural sciences, mathematics and computing",
-    positions: [
-      { title: "Executive Dean", name: "Dr. Alemayehu Deresa" },
-      { title: "Vice Executive Dean (Campus)", name: "Dr. Selamawit Mengistu" },
-      { title: "Vice Executive Dean for Academics", name: "Dr. Abel Tesfaye" },
-      { title: "Vice Executive Dean for Research and Engagement", name: "Dr. Ruth Kinfe" }
-    ]
+    projects: ["Science Lab Expansion"]
   },
   {
     id: "col6",
     name: "College of Education and Language Studies",
-    description: "Focuses on education, pedagogy and language studies",
-    positions: [
-      { title: "Executive Dean", name: "Dr. Tewodros Abebe" },
-      { title: "Vice Executive Dean (Campus)", name: "Dr. Meseret Hailu" },
-      { title: "Vice Executive Dean for Academics", name: "Dr. Biruk Solomon" },
-      { title: "Vice Executive Dean for Research and Engagement", name: "Dr. Hiwot Tekle" }
-    ]
+    projects: ["Language Resource Center"]
   },
   {
     id: "col7",
     name: "College of Health Science",
-    description: "Focuses on medical and health sciences",
-    positions: [
-      { title: "Executive Dean", name: "Dr. Elias Mulatu" },
-      { title: "Vice Executive Dean (Campus)", name: "Dr. Senait Tadesse" },
-      { title: "Vice Executive Dean for Academics", name: "Dr. Mesfin Hailu" },
-      { title: "Vice Executive Dean for Research and Engagement", name: "Dr. Kidist Alemu" }
-    ],
-    campuses: ["Tikur Anbessa", "Seferselam"]
+    campuses: ["Tikur Anbessa", "Seferselam"],
+    projects: ["Clinical Training Center", "Medical Library"]
   },
   {
     id: "col8",
     name: "School of Law",
-    description: "Focuses on legal education and research",
-    positions: [
-      { title: "Executive Dean", name: "Dr. Eshetu Girma" },
-      { title: "Vice Executive Dean (Campus)", name: "Dr. Rahel Mesele" },
-      { title: "Vice Executive Dean for Academics", name: "Dr. Getachew Assefa" },
-      { title: "Vice Executive Dean for Research and Engagement", name: "Dr. Haregewoin Teklu" }
-    ]
+    projects: ["Moot Court Renovation"]
   }
 ];
 
@@ -207,7 +150,6 @@ const ManageColleges = () => {
   const [isAddCollegeOpen, setIsAddCollegeOpen] = useState(false);
   const [isAddInstituteOpen, setIsAddInstituteOpen] = useState(false);
   const [isAddCampusOpen, setIsAddCampusOpen] = useState(false);
-  const [selectedCollege, setSelectedCollege] = useState<College | null>(null);
   
   // Form state
   const [newCollege, setNewCollege] = useState({ name: "" });
@@ -328,21 +270,9 @@ const ManageColleges = () => {
                   <Card key={college.id} className="overflow-hidden">
                     <CardHeader className="pb-3">
                       <CardTitle>{college.name}</CardTitle>
-                      <CardDescription>{college.description}</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
-                        <div>
-                          <h4 className="text-sm font-medium mb-2">Leadership Positions</h4>
-                          <div className="space-y-2">
-                            {college.positions?.map((position, idx) => (
-                              <div key={idx} className="text-sm">
-                                <span className="font-medium">{position.title}:</span> {position.name}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                        
                         {college.campuses && college.campuses.length > 0 && (
                           <div>
                             <h4 className="text-sm font-medium mb-2">Campuses</h4>
@@ -356,9 +286,22 @@ const ManageColleges = () => {
                           </div>
                         )}
                         
+                        {college.projects && college.projects.length > 0 && (
+                          <div>
+                            <h4 className="text-sm font-medium mb-2">Projects</h4>
+                            <div className="flex flex-wrap gap-2">
+                              {college.projects.map((project, idx) => (
+                                <div key={idx} className="text-xs bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 px-2 py-1 rounded-md flex items-center">
+                                  <FileText className="h-3 w-3 mr-1" /> {project}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
                         <div className="flex justify-end gap-2 pt-3">
-                          <Button variant="outline" size="sm" onClick={() => setSelectedCollege(college)}>
-                            <Edit className="h-4 w-4 mr-1" /> Edit
+                          <Button variant="outline" size="sm">
+                            Edit
                           </Button>
                         </div>
                       </div>
@@ -391,7 +334,7 @@ const ManageColleges = () => {
                         
                         <div className="flex justify-end gap-2 pt-3">
                           <Button variant="outline" size="sm">
-                            <Edit className="h-4 w-4 mr-1" /> Edit
+                            Edit
                           </Button>
                         </div>
                       </div>
@@ -425,7 +368,7 @@ const ManageColleges = () => {
                         
                         <div className="flex justify-end gap-2 pt-3">
                           <Button variant="outline" size="sm">
-                            <Edit className="h-4 w-4 mr-1" /> Edit
+                            Edit
                           </Button>
                         </div>
                       </div>
