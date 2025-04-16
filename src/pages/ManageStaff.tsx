@@ -1,26 +1,25 @@
-
-import { useState } from "react";
-import { PageLayout } from "@/components/layout/PageLayout";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import React from 'react';
+import { PageLayout } from '@/components/layout/PageLayout';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
+} from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -28,10 +27,10 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Plus, Search, Users, FileText } from "lucide-react";
-import { toast } from "sonner";
-import { useAuth, MOCK_COLLEGES, MOCK_INSTITUTES, MOCK_CAMPUSES } from "@/contexts/AuthContext";
+} from '@/components/ui/table';
+import { Plus, Search, Users, FileText } from 'lucide-react';
+import { toast } from 'sonner';
+import { useAuth, MOCK_COLLEGES, MOCK_INSTITUTES, MOCK_CAMPUSES } from '@/contexts/AuthContext';
 
 // Mock staff data
 const MOCK_STAFF = [
@@ -126,284 +125,293 @@ const ManageStaff = () => {
 
   return (
     <PageLayout>
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">Manage Staff</h1>
-          <p className="text-muted-foreground">
-            Add and manage staff records for the system
-          </p>
+      <div className="page-container">
+        <div className="page-title-container">
+          <h1 className="page-title">Staff Management</h1>
+          <p className="page-description">Manage transportation department staff</p>
         </div>
 
-        {canAddStaff && (
-          <Button className="gap-2" onClick={() => setAddStaffOpen(true)}>
-            <Plus className="h-4 w-4" />
-            Add Staff
-          </Button>
-        )}
-      </div>
-
-      <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="md:col-span-2 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search staff..."
-            className="pl-9"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-      </div>
-
-      <Tabs defaultValue="grid" className="space-y-4">
-        <div className="flex justify-between items-center">
-          <div className="text-sm text-muted-foreground">
-            Showing {filteredStaff.length} of {staffList.length} staff members
-          </div>
-          <TabsList>
-            <TabsTrigger value="grid" className="gap-2">
-              <div className="grid grid-cols-2 gap-0.5 w-3 h-3">
-                <div className="bg-current rounded-sm"></div>
-                <div className="bg-current rounded-sm"></div>
-                <div className="bg-current rounded-sm"></div>
-                <div className="bg-current rounded-sm"></div>
-              </div>
-              Grid
-            </TabsTrigger>
-            <TabsTrigger value="list" className="gap-2">
-              <div className="flex flex-col gap-0.5 w-3">
-                <div className="h-0.5 w-full bg-current rounded-sm"></div>
-                <div className="h-0.5 w-full bg-current rounded-sm"></div>
-                <div className="h-0.5 w-full bg-current rounded-sm"></div>
-              </div>
-              List
-            </TabsTrigger>
-          </TabsList>
-        </div>
-
-        <TabsContent value="grid" className="animate-fade-in">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredStaff.map((staff) => (
-              <Card key={staff.id} className="overflow-hidden">
-                <CardContent className="p-6">
-                  <div className="flex flex-col space-y-4">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-semibold text-lg">{staff.name}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {staff.position}
-                        </p>
-                      </div>
-                      <Badge variant="outline" className="bg-blue-50 text-blue-800">
-                        {staff.gender}
-                      </Badge>
-                    </div>
-
-                    <div className="space-y-2 text-sm">
-                      <div className="grid grid-cols-3 gap-1">
-                        <span className="text-muted-foreground">Department:</span>
-                        <span className="col-span-2 font-medium">{staff.department}</span>
-                      </div>
-                      <div className="grid grid-cols-3 gap-1">
-                        <span className="text-muted-foreground">Contact:</span>
-                        <span className="col-span-2 font-medium">{staff.phone}</span>
-                      </div>
-                      <div className="grid grid-cols-3 gap-1">
-                        <span className="text-muted-foreground">
-                          Driving License:
-                        </span>
-                        <span className="col-span-2 font-medium">
-                          {staff.drivingLicense || "N/A"}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex justify-end pt-2">
-                      <Button variant="outline" size="sm">
-                        Details
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="list" className="animate-fade-in">
-          <div className="rounded-lg border border-border overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Position</TableHead>
-                  <TableHead>Department</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Driving License</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredStaff.map((staff) => (
-                  <TableRow key={staff.id}>
-                    <TableCell className="font-medium">{staff.name}</TableCell>
-                    <TableCell>{staff.position}</TableCell>
-                    <TableCell>{staff.department}</TableCell>
-                    <TableCell>{staff.phone}</TableCell>
-                    <TableCell>
-                      {staff.drivingLicense || <span className="text-muted-foreground">N/A</span>}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm">
-                        Details
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </TabsContent>
-      </Tabs>
-
-      <Dialog open={addStaffOpen} onOpenChange={setAddStaffOpen}>
-        <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Add New Staff Member</DialogTitle>
-          </DialogHeader>
-
-          <form onSubmit={handleAddStaff} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input id="name" placeholder="Enter full name" required />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="gender">Gender</Label>
-                <Select required>
-                  <SelectTrigger id="gender">
-                    <SelectValue placeholder="Select gender" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Male">Male</SelectItem>
-                    <SelectItem value="Female">Female</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+        <div className="card-uniform">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+            <div>
+              <h1 className="text-3xl font-bold">Manage Staff</h1>
+              <p className="text-muted-foreground">
+                Add and manage staff records for the system
+              </p>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
-              <Input id="phone" placeholder="+251..." required />
-            </div>
+            {canAddStaff && (
+              <Button className="gap-2" onClick={() => setAddStaffOpen(true)}>
+                <Plus className="h-4 w-4" />
+                Add Staff
+              </Button>
+            )}
+          </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="drivingLicense">Driving License (Optional)</Label>
+          <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="md:col-span-2 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                id="drivingLicense"
-                placeholder="Enter driving license number"
+                placeholder="Search staff..."
+                className="pl-9"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
+          </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="position">Position</Label>
-                <Select required>
-                  <SelectTrigger id="position">
-                    <SelectValue placeholder="Select position" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {POSITIONS.map((position) => (
-                      <SelectItem key={position.id} value={position.id}>
-                        {position.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+          <Tabs defaultValue="grid" className="space-y-4">
+            <div className="flex justify-between items-center">
+              <div className="text-sm text-muted-foreground">
+                Showing {filteredStaff.length} of {staffList.length} staff members
               </div>
+              <TabsList>
+                <TabsTrigger value="grid" className="gap-2">
+                  <div className="grid grid-cols-2 gap-0.5 w-3 h-3">
+                    <div className="bg-current rounded-sm"></div>
+                    <div className="bg-current rounded-sm"></div>
+                    <div className="bg-current rounded-sm"></div>
+                    <div className="bg-current rounded-sm"></div>
+                  </div>
+                  Grid
+                </TabsTrigger>
+                <TabsTrigger value="list" className="gap-2">
+                  <div className="flex flex-col gap-0.5 w-3">
+                    <div className="h-0.5 w-full bg-current rounded-sm"></div>
+                    <div className="h-0.5 w-full bg-current rounded-sm"></div>
+                    <div className="h-0.5 w-full bg-current rounded-sm"></div>
+                  </div>
+                  List
+                </TabsTrigger>
+              </TabsList>
             </div>
 
-            <div className="space-y-2">
-              <Label>Location Information</Label>
-              <div className="grid grid-cols-1 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="college">College</Label>
-                  <Select
-                    value={selectedCollege}
-                    onValueChange={setSelectedCollege}
-                  >
-                    <SelectTrigger id="college">
-                      <SelectValue placeholder="Select college" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {MOCK_COLLEGES.map((college) => (
-                        <SelectItem key={college.id} value={college.id}>
-                          {college.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+            <TabsContent value="grid" className="animate-fade-in">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredStaff.map((staff) => (
+                  <Card key={staff.id} className="overflow-hidden">
+                    <CardContent className="p-6">
+                      <div className="flex flex-col space-y-4">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="font-semibold text-lg">{staff.name}</h3>
+                            <p className="text-sm text-muted-foreground">
+                              {staff.position}
+                            </p>
+                          </div>
+                          <Badge variant="outline" className="bg-blue-50 text-blue-800">
+                            {staff.gender}
+                          </Badge>
+                        </div>
+
+                        <div className="space-y-2 text-sm">
+                          <div className="grid grid-cols-3 gap-1">
+                            <span className="text-muted-foreground">Department:</span>
+                            <span className="col-span-2 font-medium">{staff.department}</span>
+                          </div>
+                          <div className="grid grid-cols-3 gap-1">
+                            <span className="text-muted-foreground">Contact:</span>
+                            <span className="col-span-2 font-medium">{staff.phone}</span>
+                          </div>
+                          <div className="grid grid-cols-3 gap-1">
+                            <span className="text-muted-foreground">
+                              Driving License:
+                            </span>
+                            <span className="col-span-2 font-medium">
+                              {staff.drivingLicense || "N/A"}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex justify-end pt-2">
+                          <Button variant="outline" size="sm">
+                            Details
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="list" className="animate-fade-in">
+              <div className="rounded-lg border border-border overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Position</TableHead>
+                      <TableHead>Department</TableHead>
+                      <TableHead>Contact</TableHead>
+                      <TableHead>Driving License</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredStaff.map((staff) => (
+                      <TableRow key={staff.id}>
+                        <TableCell className="font-medium">{staff.name}</TableCell>
+                        <TableCell>{staff.position}</TableCell>
+                        <TableCell>{staff.department}</TableCell>
+                        <TableCell>{staff.phone}</TableCell>
+                        <TableCell>
+                          {staff.drivingLicense || <span className="text-muted-foreground">N/A</span>}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="ghost" size="sm">
+                            Details
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </TabsContent>
+          </Tabs>
+
+          <Dialog open={addStaffOpen} onOpenChange={setAddStaffOpen}>
+            <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Add New Staff Member</DialogTitle>
+              </DialogHeader>
+
+              <form onSubmit={handleAddStaff} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Full Name</Label>
+                    <Input id="name" placeholder="Enter full name" required />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="gender">Gender</Label>
+                    <Select required>
+                      <SelectTrigger id="gender">
+                        <SelectValue placeholder="Select gender" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Male">Male</SelectItem>
+                        <SelectItem value="Female">Female</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
-                {selectedCollege && (
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <Input id="phone" placeholder="+251..." required />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="drivingLicense">Driving License (Optional)</Label>
+                  <Input
+                    id="drivingLicense"
+                    placeholder="Enter driving license number"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="institute">Institute</Label>
-                    <Select
-                      value={selectedInstitute}
-                      onValueChange={setSelectedInstitute}
-                    >
-                      <SelectTrigger id="institute">
-                        <SelectValue placeholder="Select institute" />
+                    <Label htmlFor="position">Position</Label>
+                    <Select required>
+                      <SelectTrigger id="position">
+                        <SelectValue placeholder="Select position" />
                       </SelectTrigger>
                       <SelectContent>
-                        {filteredInstitutes.map((institute) => (
-                          <SelectItem key={institute.id} value={institute.id}>
-                            {institute.name}
+                        {POSITIONS.map((position) => (
+                          <SelectItem key={position.id} value={position.id}>
+                            {position.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
-                )}
+                </div>
 
-                {selectedInstitute && (
-                  <div className="space-y-2">
-                    <Label htmlFor="campus">Campus</Label>
-                    <Select
-                      value={selectedCampus}
-                      onValueChange={setSelectedCampus}
-                    >
-                      <SelectTrigger id="campus">
-                        <SelectValue placeholder="Select campus" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {filteredCampuses.map((campus) => (
-                          <SelectItem key={campus.id} value={campus.id}>
-                            {campus.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                <div className="space-y-2">
+                  <Label>Location Information</Label>
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="college">College</Label>
+                      <Select
+                        value={selectedCollege}
+                        onValueChange={setSelectedCollege}
+                      >
+                        <SelectTrigger id="college">
+                          <SelectValue placeholder="Select college" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {MOCK_COLLEGES.map((college) => (
+                            <SelectItem key={college.id} value={college.id}>
+                              {college.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {selectedCollege && (
+                      <div className="space-y-2">
+                        <Label htmlFor="institute">Institute</Label>
+                        <Select
+                          value={selectedInstitute}
+                          onValueChange={setSelectedInstitute}
+                        >
+                          <SelectTrigger id="institute">
+                            <SelectValue placeholder="Select institute" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {filteredInstitutes.map((institute) => (
+                              <SelectItem key={institute.id} value={institute.id}>
+                                {institute.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+
+                    {selectedInstitute && (
+                      <div className="space-y-2">
+                        <Label htmlFor="campus">Campus</Label>
+                        <Select
+                          value={selectedCampus}
+                          onValueChange={setSelectedCampus}
+                        >
+                          <SelectTrigger id="campus">
+                            <SelectValue placeholder="Select campus" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {filteredCampuses.map((campus) => (
+                              <SelectItem key={campus.id} value={campus.id}>
+                                {campus.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            </div>
+                </div>
 
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setAddStaffOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Adding..." : "Add Staff"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+                <DialogFooter>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setAddStaffOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? "Adding..." : "Add Staff"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
     </PageLayout>
   );
 };

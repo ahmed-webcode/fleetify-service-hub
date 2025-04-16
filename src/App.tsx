@@ -58,9 +58,9 @@ const App = () => (
               </ProtectedRoute>
             } />
             
-            {/* GPS tracking - transport director only */}
+            {/* GPS tracking - transport director, operation director, and FTL can access */}
             <Route path="/gps-tracking" element={
-              <ProtectedRoute requiredPermission="track_vehicles">
+              <ProtectedRoute requiredPermission="access_gps_tracking">
                 <GPSTracking />
               </ProtectedRoute>
             } />

@@ -60,11 +60,14 @@ interface ProjectFormProps {
 
 // Mock data for dropdowns
 const colleges = [
-  { id: "col1", name: "College of Natural Sciences" },
-  { id: "col2", name: "College of Social Sciences" },
-  { id: "col3", name: "Institute of Technology" },
-  { id: "col4", name: "College of Business and Economics" },
-  { id: "col5", name: "College of Health Sciences" },
+  { id: "col1", name: "College of Business and Economics" },
+  { id: "col2", name: "College of Social Science, Arts and Humanities" },
+  { id: "col3", name: "College of Veterinary Medicine and Agriculture" },
+  { id: "col4", name: "College of Technology and Built Environment" },
+  { id: "col5", name: "College of Natural and Computational Sciences" },
+  { id: "col6", name: "College of Education and Language Studies" },
+  { id: "col7", name: "College of Health Science" },
+  { id: "col8", name: "School of Law" }
 ];
 
 export function ProjectForm({ onSubmit, onCancel, defaultValues, isEdit = false }: ProjectFormProps) {
@@ -246,7 +249,7 @@ export function ProjectForm({ onSubmit, onCancel, defaultValues, isEdit = false 
             />
             
             <div>
-              <FormLabel className="block mb-2">Project Files</FormLabel>
+              <FormLabel className="block mb-2">Project Documents</FormLabel>
               <ProjectFileUpload onFilesChange={handleFilesChange} />
             </div>
           </div>

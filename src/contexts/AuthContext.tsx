@@ -162,6 +162,36 @@ const generateToken = (user: Omit<User, "password">) => {
   return btoa(JSON.stringify(payload));
 };
 
+const transportDirectorPermissions = [
+  "add_vehicle",
+  "edit_vehicle", 
+  "delete_vehicle",
+  "approve_fleet",
+  "approve_fuel",
+  "approve_maintenance",
+  "assign_driver",
+  "track_vehicles",
+  "view_reports",
+  "add_users",
+  "edit_users",
+  "delete_users",
+  "access_gps_tracking" // Added GPS tracking permission
+];
+
+const operationalDirectorPermissions = [
+  "approve_fleet",
+  "approve_fuel",
+  "view_reports",
+  "access_gps_tracking" // Added GPS tracking permission
+];
+
+const ftlPermissions = [
+  "request_fleet",
+  "request_fuel",
+  "request_maintenance",
+  "access_gps_tracking" // Added GPS tracking permission
+];
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {

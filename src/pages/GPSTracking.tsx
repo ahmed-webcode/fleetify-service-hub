@@ -64,13 +64,13 @@ const GPSTracking = () => {
   
   return (
     <PageLayout>
-      <div className="gps-container">
+      <div className="page-container">
+        <div className="page-title-container">
+          <h1 className="page-title">GPS Tracking</h1>
+          <p className="page-description">Track and monitor your fleet in real-time</p>
+        </div>
+        
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-          <div>
-            <h1 className="text-3xl font-bold">GPS Tracking</h1>
-            <p className="text-muted-foreground">Track and monitor your fleet in real-time</p>
-          </div>
-          
           <div className="flex items-center gap-4">
             <div className="flex items-center space-x-2">
               <Switch
@@ -98,12 +98,12 @@ const GPSTracking = () => {
                 </SelectContent>
               </Select>
             )}
-            
-            <Button variant="outline" onClick={refreshVehicleData} disabled={isLoading}>
-              <RefreshCcw className="h-4 w-4 mr-2" />
-              {isLoading ? "Refreshing..." : "Refresh"}
-            </Button>
           </div>
+          
+          <Button variant="outline" onClick={refreshVehicleData} disabled={isLoading}>
+            <RefreshCcw className="h-4 w-4 mr-2" />
+            {isLoading ? "Refreshing..." : "Refresh"}
+          </Button>
         </div>
         
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -148,15 +148,15 @@ const GPSTracking = () => {
           </Card>
         </div>
         
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          <div className="lg:col-span-1 space-y-6">
-            <div className="bg-card rounded-xl border p-4">
-              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <CarFront className="h-5 w-5 text-primary" />
-                <span>Vehicles</span>
-              </h3>
-              
-              <div className="space-y-4">
+        <div className="card-uniform">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <div className="lg:col-span-1 space-y-6">
+              <div className="bg-card rounded-xl border p-4">
+                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <CarFront className="h-5 w-5 text-primary" />
+                  <span>Vehicles</span>
+                </h3>
+                
                 <Select value={selectedVehicle} onValueChange={setSelectedVehicle}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a vehicle" />
@@ -194,39 +194,39 @@ const GPSTracking = () => {
                   ))}
                 </div>
               </div>
+              
+              <VehicleLocationDetails vehicle={selectedVehicleData} />
             </div>
             
-            <VehicleLocationDetails vehicle={selectedVehicleData} />
-          </div>
-          
-          <div className="lg:col-span-3">
-            <Tabs defaultValue="map" className="space-y-4">
-              <TabsList className="grid grid-cols-2 w-full max-w-md">
-                <TabsTrigger value="map" className="gap-2">
-                  <Map className="h-4 w-4" />
-                  Map View
-                </TabsTrigger>
-                <TabsTrigger value="list" className="gap-2">
-                  <List className="h-4 w-4" />
-                  List View
-                </TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="map" className="space-y-4">
-                <MapView 
-                  selectedVehicle={selectedVehicle || null} 
-                  vehicles={vehicles}
-                />
-              </TabsContent>
-              
-              <TabsContent value="list" className="space-y-4">
-                <VehicleLocationsList 
-                  vehicles={vehicles}
-                  selectedVehicle={selectedVehicle || null}
-                  onSelectVehicle={setSelectedVehicle}
-                />
-              </TabsContent>
-            </Tabs>
+            <div className="lg:col-span-3">
+              <Tabs defaultValue="map" className="space-y-4">
+                <TabsList className="grid grid-cols-2 w-full max-w-md">
+                  <TabsTrigger value="map" className="gap-2">
+                    <Map className="h-4 w-4" />
+                    Map View
+                  </TabsTrigger>
+                  <TabsTrigger value="list" className="gap-2">
+                    <List className="h-4 w-4" />
+                    List View
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="map" className="space-y-4">
+                  <MapView 
+                    selectedVehicle={selectedVehicle || null} 
+                    vehicles={vehicles}
+                  />
+                </TabsContent>
+                
+                <TabsContent value="list" className="space-y-4">
+                  <VehicleLocationsList 
+                    vehicles={vehicles}
+                    selectedVehicle={selectedVehicle || null}
+                    onSelectVehicle={setSelectedVehicle}
+                  />
+                </TabsContent>
+              </Tabs>
+            </div>
           </div>
         </div>
       </div>
