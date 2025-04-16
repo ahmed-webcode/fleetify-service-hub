@@ -17,16 +17,19 @@ interface ServiceRequestFormProps {
   isDialog?: boolean;
   isOpen?: boolean;
   onClose?: () => void;
+  onSubmitSuccess?: () => void;
 }
 
 export function ServiceRequestForm({ 
   defaultServiceType = "fleet", 
   isDialog = false,
   isOpen = false, 
-  onClose = () => {} 
+  onClose = () => {},
+  onSubmitSuccess = () => {}
 }: ServiceRequestFormProps) {
   const [serviceType, setServiceType] = useState<ServiceType>(defaultServiceType);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [documentFiles, setDocumentFiles] = useState<File[]>([]);
   
   const [formData, setFormData] = useState({
     vehicle: "",
@@ -57,6 +60,12 @@ export function ServiceRequestForm({
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setDocumentFiles(Array.from(e.target.files));
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -85,9 +94,15 @@ export function ServiceRequestForm({
         description: `Your ${serviceType} service request has been submitted.`
       });
       
+      if (documentFiles.length > 0) {
+        console.log("Files uploaded:", documentFiles);
+      }
+      
       if (isDialog && onClose) {
         onClose();
       }
+      
+      onSubmitSuccess();
     }, 1500);
   };
 
@@ -318,6 +333,34 @@ export function ServiceRequestForm({
                   value={formData.currentMileage}
                   onChange={handleChange}
                 />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="documentUpload">Upload Supporting Documents</Label>
+                <div className="border border-dashed border-border rounded-md p-4">
+                  <Input
+                    id="documentUpload"
+                    type="file"
+                    multiple
+                    onChange={handleFileChange}
+                    className="cursor-pointer"
+                  />
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Upload any relevant documents (e.g., inspection reports, photos)
+                  </p>
+                </div>
+                {documentFiles.length > 0 && (
+                  <div className="mt-2">
+                    <p className="text-sm font-medium mb-1">{documentFiles.length} file(s) selected:</p>
+                    <ul className="text-xs text-muted-foreground space-y-1">
+                      {documentFiles.map((file, index) => (
+                        <li key={index} className="truncate">
+                          {file.name} ({(file.size / 1024).toFixed(1)} KB)
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             </>
           )}

@@ -4,12 +4,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const data = [
-  { month: 'Jan', diesel: 480, petrol: 350 },
-  { month: 'Feb', diesel: 520, petrol: 380 },
-  { month: 'Mar', diesel: 450, petrol: 320 },
-  { month: 'Apr', diesel: 510, petrol: 390 },
-  { month: 'May', diesel: 530, petrol: 410 },
-  { month: 'Jun', diesel: 490, petrol: 370 },
+  { month: 'Jan', diesel: 480, petrol: 350, specialFuel: 120 },
+  { month: 'Feb', diesel: 520, petrol: 380, specialFuel: 145 },
+  { month: 'Mar', diesel: 450, petrol: 320, specialFuel: 130 },
+  { month: 'Apr', diesel: 510, petrol: 390, specialFuel: 160 },
+  { month: 'May', diesel: 530, petrol: 410, specialFuel: 180 },
+  { month: 'Jun', diesel: 490, petrol: 370, specialFuel: 150 },
 ];
 
 export function FuelConsumptionChart() {
@@ -41,6 +41,7 @@ export function FuelConsumptionChart() {
               <Legend />
               <Bar dataKey="diesel" fill="#3b82f6" name="Diesel" />
               <Bar dataKey="petrol" fill="#f59e0b" name="Petrol" />
+              <Bar dataKey="specialFuel" fill="#8b5cf6" name="Special Fuel" />
             </BarChart>
           </ResponsiveContainer>
         </div>

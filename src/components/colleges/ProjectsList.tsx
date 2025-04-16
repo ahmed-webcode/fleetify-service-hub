@@ -72,7 +72,14 @@ export function ProjectsList({ collegeId, collegeName }: ProjectsListProps) {
     // In a real app, this would be an API call
     const newProject: Project = {
       id: `proj${projects.length + 1}`,
-      ...data
+      projectName: data.projectName,
+      description: data.description,
+      college: data.college || collegeId,
+      budget: data.budget,
+      startDate: data.startDate,
+      endDate: data.endDate,
+      projectManager: data.projectManager,
+      status: data.status
     };
     
     setProjects([...projects, newProject]);
@@ -80,7 +87,7 @@ export function ProjectsList({ collegeId, collegeName }: ProjectsListProps) {
     toast.success("Project added successfully");
     
     // Log files uploaded (in a real app, these would be saved to storage)
-    if (data.files.length > 0) {
+    if (data.files && data.files.length > 0) {
       console.log("Files uploaded:", data.files);
     }
   };

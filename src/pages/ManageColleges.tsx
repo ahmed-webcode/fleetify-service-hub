@@ -180,29 +180,27 @@ export default function ManageColleges() {
                           }
                         </Button>
                       </div>
-                      
-                      {expandedCollege === college.id && college.campuses && college.campuses.length > 0 && (
-                        <div className="p-4 border-t bg-background">
-                          <h4 className="text-sm font-medium mb-2 text-muted-foreground">Campuses:</h4>
-                          <ul className="space-y-1">
-                            {college.campuses.map((campus) => (
-                              <li key={campus.id} className="text-sm pl-2 py-1 border-l-2 border-primary/30">
-                                {campus.name}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
                     </div>
                   ))}
                 </div>
                 
                 {selectedCollege && (
                   <Card className="mt-8">
-                    <CardHeader>
+                    <CardHeader className="pb-2">
                       <CardTitle className="text-xl">{selectedCollege.name}</CardTitle>
-                      <CardDescription>
-                        Manage projects for this college
+                      <CardDescription className="flex flex-wrap gap-2">
+                        {selectedCollege.campuses && selectedCollege.campuses.length > 0 ? (
+                          <>
+                            <span className="font-medium">Campuses:</span>
+                            {selectedCollege.campuses.map((campus) => (
+                              <span key={campus.id} className="bg-muted px-2 py-1 rounded text-sm">
+                                {campus.name}
+                              </span>
+                            ))}
+                          </>
+                        ) : (
+                          <span>No campuses assigned</span>
+                        )}
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
