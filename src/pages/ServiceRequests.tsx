@@ -1,20 +1,30 @@
-
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { PageLayout } from "@/components/layout/PageLayout";
 import { ServiceRequestForm } from "@/components/services/ServiceRequestForm";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PlusCircle, ListFilter, Clock } from "lucide-react";
+import { PlusCircle, ListFilter, Clock, CheckCircle, XCircle } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
-// Define the ServiceType type to match what's expected in ServiceRequestForm
 type ServiceType = "fleet" | "fuel" | "maintenance";
+type RequestStatus = "pending" | "approved" | "rejected" | "completed";
+
+interface ServiceRequest {
+  id: string;
+  type: string;
+  vehicle: string;
+  date: string;
+  status: RequestStatus;
+  details?: string;
+}
 
 const ServiceRequests = () => {
   const [view, setView] = useState("new");
   const location = useLocation();
+  const { user, hasPermission } = useAuth();
   
-  // Set the default service type based on URL
   const getServiceTypeFromUrl = (): ServiceType => {
     if (location.pathname.includes("/fleet")) return "fleet";
     if (location.pathname.includes("/fuel")) return "fuel";
@@ -22,13 +32,39 @@ const ServiceRequests = () => {
     return "fleet"; // Default
   };
   
-  // Pass selected service type to the form
+  const [serviceRequests, setServiceRequests] = useState<ServiceRequest[]>([
+    { id: 'SR-2310', type: 'Fleet', vehicle: 'Toyota Land Cruiser (AAU-3201)', date: '2023-06-18', status: 'pending' },
+    { id: 'SR-2309', type: 'Maintenance', vehicle: 'Nissan Patrol (AAU-1450)', date: '2023-06-17', status: 'approved' },
+    { id: 'SR-2308', type: 'Fuel', vehicle: 'Toyota Hilux (AAU-8742)', date: '2023-06-15', status: 'completed' },
+    { id: 'SR-2307', type: 'Fleet', vehicle: 'Toyota Corolla (AAU-5214)', date: '2023-06-14', status: 'rejected' },
+    { id: 'SR-2306', type: 'Maintenance', vehicle: 'Hyundai H-1 (AAU-6390)', date: '2023-06-13', status: 'pending' },
+    { id: 'SR-2305', type: 'Fuel', vehicle: 'Mitsubishi L200 (AAU-7195)', date: '2023-06-12', status: 'completed' },
+  ]);
+  
   const [selectedServiceType, setSelectedServiceType] = useState<ServiceType>(getServiceTypeFromUrl());
   
   useEffect(() => {
-    // Update service type when route changes
     setSelectedServiceType(getServiceTypeFromUrl());
   }, [location.pathname]);
+
+  const handleStatusChange = (requestId: string, newStatus: RequestStatus) => {
+    setServiceRequests(prevRequests => 
+      prevRequests.map(request => 
+        request.id === requestId 
+          ? { ...request, status: newStatus } 
+          : request
+      )
+    );
+    
+    toast.success(`Request ${newStatus === 'approved' ? 'approved' : 'rejected'} successfully`);
+  };
+
+  const filteredRequests = serviceRequests.filter(request => {
+    if (user?.role === 'mtl') {
+      return request.type === 'Maintenance';
+    }
+    return true;
+  });
 
   return (
     <PageLayout>
@@ -83,14 +119,7 @@ const ServiceRequests = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {[
-                      { id: 'SR-2310', type: 'Fleet', vehicle: 'Toyota Land Cruiser (AAU-3201)', date: '2023-06-18', status: 'pending' },
-                      { id: 'SR-2309', type: 'Maintenance', vehicle: 'Nissan Patrol (AAU-1450)', date: '2023-06-17', status: 'approved' },
-                      { id: 'SR-2308', type: 'Fuel', vehicle: 'Toyota Hilux (AAU-8742)', date: '2023-06-15', status: 'completed' },
-                      { id: 'SR-2307', type: 'Fleet', vehicle: 'Toyota Corolla (AAU-5214)', date: '2023-06-14', status: 'rejected' },
-                      { id: 'SR-2306', type: 'Maintenance', vehicle: 'Hyundai H-1 (AAU-6390)', date: '2023-06-13', status: 'completed' },
-                      { id: 'SR-2305', type: 'Fuel', vehicle: 'Mitsubishi L200 (AAU-7195)', date: '2023-06-12', status: 'completed' },
-                    ].map((request) => (
+                    {filteredRequests.map((request) => (
                       <tr key={request.id} className="hover:bg-muted/30 transition-colors">
                         <td className="py-3 px-4 font-medium">
                           {request.id}
@@ -118,7 +147,30 @@ const ServiceRequests = () => {
                           </span>
                         </td>
                         <td className="py-3 px-4 text-right">
-                          <Button variant="ghost" size="sm">Details</Button>
+                          {user?.role === 'mtl' && request.status === 'pending' && request.type === 'Maintenance' ? (
+                            <div className="flex justify-end gap-2">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => handleStatusChange(request.id, 'approved')}
+                                className="text-green-600 hover:text-green-700 gap-1"
+                              >
+                                <CheckCircle className="h-4 w-4" />
+                                Approve
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => handleStatusChange(request.id, 'rejected')}
+                                className="text-red-600 hover:text-red-700 gap-1"
+                              >
+                                <XCircle className="h-4 w-4" />
+                                Reject
+                              </Button>
+                            </div>
+                          ) : (
+                            <Button variant="ghost" size="sm">Details</Button>
+                          )}
                         </td>
                       </tr>
                     ))}

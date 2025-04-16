@@ -79,7 +79,7 @@ const App = () => (
               </ProtectedRoute>
             } />
             
-            {/* Service request routes */}
+            {/* Service request routes - maintenance team leader can access maintenance requests */}
             <Route path="/service-requests" element={
               <ProtectedRoute>
                 <ServiceRequests />

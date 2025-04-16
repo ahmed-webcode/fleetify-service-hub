@@ -8,7 +8,8 @@ export type UserRole =
   | "transport_director" 
   | "operational_director" 
   | "fotl" 
-  | "ftl";
+  | "ftl"
+  | "mtl"; // Added maintenance team leader role
 
 // Define permission types
 export type Permission = 
@@ -23,7 +24,8 @@ export type Permission =
   | "approve_normal_fuel"
   | "approve_fleet"
   | "assign_driver"
-  | "manage_drivers";
+  | "manage_drivers"
+  | "approve_maintenance"; // Added maintenance approval permission
 
 export interface User {
   id: string;
@@ -109,6 +111,17 @@ const MOCK_USERS = [
     institute: "Technology",
     campus: "Main Campus"
   },
+  {
+    id: "5",
+    username: "mtl",
+    password: "password123",
+    fullName: "Maintenance Team Leader",
+    role: "mtl" as UserRole,
+    email: "mtl@aau.edu.et",
+    college: "Science",
+    institute: "Technology",
+    campus: "Main Campus"
+  },
 ];
 
 // Updated Role permissions mapping based on requirements
@@ -133,7 +146,8 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "request_fuel",
     "request_fleet",
     "request_maintenance",
-    "view_reports"
+    "view_reports",
+    "track_vehicles" // Added GPS tracking permission
   ],
   // FOTL: Approves normal fuel requests and sees reports
   fotl: [
@@ -144,6 +158,12 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   ftl: [
     "approve_fleet",
     "assign_driver",
+    "view_reports",
+    "track_vehicles" // Added GPS tracking permission
+  ],
+  // MTL: Approves maintenance requests
+  mtl: [
+    "approve_maintenance",
     "view_reports"
   ]
 };
@@ -341,4 +361,4 @@ export const MOCK_CAMPUSES: Campus[] = [
   { id: "7", name: "Sidist Kilo Campus", instituteId: "6" }
 ];
 
-export const AVAILABLE_ROLES: UserRole[] = ["transport_director", "operational_director", "fotl", "ftl"];
+export const AVAILABLE_ROLES: UserRole[] = ["transport_director", "operational_director", "fotl", "ftl", "mtl"];

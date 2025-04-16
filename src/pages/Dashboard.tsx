@@ -4,9 +4,11 @@ import { useLocation } from "react-router-dom";
 import { MetricsOverview } from "@/components/dashboard/MetricsOverview";
 import { DashboardCard } from "@/components/dashboard/DashboardCard";
 import { DashboardCharts } from "@/components/dashboard/DashboardCharts";
-import { Car, Fuel, Wrench, Users, Calendar } from "lucide-react";
+import { Car, Fuel, Wrench, Users, Calendar, FileText, Check, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { MaintenanceStatusChart } from "@/components/dashboard/MaintenanceStatusChart";
+import { FuelConsumptionChart } from "@/components/dashboard/FuelConsumptionChart";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -34,8 +36,14 @@ export default function Dashboard() {
       
       <MetricsOverview />
       
-      {/* Add the new charts component */}
+      {/* Charts section */}
       <DashboardCharts />
+      
+      {/* Additional charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <MaintenanceStatusChart />
+        <FuelConsumptionChart />
+      </div>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <DashboardCard 
@@ -82,6 +90,15 @@ export default function Dashboard() {
           trend="same"
           percentage={0}
           link="/settings"
+        />
+        <DashboardCard 
+          title="Maintenance Requests" 
+          value="15"
+          description="8 approved, 5 pending, 2 rejected"
+          icon={<FileText size={20} />}
+          trend="up"
+          percentage={10}
+          link="/service-requests/maintenance"
         />
       </div>
     </div>
