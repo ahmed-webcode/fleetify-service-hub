@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
@@ -30,9 +31,9 @@ export function PageLayout({
     <div className="min-h-screen flex bg-background">
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
       
-      <div className={`flex-1 flex flex-col transition-all duration-300 ${isCollapsed ? 'md:ml-16' : 'md:ml-64'}`}>
+      <div className={`flex-1 flex flex-col ${isCollapsed ? 'md:ml-16' : 'md:ml-64'}`}>
         <Header toggleSidebar={() => setIsCollapsed(!isCollapsed)} sidebarOpen={!isCollapsed} />
-        <main className="flex-1 w-full p-0 md:p-0 max-w-full mx-auto">
+        <main className="flex-1 p-4 md:p-6">
           {children}
         </main>
       </div>

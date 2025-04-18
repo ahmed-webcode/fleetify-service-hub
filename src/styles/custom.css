@@ -1,18 +1,4 @@
-
-/* Import all component styles */
-@import './components/cards.css';
-@import './components/tables.css';
-@import './components/sidebar.css';
-@import './components/forms.css';
-@import './components/badges.css';
-
-/* Import all layout styles */
-@import './layout/page.css';
-@import './layout/header.css';
-@import './layout/main.css';
-
-/* Import all utility styles */
-@import './utils/spacing.css';
-@import './utils/responsive.css';
-@import './utils/animations.css';
-@import './utils/misc.css';
+/* Only keep essential utility classes */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
