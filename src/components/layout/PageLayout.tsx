@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
@@ -14,7 +13,6 @@ export function PageLayout({
   const isMobile = useIsMobile();
   const [isCollapsed, setIsCollapsed] = useState(false);
   
-  // Initialize sidebar state from localStorage or based on device
   useEffect(() => {
     const savedState = localStorage.getItem("sidebarState");
     if (savedState) {
@@ -24,7 +22,6 @@ export function PageLayout({
     }
   }, [isMobile]);
 
-  // Save sidebar state to localStorage when it changes
   useEffect(() => {
     localStorage.setItem("sidebarState", isCollapsed ? "closed" : "open");
   }, [isCollapsed]);
@@ -35,7 +32,7 @@ export function PageLayout({
       
       <div className={`flex-1 flex flex-col transition-all duration-300 ${isCollapsed ? 'md:ml-16' : 'md:ml-64'}`}>
         <Header toggleSidebar={() => setIsCollapsed(!isCollapsed)} sidebarOpen={!isCollapsed} />
-        <main className="flex-1 w-full p-4 md:p-6 max-w-screen-2xl mx-auto">
+        <main className="flex-1 w-full p-0 md:p-0 max-w-full mx-auto">
           {children}
         </main>
       </div>
