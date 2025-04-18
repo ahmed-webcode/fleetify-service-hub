@@ -21,6 +21,7 @@ import ManageUsers from "./pages/ManageUsers";
 import ManageColleges from "./pages/ManageColleges";
 import ManageStaff from "./pages/ManageStaff";
 import DriverManagement from "./pages/DriverManagement";
+import MaintenanceRequests from "./pages/MaintenanceRequests";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -101,6 +102,13 @@ const App = () => (
             <Route path="/service-requests/maintenance" element={
               <ProtectedRoute>
                 <ServiceRequests />
+              </ProtectedRoute>
+            } />
+            
+            {/* New dedicated maintenance requests page */}
+            <Route path="/maintenance-requests" element={
+              <ProtectedRoute>
+                <MaintenanceRequests />
               </ProtectedRoute>
             } />
 

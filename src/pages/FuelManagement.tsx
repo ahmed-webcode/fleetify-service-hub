@@ -142,115 +142,116 @@ export default function FuelManagement() {
                   </TabsTrigger>
                 </TabsList>
               </div>
+            
+              <div className="mt-6">
+                <div className="flex justify-end mb-4">
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <ListFilter className="h-4 w-4" />
+                    Filter
+                  </Button>
+                </div>
+                
+                <TabsContent value="requests" className="mt-0">
+                  <div className="rounded-lg border overflow-hidden">
+                    <table className="w-full responsive-table">
+                      <thead className="bg-muted/50">
+                        <tr>
+                          <th className="text-left py-3 px-4 text-sm font-medium">Request ID</th>
+                          <th className="text-left py-3 px-4 text-sm font-medium">Vehicle</th>
+                          <th className="text-left py-3 px-4 text-sm font-medium hidden md:table-cell">Requested By</th>
+                          <th className="text-left py-3 px-4 text-sm font-medium hidden lg:table-cell">Date</th>
+                          <th className="text-left py-3 px-4 text-sm font-medium">Amount (L)</th>
+                          <th className="text-left py-3 px-4 text-sm font-medium">Status</th>
+                          <th className="text-right py-3 px-4 text-sm font-medium">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        {fuelRequests.map((request) => (
+                          <tr key={request.id} className="hover:bg-muted/30 transition-colors">
+                            <td className="py-3 px-4">{request.id}</td>
+                            <td className="py-3 px-4">{request.vehicle}</td>
+                            <td className="py-3 px-4 hidden md:table-cell">{request.requestedBy}</td>
+                            <td className="py-3 px-4 hidden lg:table-cell">{request.date}</td>
+                            <td className="py-3 px-4">{request.amount}</td>
+                            <td className="py-3 px-4">
+                              <span className={`status-badge ${
+                                request.status === 'completed' 
+                                  ? 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                  : request.status === 'approved'
+                                  ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                                  : request.status === 'pending'
+                                  ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                                  : 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                              }`}>
+                                {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+                              </span>
+                            </td>
+                            <td className="py-2 px-4 text-right">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                    <MoreVertical className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                  <DropdownMenuItem>View Details</DropdownMenuItem>
+                                  {canApprove && request.status === "pending" && (
+                                    <>
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem className="text-green-600">
+                                        Approve Request
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem className="text-red-600">
+                                        Reject Request
+                                      </DropdownMenuItem>
+                                    </>
+                                  )}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="consumption" className="mt-0">
+                  <div className="rounded-lg border overflow-hidden">
+                    <table className="w-full responsive-table">
+                      <thead className="bg-muted/50">
+                        <tr>
+                          <th className="text-left py-3 px-4 text-sm font-medium">Record ID</th>
+                          <th className="text-left py-3 px-4 text-sm font-medium">Vehicle</th>
+                          <th className="text-left py-3 px-4 text-sm font-medium hidden md:table-cell">Driver</th>
+                          <th className="text-left py-3 px-4 text-sm font-medium hidden lg:table-cell">Date</th>
+                          <th className="text-left py-3 px-4 text-sm font-medium">Amount (L)</th>
+                          <th className="text-left py-3 px-4 text-sm font-medium">Mileage (km)</th>
+                          <th className="text-right py-3 px-4 text-sm font-medium">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        {fuelConsumption.map((record) => (
+                          <tr key={record.id} className="hover:bg-muted/30 transition-colors">
+                            <td className="py-3 px-4">{record.id}</td>
+                            <td className="py-3 px-4">{record.vehicle}</td>
+                            <td className="py-3 px-4 hidden md:table-cell">{record.driver}</td>
+                            <td className="py-3 px-4 hidden lg:table-cell">{record.date}</td>
+                            <td className="py-3 px-4">{record.amount}</td>
+                            <td className="py-3 px-4">{record.mileage.toLocaleString()}</td>
+                            <td className="py-2 px-4 text-right">
+                              <Button variant="ghost" size="sm">View</Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </TabsContent>
+              </div>
             </Tabs>
           </CardHeader>
-          <CardContent className="pt-6">
-            <div className="flex justify-end mb-4">
-              <Button variant="outline" size="sm" className="gap-2">
-                <ListFilter className="h-4 w-4" />
-                Filter
-              </Button>
-            </div>
-            
-            <TabsContent value="requests" className="m-0">
-              <div className="rounded-lg border overflow-hidden">
-                <table className="w-full responsive-table">
-                  <thead className="bg-muted/50">
-                    <tr>
-                      <th className="text-left py-3 px-4 text-sm font-medium">Request ID</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium">Vehicle</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium hidden md:table-cell">Requested By</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium hidden lg:table-cell">Date</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium">Amount (L)</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium">Status</th>
-                      <th className="text-right py-3 px-4 text-sm font-medium">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {fuelRequests.map((request) => (
-                      <tr key={request.id} className="hover:bg-muted/30 transition-colors">
-                        <td className="py-3 px-4">{request.id}</td>
-                        <td className="py-3 px-4">{request.vehicle}</td>
-                        <td className="py-3 px-4 hidden md:table-cell">{request.requestedBy}</td>
-                        <td className="py-3 px-4 hidden lg:table-cell">{request.date}</td>
-                        <td className="py-3 px-4">{request.amount}</td>
-                        <td className="py-3 px-4">
-                          <span className={`status-badge ${
-                            request.status === 'completed' 
-                              ? 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                              : request.status === 'approved'
-                              ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                              : request.status === 'pending'
-                              ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-                              : 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                          }`}>
-                            {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
-                          </span>
-                        </td>
-                        <td className="py-2 px-4 text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuItem>View Details</DropdownMenuItem>
-                              {canApprove && request.status === "pending" && (
-                                <>
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem className="text-green-600">
-                                    Approve Request
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem className="text-red-600">
-                                    Reject Request
-                                  </DropdownMenuItem>
-                                </>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="consumption" className="m-0">
-              <div className="rounded-lg border overflow-hidden">
-                <table className="w-full responsive-table">
-                  <thead className="bg-muted/50">
-                    <tr>
-                      <th className="text-left py-3 px-4 text-sm font-medium">Record ID</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium">Vehicle</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium hidden md:table-cell">Driver</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium hidden lg:table-cell">Date</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium">Amount (L)</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium">Mileage (km)</th>
-                      <th className="text-right py-3 px-4 text-sm font-medium">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {fuelConsumption.map((record) => (
-                      <tr key={record.id} className="hover:bg-muted/30 transition-colors">
-                        <td className="py-3 px-4">{record.id}</td>
-                        <td className="py-3 px-4">{record.vehicle}</td>
-                        <td className="py-3 px-4 hidden md:table-cell">{record.driver}</td>
-                        <td className="py-3 px-4 hidden lg:table-cell">{record.date}</td>
-                        <td className="py-3 px-4">{record.amount}</td>
-                        <td className="py-3 px-4">{record.mileage.toLocaleString()}</td>
-                        <td className="py-2 px-4 text-right">
-                          <Button variant="ghost" size="sm">View</Button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </TabsContent>
-          </CardContent>
         </Card>
       </div>
     </PageLayout>
