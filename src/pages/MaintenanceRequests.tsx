@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { PageLayout } from "@/components/layout/PageLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -100,7 +99,7 @@ const MaintenanceRequests = () => {
         id: `MR-${2300 + prev.length + 1}`,
         date: new Date().toISOString().split('T')[0],
         status: 'pending',
-        requestedBy: user?.name || 'Unknown User'
+        requestedBy: user?.fullName || 'Unknown User'
       },
       ...prev
     ]);
