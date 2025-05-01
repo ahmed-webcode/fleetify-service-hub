@@ -64,6 +64,16 @@ const campuses = {
   "School of Law": ["Main Campus"]
 };
 
+// Mock staff data for the staff selection dropdown
+const staffMembers = [
+  { id: "s1", name: "Abebe Kebede", position: "Senior Driver", availability: "available", phone: "0911223344" },
+  { id: "s2", name: "Kebede Amare", position: "Driver", availability: "available", phone: "0922334455" },
+  { id: "s3", name: "Almaz Haile", position: "Senior Driver", availability: "on-duty", phone: "0933445566" },
+  { id: "s4", name: "Tadesse Girma", position: "Driver", availability: "available", phone: "0944556677" },
+  { id: "s5", name: "Tigist Bekele", position: "Maintenance Staff", availability: "on-duty", phone: "0955667788" },
+  { id: "s6", name: "Solomon Teferi", position: "Driver", availability: "on-leave", phone: "0966778899" },
+];
+
 export function AddVehicleForm({ onClose }: { onClose: () => void }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isMobile = useIsMobile();
@@ -78,8 +88,18 @@ export function AddVehicleForm({ onClose }: { onClose: () => void }) {
   const [showProjectCars, setShowProjectCars] = useState(false);
   const [selectedProjectCar, setSelectedProjectCar] = useState<string>("");
   
+  // Staff state
+  const [selectedStaff, setSelectedStaff] = useState<string>("");
+  
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    // Check if staff is selected (required)
+    if (!selectedStaff) {
+      toast.error("Please assign a staff member to this vehicle");
+      return;
+    }
+    
     setIsSubmitting(true);
     
     // Simulate API call
@@ -293,6 +313,7 @@ export function AddVehicleForm({ onClose }: { onClose: () => void }) {
         <Separator />
       </div>
 
+      {/* Location Information Section */}
       <div className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="locationType">Location Type</Label>
@@ -328,6 +349,7 @@ export function AddVehicleForm({ onClose }: { onClose: () => void }) {
         <Separator />
       </div>
 
+      {/* Vehicle Description Section */}
       <div className="space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
@@ -478,6 +500,58 @@ export function AddVehicleForm({ onClose }: { onClose: () => void }) {
             <Label htmlFor="madeIn">Made In</Label>
             <Input id="madeIn" placeholder="e.g. Japan" />
           </div>
+        </div>
+      </div>
+      
+      {/* Add Staff Assignment Section */}
+      <div className="space-y-2 pt-2">
+        <h3 className="text-lg font-medium flex items-center gap-2 flex-wrap">
+          Staff Assignment
+          <Badge variant="outline" className="bg-green-50 text-green-800 border-green-200">የሰራተኛ መመደቢያ</Badge>
+        </h3>
+        <Separator />
+      </div>
+      
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="staffAssignment">Assign Staff Member<span className="text-red-500">*</span></Label>
+          <Select value={selectedStaff} onValueChange={setSelectedStaff} required>
+            <SelectTrigger id="staffAssignment">
+              <SelectValue placeholder="Select a staff member" />
+            </SelectTrigger>
+            <SelectContent>
+              {staffMembers.map((staff) => (
+                <SelectItem 
+                  key={staff.id} 
+                  value={staff.id}
+                  disabled={staff.availability === "on-duty" || staff.availability === "on-leave"}
+                >
+                  {staff.name}
+                  <span className="block text-xs text-muted-foreground">
+                    {staff.position} • {staff.availability === "available" ? 
+                      <span className="text-green-600">Available</span> : 
+                      staff.availability === "on-duty" ? 
+                        <span className="text-amber-600">On Duty</span> : 
+                        <span className="text-red-600">On Leave</span>
+                    }
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {selectedStaff && (
+            <div className="mt-2 p-3 bg-muted/30 rounded-md">
+              <p className="font-medium text-sm">
+                {staffMembers.find(s => s.id === selectedStaff)?.name}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Position: {staffMembers.find(s => s.id === selectedStaff)?.position}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Contact: {staffMembers.find(s => s.id === selectedStaff)?.phone}
+              </p>
+            </div>
+          )}
         </div>
       </div>
       

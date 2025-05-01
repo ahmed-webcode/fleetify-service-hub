@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -21,12 +21,12 @@ import { Search } from "lucide-react";
 
 // Mock vehicles data for the dropdown
 const vehicles = [
-  { id: "v1", name: "Toyota Land Cruiser", plate: "AAU-3201" },
-  { id: "v2", name: "Nissan Patrol", plate: "AAU-1450" },
-  { id: "v3", name: "Toyota Hilux", plate: "AAU-8742" },
-  { id: "v4", name: "Toyota Corolla", plate: "AAU-5214" },
-  { id: "v5", name: "Hyundai H-1", plate: "AAU-6390" },
-  { id: "v6", name: "Mitsubishi L200", plate: "AAU-7195" },
+  { id: "v1", name: "Toyota Land Cruiser", plate: "AAU-3201", fuelType: "diesel" },
+  { id: "v2", name: "Nissan Patrol", plate: "AAU-1450", fuelType: "diesel" },
+  { id: "v3", name: "Toyota Hilux", plate: "AAU-8742", fuelType: "diesel" },
+  { id: "v4", name: "Toyota Corolla", plate: "AAU-5214", fuelType: "gasoline" },
+  { id: "v5", name: "Hyundai H-1", plate: "AAU-6390", fuelType: "diesel" },
+  { id: "v6", name: "Mitsubishi L200", plate: "AAU-7195", fuelType: "diesel" },
 ];
 
 interface FuelServiceRequestDialogProps {
@@ -39,11 +39,11 @@ export function FuelServiceRequestDialog({
   onClose,
 }: FuelServiceRequestDialogProps) {
   const [vehicleId, setVehicleId] = useState<string>("");
-  const [fuelType, setFuelType] = useState<string>("");
   const [amount, setAmount] = useState<string>("");
   const [justification, setJustification] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [showSearch, setShowSearch] = useState<boolean>(false);
+  const [vehicleFuelType, setVehicleFuelType] = useState<string>("");
 
   const filteredVehicles = vehicles.filter(vehicle => {
     const query = searchQuery.toLowerCase();
@@ -53,12 +53,24 @@ export function FuelServiceRequestDialog({
     );
   });
 
+  // Update fuel type when vehicle is selected
+  useEffect(() => {
+    if (vehicleId) {
+      const selectedVehicle = vehicles.find(v => v.id === vehicleId);
+      if (selectedVehicle) {
+        setVehicleFuelType(selectedVehicle.fuelType);
+      }
+    } else {
+      setVehicleFuelType("");
+    }
+  }, [vehicleId]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission
+    // Handle form submission with the vehicle's fuel type
     console.log({
       vehicleId,
-      fuelType,
+      fuelType: vehicleFuelType, // Use the vehicle's fuel type
       amount,
       justification,
     });
@@ -118,19 +130,14 @@ export function FuelServiceRequestDialog({
             </div>
           </div>
           
-          <div className="space-y-2">
-            <Label htmlFor="fuelType">Fuel Type</Label>
-            <Select value={fuelType} onValueChange={setFuelType}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select fuel type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="diesel">Diesel</SelectItem>
-                <SelectItem value="gasoline">Gasoline</SelectItem>
-                <SelectItem value="premium">Premium</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          {vehicleFuelType && (
+            <div className="space-y-2">
+              <Label>Fuel Type</Label>
+              <div className="p-2 bg-muted/30 border rounded-md">
+                {vehicleFuelType.charAt(0).toUpperCase() + vehicleFuelType.slice(1)}
+              </div>
+            </div>
+          )}
           
           <div className="space-y-2">
             <Label htmlFor="amount">Amount (Liters)</Label>
@@ -159,7 +166,7 @@ export function FuelServiceRequestDialog({
             <Button variant="outline" type="button" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit">Submit Request</Button>
+            <Button type="submit" disabled={!vehicleId}>Submit Request</Button>
           </div>
         </form>
       </DialogContent>

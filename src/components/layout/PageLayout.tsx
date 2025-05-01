@@ -28,8 +28,11 @@ export function PageLayout({
   }, [isCollapsed]);
   
   return (
-    <div className="min-h-screen flex bg-background">
-      <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+    <div className="min-h-screen flex flex-col md:flex-row bg-background">
+      {/* On mobile, only show sidebar when not collapsed */}
+      <div className={`${isMobile && isCollapsed ? 'hidden' : 'block'} md:block`}>
+        <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+      </div>
       
       <div className={`flex-1 flex flex-col ${isCollapsed ? 'md:ml-16' : 'md:ml-64'}`}>
         <Header toggleSidebar={() => setIsCollapsed(!isCollapsed)} sidebarOpen={!isCollapsed} />
