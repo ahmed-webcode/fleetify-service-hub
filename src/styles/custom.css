@@ -4,6 +4,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import other CSS files */
+@import './utils/responsive.css';
+@import './utils/animations.css';
+@import './utils/misc.css';
+@import './utils/spacing.css';
+@import './layout/header.css';
+@import './layout/main.css';
+@import './layout/page.css';
+@import './map.css';
+
 /* Custom layout styles */
 .page-container {
   @apply w-full max-w-7xl mx-auto space-y-6;
@@ -33,4 +43,9 @@
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+/* Status badge styles */
+.status-badge {
+  @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
 }
