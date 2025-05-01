@@ -5,7 +5,11 @@ import App from './App.tsx'
 import './index.css'
 import './styles/custom.css'
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+// Create root with correct typing
+const rootElement = document.getElementById('root');
+if (!rootElement) throw new Error('Root element not found');
+
+ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
     <App />
   </React.StrictMode>,

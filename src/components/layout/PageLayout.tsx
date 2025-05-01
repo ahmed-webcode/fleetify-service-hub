@@ -29,12 +29,12 @@ export function PageLayout({
   
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-background">
-      {/* On mobile, only show sidebar when not collapsed */}
+      {/* Sidebar - only render one instance and control visibility */}
       <div className={`${isMobile && isCollapsed ? 'hidden' : 'block'} md:block`}>
         <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
       </div>
       
-      <div className={`flex-1 flex flex-col ${isCollapsed ? 'md:ml-16' : 'md:ml-64'}`}>
+      <div className={`flex-1 flex flex-col ${isCollapsed ? 'md:ml-16' : 'md:ml-64'} transition-all duration-300`}>
         <Header toggleSidebar={() => setIsCollapsed(!isCollapsed)} sidebarOpen={!isCollapsed} />
         <main className="flex-1 p-4 md:p-6">
           {children}
