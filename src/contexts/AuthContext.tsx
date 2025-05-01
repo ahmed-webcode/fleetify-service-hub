@@ -9,7 +9,8 @@ export type UserRole =
   | "operational_director" 
   | "fotl" 
   | "ftl"
-  | "mtl"; // Added maintenance team leader role
+  | "mtl"
+  | "regular_staff"; // Added regular staff role
 
 // Define permission types
 export type Permission = 
@@ -25,7 +26,8 @@ export type Permission =
   | "approve_fleet"
   | "assign_driver"
   | "manage_drivers"
-  | "approve_maintenance"; // Added maintenance approval permission
+  | "approve_maintenance"
+  | "report_incidents"; // Added incident reporting permission
 
 export interface User {
   id: string;
@@ -122,9 +124,20 @@ const MOCK_USERS = [
     institute: "Technology",
     campus: "Main Campus"
   },
+  {
+    id: "6",
+    username: "staff",
+    password: "password123",
+    fullName: "Regular Staff",
+    role: "regular_staff" as UserRole,
+    email: "staff@aau.edu.et",
+    college: "College of Business and Economics",
+    institute: "Institute of Management",
+    campus: "Commerce Campus"
+  },
 ];
 
-// Updated Role permissions mapping based on requirements
+// Updated Role permissions mapping to include regular staff
 const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   // Transport Director: Full authority
   transport_director: [
@@ -139,7 +152,8 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "manage_drivers",
     "request_fuel",
     "request_fleet",
-    "request_maintenance"
+    "request_maintenance",
+    "report_incidents"
   ],
   // Operational Director: Can make requests
   operational_director: [
@@ -147,24 +161,35 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "request_fleet",
     "request_maintenance",
     "view_reports",
-    "track_vehicles" // Added GPS tracking permission
+    "track_vehicles", 
+    "report_incidents"
   ],
   // FOTL: Approves normal fuel requests and sees reports
   fotl: [
     "approve_normal_fuel",
-    "view_reports"
+    "view_reports",
+    "report_incidents"
   ],
   // FTL: Approves fleet requests and assigns drivers
   ftl: [
     "approve_fleet",
     "assign_driver",
     "view_reports",
-    "track_vehicles" // Added GPS tracking permission
+    "track_vehicles", 
+    "report_incidents"
   ],
   // MTL: Approves maintenance requests
   mtl: [
     "approve_maintenance",
-    "view_reports"
+    "view_reports",
+    "report_incidents"
+  ],
+  // Regular staff: Can request maintenance, fuel and report incidents
+  regular_staff: [
+    "request_maintenance",
+    "request_fuel",
+    "request_fleet",
+    "report_incidents"
   ]
 };
 
@@ -361,4 +386,11 @@ export const MOCK_CAMPUSES: Campus[] = [
   { id: "7", name: "Sidist Kilo Campus", instituteId: "6" }
 ];
 
-export const AVAILABLE_ROLES: UserRole[] = ["transport_director", "operational_director", "fotl", "ftl", "mtl"];
+export const AVAILABLE_ROLES: UserRole[] = [
+  "transport_director", 
+  "operational_director", 
+  "fotl", 
+  "ftl", 
+  "mtl", 
+  "regular_staff"
+];

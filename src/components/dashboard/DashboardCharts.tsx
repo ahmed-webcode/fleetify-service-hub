@@ -16,25 +16,25 @@ import {
   Cell
 } from "recharts";
 
-// Sample data for charts
-const vehicleUsageData = [
-  { month: 'Jan', trips: 65, distance: 400 },
-  { month: 'Feb', trips: 80, distance: 500 },
-  { month: 'Mar', trips: 78, distance: 480 },
-  { month: 'Apr', trips: 95, distance: 600 },
-  { month: 'May', trips: 85, distance: 550 },
-  { month: 'Jun', trips: 92, distance: 590 },
-  { month: 'Jul', trips: 100, distance: 680 },
+// Data aligned with reporting module
+const fuelConsumptionData = [
+  { month: 'Jan', diesel: 420, gasoline: 240, specialFuel: 120 },
+  { month: 'Feb', diesel: 380, gasoline: 220, specialFuel: 110 },
+  { month: 'Mar', diesel: 450, gasoline: 260, specialFuel: 130 },
+  { month: 'Apr', diesel: 420, gasoline: 250, specialFuel: 125 },
+  { month: 'May', diesel: 500, gasoline: 290, specialFuel: 140 },
+  { month: 'Jun', diesel: 480, gasoline: 270, specialFuel: 135 },
+  { month: 'Jul', diesel: 520, gasoline: 300, specialFuel: 150 },
 ];
 
-const fuelConsumptionData = [
-  { month: 'Jan', diesel: 420, gasoline: 240 },
-  { month: 'Feb', diesel: 380, gasoline: 220 },
-  { month: 'Mar', diesel: 450, gasoline: 260 },
-  { month: 'Apr', diesel: 420, gasoline: 250 },
-  { month: 'May', diesel: 500, gasoline: 290 },
-  { month: 'Jun', diesel: 480, gasoline: 270 },
-  { month: 'Jul', diesel: 520, gasoline: 300 },
+const fleetUsageData = [
+  { month: 'Jan', trips: 65, distance: 400, activeVehicles: 28, inactiveVehicles: 12 },
+  { month: 'Feb', trips: 80, distance: 500, activeVehicles: 30, inactiveVehicles: 10 },
+  { month: 'Mar', trips: 78, distance: 480, activeVehicles: 29, inactiveVehicles: 11 },
+  { month: 'Apr', trips: 95, distance: 600, activeVehicles: 32, inactiveVehicles: 8 },
+  { month: 'May', trips: 85, distance: 550, activeVehicles: 31, inactiveVehicles: 9 },
+  { month: 'Jun', trips: 92, distance: 590, activeVehicles: 33, inactiveVehicles: 7 },
+  { month: 'Jul', trips: 100, distance: 680, activeVehicles: 35, inactiveVehicles: 5 },
 ];
 
 const maintenanceData = [
@@ -43,53 +43,19 @@ const maintenanceData = [
   { name: "Emergency", value: 15 }
 ];
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+const complianceData = [
+  { name: "Insurance Active", value: 32 },
+  { name: "Insurance Expired", value: 3 },
+  { name: "Govt. Fees Paid", value: 30 },
+  { name: "Govt. Fees Due", value: 5 }
+];
+
+const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042'];
+const COMPLIANCE_COLORS = ['#4ade80', '#f87171', '#60a5fa', '#facc15'];
 
 export function DashboardCharts() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Vehicle Usage</CardTitle>
-          <CardDescription>Trips and distance per month</CardDescription>
-        </CardHeader>
-        <CardContent className="h-[300px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart
-              data={vehicleUsageData}
-              margin={{
-                top: 5,
-                right: 30,
-                left: 20,
-                bottom: 5,
-              }}
-            >
-              <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-              <XAxis dataKey="month" />
-              <YAxis yAxisId="left" />
-              <YAxis yAxisId="right" orientation="right" />
-              <Tooltip />
-              <Legend />
-              <Line 
-                yAxisId="left"
-                type="monotone" 
-                dataKey="trips" 
-                stroke="#8884d8" 
-                activeDot={{ r: 8 }} 
-                strokeWidth={2}
-              />
-              <Line 
-                yAxisId="right"
-                type="monotone" 
-                dataKey="distance" 
-                stroke="#82ca9d" 
-                strokeWidth={2}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Fuel Consumption</CardTitle>
@@ -113,7 +79,52 @@ export function DashboardCharts() {
               <Legend />
               <Bar dataKey="diesel" name="Diesel" fill="#8884d8" />
               <Bar dataKey="gasoline" name="Gasoline" fill="#82ca9d" />
+              <Bar dataKey="specialFuel" name="Special Fuel" fill="#ffc658" />
             </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Fleet Usage</CardTitle>
+          <CardDescription>Monthly trips and distance metrics</CardDescription>
+        </CardHeader>
+        <CardContent className="h-[300px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart
+              data={fleetUsageData}
+              margin={{
+                top: 5,
+                right: 30,
+                left: 20,
+                bottom: 5,
+              }}
+            >
+              <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+              <XAxis dataKey="month" />
+              <YAxis yAxisId="left" />
+              <YAxis yAxisId="right" orientation="right" />
+              <Tooltip />
+              <Legend />
+              <Line 
+                yAxisId="left"
+                type="monotone" 
+                dataKey="trips" 
+                name="Trips" 
+                stroke="#8884d8" 
+                activeDot={{ r: 8 }} 
+                strokeWidth={2}
+              />
+              <Line 
+                yAxisId="right"
+                type="monotone" 
+                dataKey="distance" 
+                name="Distance (km)" 
+                stroke="#82ca9d" 
+                strokeWidth={2}
+              />
+            </LineChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
@@ -149,32 +160,29 @@ export function DashboardCharts() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Service Request Status</CardTitle>
-          <CardDescription>Monthly request volume by status</CardDescription>
+          <CardTitle className="text-lg">Compliance Status</CardTitle>
+          <CardDescription>Insurance and government fees status</CardDescription>
         </CardHeader>
         <CardContent className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={[
-                { month: 'Jan', completed: 18, pending: 7, rejected: 2 },
-                { month: 'Feb', completed: 25, pending: 9, rejected: 3 },
-                { month: 'Mar', completed: 22, pending: 12, rejected: 5 },
-                { month: 'Apr', completed: 30, pending: 11, rejected: 3 },
-                { month: 'May', completed: 27, pending: 14, rejected: 4 },
-                { month: 'Jun', completed: 32, pending: 8, rejected: 2 },
-                { month: 'Jul', completed: 35, pending: 10, rejected: 1 },
-              ]}
-              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-              <XAxis dataKey="month" />
-              <YAxis />
+            <PieChart>
+              <Pie
+                data={complianceData}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                outerRadius={80}
+                fill="#8884d8"
+                dataKey="value"
+                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+              >
+                {complianceData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COMPLIANCE_COLORS[index % COMPLIANCE_COLORS.length]} />
+                ))}
+              </Pie>
               <Tooltip />
               <Legend />
-              <Bar dataKey="completed" name="Completed" stackId="a" fill="#4ade80" />
-              <Bar dataKey="pending" name="Pending" stackId="a" fill="#facc15" />
-              <Bar dataKey="rejected" name="Rejected" stackId="a" fill="#f87171" />
-            </BarChart>
+            </PieChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>

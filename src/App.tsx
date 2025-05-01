@@ -22,6 +22,8 @@ import ManageColleges from "./pages/ManageColleges";
 import ManageStaff from "./pages/ManageStaff";
 import DriverManagement from "./pages/DriverManagement";
 import MaintenanceRequests from "./pages/MaintenanceRequests";
+import RequestMaintenance from "./pages/RequestMaintenance";
+import ReportIncident from "./pages/ReportIncident";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -80,7 +82,7 @@ const App = () => (
               </ProtectedRoute>
             } />
             
-            {/* Service request routes - maintenance team leader can access maintenance requests */}
+            {/* Service request routes */}
             <Route path="/service-requests" element={
               <ProtectedRoute>
                 <ServiceRequests />
@@ -105,7 +107,21 @@ const App = () => (
               </ProtectedRoute>
             } />
             
-            {/* New dedicated maintenance requests page */}
+            {/* New maintenance request page - accessible to all users */}
+            <Route path="/request-maintenance" element={
+              <ProtectedRoute requiredPermission="request_maintenance">
+                <RequestMaintenance />
+              </ProtectedRoute>
+            } />
+            
+            {/* Incidents reporting page - accessible to all users */}
+            <Route path="/report-incident" element={
+              <ProtectedRoute requiredPermission="report_incidents">
+                <ReportIncident />
+              </ProtectedRoute>
+            } />
+            
+            {/* Maintenance requests page */}
             <Route path="/maintenance-requests" element={
               <ProtectedRoute>
                 <MaintenanceRequests />

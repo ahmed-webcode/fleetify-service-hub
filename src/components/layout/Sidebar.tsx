@@ -1,264 +1,237 @@
 
-import {
-  LayoutDashboard,
-  Settings,
-  Users,
-  Calendar,
-  Car,
-  MapPin,
-  FileText,
-  Bell,
-  ArrowLeft,
-  Fuel,
-  UserPlus,
-  ShieldCheck,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { useState, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-
-import { useAuth } from "@/contexts/AuthContext";
-import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { ScrollArea } from "@/components/ui/scroll-area";
-
-type Permission = 'track_vehicles' | 'request_fleet' | 'view_reports' | 'add_users' | 'add_vehicle';
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  BarChart3,
+  Car,
+  ChevronLeft,
+  Clock,
+  Cog,
+  FolderHeart,
+  Fuel,
+  Home,
+  MapPin,
+  Settings,
+  User,
+  Users,
+  Wrench,
+  FileWarning,
+} from "lucide-react";
 
 interface SidebarProps {
   isCollapsed: boolean;
-  setIsCollapsed: (isCollapsed: boolean) => void;
+  setIsCollapsed: (collapsed: boolean) => void;
 }
 
 export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
-  const { user, logout } = useAuth();
+  const { user, hasPermission } = useAuth();
   const location = useLocation();
-  const isMobile = useIsMobile();
-  const { hasPermission } = useAuth();
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const handleToggle = () => {
+    setIsCollapsed(!isCollapsed);
+    localStorage.setItem("sidebarState", !isCollapsed ? "closed" : "open");
+  };
 
   const sidebarItems = [
     {
+      name: "Dashboard",
+      icon: <Home size={20} />,
       path: "/dashboard",
-      icon: LayoutDashboard,
-      label: "Dashboard",
-      permission: null as null,
+      permission: null, // Available to all logged-in users
     },
     {
+      name: "Vehicles",
+      icon: <Car size={20} />,
       path: "/vehicles",
-      icon: Car,
-      label: "Vehicles",
-      permission: null as null,
+      permission: null, // Available to all logged-in users
     },
     {
+      name: "GPS Tracking",
+      icon: <MapPin size={20} />,
       path: "/gps-tracking",
-      icon: MapPin,
-      label: "GPS Tracking",
-      permission: "track_vehicles" as Permission,
+      permission: "track_vehicles",
     },
     {
+      name: "Trip Requests",
+      icon: <Clock size={20} />,
       path: "/trip-requests",
-      icon: Calendar,
-      label: "Trip Requests",
-      permission: "request_fleet" as Permission,
+      permission: "request_fleet",
     },
     {
+      name: "Fuel Management",
+      icon: <Fuel size={20} />,
       path: "/fuel-management",
-      icon: Fuel,
-      label: "Fuel Management",
-      permission: null as null,
+      permission: null, // Show to all, but actions within page may be restricted
     },
     {
+      name: "Service Requests",
+      icon: <FolderHeart size={20} />,
+      path: "/service-requests",
+      permission: null, // Show to all, but actions within page may be restricted
+    },
+    {
+      name: "Maintenance",
+      icon: <Wrench size={20} />,
+      path: "/maintenance-requests",
+      permission: "approve_maintenance",
+    },
+    {
+      name: "Request Maintenance",
+      icon: <Wrench size={20} />,
+      path: "/request-maintenance",
+      permission: "request_maintenance",
+    },
+    {
+      name: "Report Incident",
+      icon: <FileWarning size={20} />,
+      path: "/report-incident",
+      permission: "report_incidents",
+    },
+    {
+      name: "Reports",
+      icon: <BarChart3 size={20} />,
       path: "/reports",
-      icon: FileText,
-      label: "Reports",
-      permission: "view_reports" as Permission,
+      permission: "view_reports",
     },
     {
-      path: "/manage-users",
-      icon: UserPlus,
-      label: "Manage Users",
-      permission: "add_users" as Permission,
-    },
-    {
+      name: "Manage Staff",
+      icon: <Users size={20} />,
       path: "/manage-staff",
-      icon: Users,
-      label: "Manage Staff",
-      permission: "add_users" as Permission,
+      permission: "add_users",
     },
     {
+      name: "Driver Management",
+      icon: <User size={20} />,
       path: "/driver-management",
-      icon: ShieldCheck,
-      label: "Manage Drivers",
-      permission: "add_users" as Permission,
+      permission: "manage_drivers",
     },
     {
-      path: "/manage-colleges",
-      icon: Users,
-      label: "Manage Colleges",
-      permission: "add_users" as Permission,
-    },
-    {
-      path: "/notifications",
-      icon: Bell,
-      label: "Notifications",
-      permission: null as null,
-    },
-    {
+      name: "Settings",
+      icon: <Settings size={20} />,
       path: "/settings",
-      icon: Settings,
-      label: "Settings",
-      permission: null as null,
+      permission: null, // Available to all logged-in users
     },
   ];
 
+  const userLinks = [
+    {
+      name: "Notifications",
+      icon: <Bell size={20} />,
+      path: "/notifications",
+      permission: null,
+    },
+  ];
+
+  // Filter sidebar items based on user permissions
+  const filteredSidebarItems = sidebarItems.filter((item) => {
+    if (!item.permission) return true; // No permission required
+    return hasPermission(item.permission as Permission);
+  });
+
   return (
-    <>
-      {/* Mobile sidebar */}
-      <Sheet>
-        <div
-          className={cn(
-            "group/sidebar fixed left-0 top-0 z-30 flex h-full flex-col overflow-y-auto border-r bg-background py-4 transition-all duration-300 ease-in-out",
-            isCollapsed ? "w-16" : "w-64",
-            "md:hidden"
+    <aside
+      className={cn(
+        "flex flex-col h-screen bg-muted/40 border-r shadow-sm transition-all duration-300",
+        isCollapsed ? "w-16" : "w-64"
+      )}
+    >
+      <div className="flex items-center justify-between h-16 px-3 border-b">
+        <NavLink to="/dashboard" className="flex items-center gap-3">
+          {!isCollapsed && (
+            <span className="text-xl font-bold">AAU Fleet</span>
           )}
-        >
-          <SheetTrigger asChild>
-            <Button
-              variant="ghost"
-              className="absolute right-2 top-2 rounded-sm p-2 text-muted-foreground md:hidden"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span className="sr-only">Toggle sidebar</span>
-            </Button>
-          </SheetTrigger>
-          <SidebarContent
-            sidebarItems={sidebarItems}
-            location={location}
-            isCollapsed={isCollapsed}
-            logout={logout}
-            user={user}
-            setIsCollapsed={setIsCollapsed}
-            hasPermission={hasPermission}
-          />
-        </div>
-        <SheetContent side="left" className="p-0 data-[state=open]:md:hidden">
-          <SheetHeader className="text-left">
-            <SheetTitle>Dashboard</SheetTitle>
-          </SheetHeader>
-          <SidebarContent
-            sidebarItems={sidebarItems}
-            location={location}
-            isCollapsed={isCollapsed}
-            logout={logout}
-            user={user}
-            setIsCollapsed={setIsCollapsed}
-            hasPermission={hasPermission}
-          />
-        </SheetContent>
-      </Sheet>
-      
-      {/* Desktop sidebar */}
-      <div
-        className={cn(
-          "group/sidebar fixed left-0 top-0 z-30 hidden h-full flex-col overflow-y-auto border-r bg-background py-4 transition-all duration-300 ease-in-out",
-          isCollapsed ? "w-16" : "w-64",
-          "md:flex"
-        )}
-      >
-        <SidebarContent
-          sidebarItems={sidebarItems}
-          location={location}
-          isCollapsed={isCollapsed}
-          logout={logout}
-          user={user}
-          setIsCollapsed={setIsCollapsed}
-          hasPermission={hasPermission}
-        />
-      </div>
-    </>
-  );
-}
-
-interface SidebarContentProps {
-  sidebarItems: {
-    path: string;
-    icon: any;
-    label: string;
-    permission: Permission | null;
-  }[];
-  location: any;
-  isCollapsed: boolean;
-  logout: () => void;
-  user: any;
-  setIsCollapsed: (isCollapsed: boolean) => void;
-  hasPermission: (permission: Permission) => boolean;
-}
-
-function SidebarContent({
-  sidebarItems,
-  location,
-  isCollapsed,
-  logout,
-  user,
-  setIsCollapsed,
-  hasPermission,
-}: SidebarContentProps) {
-  return (
-    <ScrollArea className="flex h-full flex-1 flex-col gap-2">
-      <div className="flex flex-col items-center gap-4 px-3 pb-2">
-        <NavLink to="/dashboard">
-          <Button variant="ghost" className="h-9 w-full justify-start px-2">
-            <LayoutDashboard className="mr-2 h-4 w-4" />
-            <span className={isCollapsed ? "hidden" : "block"}>Dashboard</span>
-          </Button>
+          {isCollapsed && (
+            <span className="text-xl font-bold mx-auto">AAU</span>
+          )}
         </NavLink>
+        {!isMobile && (
+          <button
+            onClick={handleToggle}
+            className="p-1.5 rounded-lg bg-muted/60 hover:bg-muted"
+          >
+            <ChevronLeft
+              size={18}
+              className={cn(
+                "transition-transform",
+                isCollapsed && "rotate-180"
+              )}
+            />
+          </button>
+        )}
       </div>
-      <div className="flex-1">
-        <ul className="space-y-1 px-3">
-          {sidebarItems.map((item, index) => {
-            const Icon = item.icon;
-            // Check permission before rendering the item
-            if (item.permission !== null && !hasPermission(item.permission)) {
-              return null;
-            }
-            return (
-              <li key={`${item.path}-${index}`}>
-                <NavLink
-                  to={item.path}
-                  className={({ isActive }) =>
-                    cn(
-                      "group flex w-full items-center rounded-md border border-transparent px-2 py-1 hover:bg-secondary hover:text-foreground",
-                      isActive
-                        ? "bg-secondary text-foreground"
-                        : "text-muted-foreground"
-                    )
-                  }
-                >
-                  <Icon className="mr-2 h-4 w-4" />
-                  <span className={isCollapsed ? "hidden" : "block"}>{item.label}</span>
-                </NavLink>
-              </li>
-            );
-          })}
-        </ul>
+
+      <div className="flex-1 overflow-y-auto py-2">
+        <nav className="grid gap-1 px-2">
+          {filteredSidebarItems.map((item) => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center gap-3 px-3 py-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors",
+                  isActive && "bg-muted text-foreground font-medium",
+                  isCollapsed && "justify-center px-0"
+                )
+              }
+            >
+              <span>{item.icon}</span>
+              {!isCollapsed && <span>{item.name}</span>}
+            </NavLink>
+          ))}
+        </nav>
       </div>
-      <div className="px-3 py-2">
-        <Button
-          variant="outline"
-          className="w-full justify-center"
-          onClick={() => setIsCollapsed(!isCollapsed)}
-        >
-          {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-          {!isCollapsed && <span className="ml-2">Collapse</span>}
-        </Button>
+
+      <div className="mt-auto p-2 border-t">
+        <div className="flex items-center gap-3 p-3">
+          {!isCollapsed ? (
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate">
+                {user?.fullName || "User"}
+              </p>
+              <p className="text-xs text-muted-foreground truncate">
+                {user?.role?.replace(/_/g, " ") || "Guest"}
+              </p>
+            </div>
+          ) : (
+            <div className="mx-auto">
+              <User size={20} className="text-muted-foreground" />
+            </div>
+          )}
+        </div>
       </div>
-    </ScrollArea>
+    </aside>
   );
 }
+
+function Bell(props: any) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+      <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+    </svg>
+  );
+}
+
