@@ -29,8 +29,8 @@ export function PageLayout({
   
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-background">
-      {/* Sidebar - only render one instance and control visibility */}
-      <div className={`${isMobile && isCollapsed ? 'hidden' : 'block'} md:block`}>
+      {/* Sidebar - only render when needed based on mobile state */}
+      <div className={`${isMobile && isCollapsed ? 'hidden' : 'block'} md:block md:flex-shrink-0`}>
         <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
       </div>
       

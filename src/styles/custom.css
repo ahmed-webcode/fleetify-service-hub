@@ -1,4 +1,36 @@
-/* Only keep essential utility classes */
+
+/* Base styles */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Custom layout styles */
+.page-container {
+  @apply w-full max-w-7xl mx-auto space-y-6;
+}
+
+.page-title-container {
+  @apply flex flex-col gap-2 mb-6;
+}
+
+.page-title {
+  @apply text-3xl font-bold tracking-tight;
+}
+
+.page-description {
+  @apply text-muted-foreground;
+}
+
+.card-uniform {
+  @apply rounded-lg border bg-card text-card-foreground shadow-sm p-4 md:p-6;
+}
+
+/* Animation utilities */
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
