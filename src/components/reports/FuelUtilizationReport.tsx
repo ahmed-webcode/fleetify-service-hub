@@ -86,7 +86,7 @@ export function FuelUtilizationReport({ data }: FuelUtilizationReportProps) {
           <TabsTrigger value="charts">Charts</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="vehicles" className="space-y-4">
+        <TabsContent value="vehicles" className="space-y-4 mt-4">
           <Table>
             <TableHeader>
               <TableRow>
@@ -111,7 +111,7 @@ export function FuelUtilizationReport({ data }: FuelUtilizationReportProps) {
           </Table>
         </TabsContent>
         
-        <TabsContent value="colleges" className="space-y-4">
+        <TabsContent value="colleges" className="space-y-4 mt-4">
           <Table>
             <TableHeader>
               <TableRow>
@@ -136,7 +136,7 @@ export function FuelUtilizationReport({ data }: FuelUtilizationReportProps) {
           </Table>
         </TabsContent>
         
-        <TabsContent value="charts" className="space-y-4">
+        <TabsContent value="charts" className="space-y-4 mt-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Card>
               <CardHeader>

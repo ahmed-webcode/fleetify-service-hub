@@ -9,7 +9,7 @@ interface Vehicle {
   model: string;
   year: number;
   licensePlate: string;
-  status: "active" | "maintenance" | "unavailable";
+  status: "active" | "maintenance" | "outOfService"; // Changed from "unavailable" to "outOfService"
   lastLocation?: string;
   mileage: number;
 }

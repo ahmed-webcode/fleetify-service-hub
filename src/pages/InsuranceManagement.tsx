@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { PageLayout } from "@/components/layout/PageLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -232,6 +231,32 @@ export default function InsuranceManagement() {
                 <TabsTrigger value="claims">Insurance Claims</TabsTrigger>
                 <TabsTrigger value="reports">Reports</TabsTrigger>
               </TabsList>
+              
+              <TabsContent value="policies" className="mt-6">
+                <InsurancePoliciesList policies={mockInsurancePolicies} />
+              </TabsContent>
+              
+              <TabsContent value="claims" className="mt-6">
+                <InsuranceClaimsList claims={mockInsuranceClaims} />
+              </TabsContent>
+              
+              <TabsContent value="reports" className="mt-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <Card className="p-6">
+                    <CardTitle className="text-lg mb-4">Insurance Status</CardTitle>
+                    <InsuranceStatusChart active={activePolicies} expired={expiredPolicies} />
+                  </Card>
+                  
+                  <Card className="p-6">
+                    <CardTitle className="text-lg mb-4">Claims Processing</CardTitle>
+                    <div className="mt-4">
+                      <p className="text-center text-muted-foreground mb-2">
+                        Claims processing visualization will be displayed here
+                      </p>
+                    </div>
+                  </Card>
+                </div>
+              </TabsContent>
             </Tabs>
             
             <div className="flex items-center gap-2">
@@ -252,32 +277,6 @@ export default function InsuranceManagement() {
               )}
             </div>
           </div>
-          
-          <TabsContent value="policies" className="mt-0">
-            <InsurancePoliciesList policies={mockInsurancePolicies} />
-          </TabsContent>
-          
-          <TabsContent value="claims" className="mt-0">
-            <InsuranceClaimsList claims={mockInsuranceClaims} />
-          </TabsContent>
-          
-          <TabsContent value="reports" className="mt-0">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="p-6">
-                <CardTitle className="text-lg mb-4">Insurance Status</CardTitle>
-                <InsuranceStatusChart active={activePolicies} expired={expiredPolicies} />
-              </Card>
-              
-              <Card className="p-6">
-                <CardTitle className="text-lg mb-4">Claims Processing</CardTitle>
-                <div className="mt-4">
-                  <p className="text-center text-muted-foreground mb-2">
-                    Claims processing visualization will be displayed here
-                  </p>
-                </div>
-              </Card>
-            </div>
-          </TabsContent>
         </Card>
       </div>
       

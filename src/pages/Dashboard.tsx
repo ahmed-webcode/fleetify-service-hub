@@ -4,7 +4,7 @@ import { useLocation } from "react-router-dom";
 import { MetricsOverview } from "@/components/dashboard/MetricsOverview";
 import { DashboardCard } from "@/components/dashboard/DashboardCard";
 import { DashboardCharts } from "@/components/dashboard/DashboardCharts";
-import { Car, Fuel, Wrench, Users, Calendar, FileText, Check, X } from "lucide-react";
+import { Car, Fuel, Wrench, Users, Calendar, FileText } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { MaintenanceStatusChart } from "@/components/dashboard/MaintenanceStatusChart";

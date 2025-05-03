@@ -84,8 +84,8 @@ export function ComplianceReport({ data }: ComplianceReportProps) {
           <TabsTrigger value="governmentfees">Government Fees</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="insurance" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
+        <TabsContent value="insurance" className="space-y-6 mt-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium">Insurance Premiums Paid</CardTitle>
@@ -206,8 +206,8 @@ export function ComplianceReport({ data }: ComplianceReportProps) {
           </Tabs>
         </TabsContent>
         
-        <TabsContent value="governmentfees" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
+        <TabsContent value="governmentfees" className="space-y-6 mt-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium">Government Fees Paid</CardTitle>

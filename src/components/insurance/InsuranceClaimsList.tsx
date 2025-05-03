@@ -44,11 +44,11 @@ export function InsuranceClaimsList({ claims }: InsuranceClaimsListProps) {
   const getStatusVariant = (status: string) => {
     switch (status.toLowerCase()) {
       case "approved":
-        return "success";
+        return "default"; // Changed from "success" to "default"
       case "pending":
         return "secondary";
       case "processing":
-        return "warning";
+        return "outline"; // Changed from "warning" to "outline"
       case "rejected":
         return "destructive";
       default:

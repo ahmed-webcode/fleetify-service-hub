@@ -157,7 +157,7 @@ export function FleetManagementReport({ data }: FleetManagementReportProps) {
                 <TableHead>College/Office</TableHead>
                 <TableHead className="text-right">Total Trips</TableHead>
                 <TableHead className="text-right">Kilometers Driven</TableHead>
-                <TableHead className="text-right">Avg. Trips per Vehicle</TableHead>
+                <TableHead className="text-right">Avg. Trips Per Vehicle</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -177,7 +177,7 @@ export function FleetManagementReport({ data }: FleetManagementReportProps) {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Card>
               <CardHeader>
-                <CardTitle className="text-md">Fleet Usage by Vehicle</CardTitle>
+                <CardTitle className="text-md">Vehicle Usage</CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
                 <FleetUsageChart data={vehicleBreakdown} />
@@ -191,7 +191,7 @@ export function FleetManagementReport({ data }: FleetManagementReportProps) {
               <CardContent className="pt-0">
                 <VehicleStatusChart 
                   active={summaryMetrics.activeVehicles} 
-                  inactive={summaryMetrics.inactiveVehicles} 
+                  inactive={summaryMetrics.inactiveVehicles}
                 />
               </CardContent>
             </Card>
