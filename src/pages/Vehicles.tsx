@@ -11,6 +11,7 @@ import { VehiclesList } from "@/components/vehicles/VehiclesList";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
+// Update the vehicle status type to include "unavailable" instead of "outOfService"
 const vehicles = [
   {
     id: "v1",
@@ -74,7 +75,7 @@ const vehicles = [
     model: "L200 Double Cab",
     year: 2020,
     licensePlate: "AAU-7195",
-    status: "outOfService" as const, // Changed from "unavailable" to "outOfService"
+    status: "unavailable" as const, // Changed from "outOfService" to "unavailable"
     lastLocation: "Field Research Site",
     mileage: 32140
   }

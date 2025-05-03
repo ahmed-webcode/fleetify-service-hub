@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { PageLayout } from "@/components/layout/PageLayout"; // Ensuring we use the common PageLayout
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Vehicles from "./pages/Vehicles";
@@ -48,140 +49,164 @@ const App = () => (
             <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/login" element={<Login />} />
             
-            {/* Protected routes */}
+            {/* Protected routes with PageLayout */}
             <Route path="/dashboard" element={
               <ProtectedRoute>
-                <Dashboard />
+                <PageLayout>
+                  <Dashboard />
+                </PageLayout>
               </ProtectedRoute>
             } />
             
-            {/* Vehicle management routes - only transport director can add vehicles */}
             <Route path="/vehicles" element={
               <ProtectedRoute>
-                <Vehicles />
+                <PageLayout>
+                  <Vehicles />
+                </PageLayout>
               </ProtectedRoute>
             } />
             
-            {/* GPS tracking - transport director, operation director, and FTL can access */}
             <Route path="/gps-tracking" element={
               <ProtectedRoute requiredPermission="track_vehicles">
-                <GPSTracking />
+                <PageLayout>
+                  <GPSTracking />
+                </PageLayout>
               </ProtectedRoute>
             } />
             
-            {/* Trip requests - accessible to users who can request fleet */}
             <Route path="/trip-requests" element={
               <ProtectedRoute requiredPermission="request_fleet">
-                <TripRequests />
+                <PageLayout>
+                  <TripRequests />
+                </PageLayout>
               </ProtectedRoute>
             } />
             
-            {/* Fuel management - accessible to users who can approve or request fuel */}
             <Route path="/fuel-management" element={
               <ProtectedRoute>
-                <FuelManagement />
+                <PageLayout>
+                  <FuelManagement />
+                </PageLayout>
               </ProtectedRoute>
             } />
             
-            {/* Service request routes */}
             <Route path="/service-requests" element={
               <ProtectedRoute>
-                <ServiceRequests />
+                <PageLayout>
+                  <ServiceRequests />
+                </PageLayout>
               </ProtectedRoute>
             } />
             
             <Route path="/service-requests/fleet" element={
               <ProtectedRoute>
-                <ServiceRequests />
+                <PageLayout>
+                  <ServiceRequests />
+                </PageLayout>
               </ProtectedRoute>
             } />
             
             <Route path="/service-requests/fuel" element={
               <ProtectedRoute>
-                <ServiceRequests />
+                <PageLayout>
+                  <ServiceRequests />
+                </PageLayout>
               </ProtectedRoute>
             } />
             
             <Route path="/service-requests/maintenance" element={
               <ProtectedRoute>
-                <ServiceRequests />
+                <PageLayout>
+                  <ServiceRequests />
+                </PageLayout>
               </ProtectedRoute>
             } />
             
-            {/* New maintenance request page - accessible to all users */}
             <Route path="/request-maintenance" element={
               <ProtectedRoute requiredPermission="request_maintenance">
-                <RequestMaintenance />
+                <PageLayout>
+                  <RequestMaintenance />
+                </PageLayout>
               </ProtectedRoute>
             } />
             
-            {/* Incidents reporting page - accessible to all users */}
             <Route path="/report-incident" element={
               <ProtectedRoute requiredPermission="report_incidents">
-                <ReportIncident />
+                <PageLayout>
+                  <ReportIncident />
+                </PageLayout>
               </ProtectedRoute>
             } />
             
-            {/* Insurance management page */}
             <Route path="/insurance-management" element={
               <ProtectedRoute>
-                <InsuranceManagement />
+                <PageLayout>
+                  <InsuranceManagement />
+                </PageLayout>
               </ProtectedRoute>
             } />
             
-            {/* Maintenance requests page */}
             <Route path="/maintenance-requests" element={
               <ProtectedRoute>
-                <MaintenanceRequests />
+                <PageLayout>
+                  <MaintenanceRequests />
+                </PageLayout>
               </ProtectedRoute>
             } />
 
-            {/* Reports page - requires view_reports permission */}
             <Route path="/reports" element={
               <ProtectedRoute requiredPermission="view_reports">
-                <Reports />
+                <PageLayout>
+                  <Reports />
+                </PageLayout>
               </ProtectedRoute>
             } />
             
-            {/* Settings page */}
             <Route path="/settings" element={
               <ProtectedRoute>
-                <Settings />
+                <PageLayout>
+                  <Settings />
+                </PageLayout>
               </ProtectedRoute>
             } />
             
-            {/* User management - transport director only */}
             <Route path="/manage-users" element={
               <ProtectedRoute requiredPermission="add_users">
-                <ManageUsers />
+                <PageLayout>
+                  <ManageUsers />
+                </PageLayout>
               </ProtectedRoute>
             } />
 
-            {/* College/Institute management - transport director only */}
             <Route path="/manage-colleges" element={
               <ProtectedRoute requiredPermission="add_users">
-                <ManageColleges />
+                <PageLayout>
+                  <ManageColleges />
+                </PageLayout>
               </ProtectedRoute>
             } />
             
-            {/* Staff management - transport director only */}
             <Route path="/manage-staff" element={
               <ProtectedRoute requiredPermission="add_users">
-                <ManageStaff />
+                <PageLayout>
+                  <ManageStaff />
+                </PageLayout>
               </ProtectedRoute>
             } />
 
-            {/* Driver management - transport director only */}
             <Route path="/driver-management" element={
               <ProtectedRoute requiredPermission="add_users">
-                <DriverManagement />
+                <PageLayout>
+                  <DriverManagement />
+                </PageLayout>
               </ProtectedRoute>
             } />
             
-            {/* Notifications page */}
             <Route path="/notifications" element={
               <ProtectedRoute>
-                <Notifications />
+                <PageLayout>
+                  <Notifications />
+                </PageLayout>
               </ProtectedRoute>
             } />
             
