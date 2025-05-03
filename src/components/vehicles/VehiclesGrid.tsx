@@ -27,7 +27,16 @@ export function VehiclesGrid({ vehicles, resetFilters }: VehiclesGridProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {vehicles.map((vehicle) => (
-        <VehicleCard key={vehicle.id} vehicle={vehicle} />
+        <VehicleCard 
+          key={vehicle.id}
+          id={vehicle.id}
+          model={vehicle.model}
+          licensePlate={vehicle.licensePlate}
+          fuelType="Diesel" // Default value, to be updated from vehicle prop
+          year={vehicle.year}
+          status={vehicle.status}
+          lastLocation={vehicle.lastLocation}
+        />
       ))}
     </div>
   );

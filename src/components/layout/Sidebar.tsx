@@ -1,8 +1,7 @@
-
 import { useState, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth, Permission } from "@/contexts/AuthContext";
 import {
   BarChart3,
   Car,
@@ -18,6 +17,7 @@ import {
   Users,
   Wrench,
   FileWarning,
+  Shield,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -98,6 +98,12 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
       icon: <FileWarning size={20} />,
       path: "/report-incident",
       permission: "report_incidents",
+    },
+    {
+      name: "Insurance Management",
+      icon: <Shield size={20} />,
+      path: "/insurance-management",
+      permission: null, // Available to all logged-in users
     },
     {
       name: "Reports",
@@ -234,4 +240,3 @@ function Bell(props: any) {
     </svg>
   );
 }
-

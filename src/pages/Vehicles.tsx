@@ -111,6 +111,11 @@ const Vehicles = () => {
     setFilterStatus("all");
   };
   
+  const handleFormSubmit = () => {
+    setAddVehicleOpen(false);
+    toast.success("Vehicle added successfully!");
+  };
+  
   return (
     <PageLayout>
       <div className="page-container">
@@ -178,7 +183,7 @@ const Vehicles = () => {
             <DialogHeader>
               <DialogTitle>Add New Vehicle</DialogTitle>
             </DialogHeader>
-            <AddVehicleForm onClose={() => setAddVehicleOpen(false)} />
+            <AddVehicleForm onSubmit={handleFormSubmit} />
           </DialogContent>
         </Dialog>
       </div>

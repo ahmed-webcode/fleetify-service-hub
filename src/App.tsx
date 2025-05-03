@@ -24,6 +24,7 @@ import DriverManagement from "./pages/DriverManagement";
 import MaintenanceRequests from "./pages/MaintenanceRequests";
 import RequestMaintenance from "./pages/RequestMaintenance";
 import ReportIncident from "./pages/ReportIncident";
+import InsuranceManagement from "./pages/InsuranceManagement";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -118,6 +119,13 @@ const App = () => (
             <Route path="/report-incident" element={
               <ProtectedRoute requiredPermission="report_incidents">
                 <ReportIncident />
+              </ProtectedRoute>
+            } />
+            
+            {/* Insurance management page */}
+            <Route path="/insurance-management" element={
+              <ProtectedRoute>
+                <InsuranceManagement />
               </ProtectedRoute>
             } />
             
