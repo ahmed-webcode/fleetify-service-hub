@@ -32,7 +32,7 @@ export function VehiclesGrid({ vehicles, resetFilters }: VehiclesGridProps) {
           id={vehicle.id}
           model={vehicle.model}
           licensePlate={vehicle.licensePlate}
-          fuelType="Diesel" // Default value, to be updated from vehicle prop
+          fuelType="Diesel" // Default value, to be updated based on vehicle data
           year={vehicle.year}
           status={vehicle.status}
           lastLocation={vehicle.lastLocation}

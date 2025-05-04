@@ -63,6 +63,39 @@ export function Header({ toggleSidebar, sidebarOpen }: HeaderProps) {
     navigate("/login");
   };
 
+  const getUserInitials = () => {
+    if (supabaseUser?.user_metadata?.full_name) {
+      return supabaseUser.user_metadata.full_name.split(" ")
+        .map((n: string) => n[0])
+        .join("")
+        .slice(0, 2);
+    } else if (mockUser?.fullName) {
+      return mockUser.fullName.split(" ")
+        .map(n => n[0])
+        .join("")
+        .slice(0, 2);
+    }
+    return "U";
+  };
+
+  const getUserName = () => {
+    if (supabaseUser?.user_metadata?.full_name) {
+      return supabaseUser.user_metadata.full_name;
+    } else if (mockUser?.fullName) {
+      return mockUser.fullName;
+    }
+    return "User";
+  };
+
+  const getUserRole = () => {
+    if (supabaseUser?.user_metadata?.role) {
+      return supabaseUser.user_metadata.role.replace('_', ' ');
+    } else if (mockUser?.role) {
+      return mockUser.role.replace('_', ' ');
+    }
+    return "User";
+  };
+
   return (
     <header
       className={cn(
@@ -72,16 +105,6 @@ export function Header({ toggleSidebar, sidebarOpen }: HeaderProps) {
     >
       <div className="flex h-16 items-center justify-between px-4 md:px-6">
         <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden"
-            onClick={toggleSidebar}
-          >
-            <Menu className="h-5 w-5" />
-            <span className="sr-only">Toggle sidebar</span>
-          </Button>
-          
           <h1 className="text-xl font-medium truncate max-w-[200px] sm:max-w-none">{pageTitle()}</h1>
         </div>
 
@@ -130,19 +153,15 @@ export function Header({ toggleSidebar, sidebarOpen }: HeaderProps) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <div className="w-9 h-9 bg-primary rounded-full flex items-center justify-center text-primary-foreground hover:opacity-90 transition-opacity cursor-pointer">
-                  <span className="text-sm font-medium">
-                    {user.user_metadata?.full_name ? 
-                      user.user_metadata.full_name.split(" ").map((n: string) => n[0]).join("").slice(0, 2) : 
-                      user.fullName?.split(" ").map(n => n[0]).join("").slice(0, 2) || "U"}
-                  </span>
+                  <span className="text-sm font-medium">{getUserInitials()}</span>
                 </div>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 z-50">
                 <DropdownMenuLabel>
                   <div className="flex flex-col">
-                    <span>{user.user_metadata?.full_name || user.fullName || "User"}</span>
+                    <span>{getUserName()}</span>
                     <span className="text-xs text-muted-foreground capitalize">
-                      {user.user_metadata?.role?.replace('_', ' ') || user.role?.replace('_', ' ') || "User"}
+                      {getUserRole()}
                     </span>
                   </div>
                 </DropdownMenuLabel>

@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus } from "lucide-react";
@@ -12,9 +12,21 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Header } from "@/components/layout/Header";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect } from "react";
 
-// Update the vehicle status type to include "outOfService" instead of "unavailable"
+// Define the Vehicle interface to match what's coming from the database
+interface Vehicle {
+  id: string;
+  name: string;
+  type: string;
+  model: string;
+  year: number;
+  licensePlate: string;
+  status: "active" | "maintenance" | "outOfService";
+  lastLocation?: string;
+  mileage: number;
+}
+
+// Initial vehicles for fallback
 const initialVehicles = [
   {
     id: "v1",
@@ -84,18 +96,6 @@ const initialVehicles = [
   }
 ];
 
-interface Vehicle {
-  id: string;
-  name: string;
-  type: string;
-  model: string;
-  year: number;
-  licensePlate: string;
-  status: "active" | "maintenance" | "outOfService";
-  lastLocation?: string;
-  mileage: number;
-}
-
 const Vehicles = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
@@ -120,22 +120,20 @@ const Vehicles = () => {
         if (error) {
           console.error('Error fetching vehicles:', error);
           toast.error('Failed to load vehicles');
-        } else if (data) {
-          // If we have database vehicles, transform them to match our Vehicle interface
-          if (data.length > 0) {
-            const transformedVehicles: Vehicle[] = data.map(v => ({
-              id: v.id,
-              name: v.type + ' ' + (v.model || ''),
-              type: v.type || '',
-              model: v.model || '',
-              year: v.year || 2020,
-              licensePlate: v.plate_number,
-              status: (v.status === 'available' ? 'active' : v.status === 'maintenance' ? 'maintenance' : 'outOfService') as "active" | "maintenance" | "outOfService",
-              lastLocation: v.last_location || '',
-              mileage: v.km_reading || 0
-            }));
-            setVehicles(transformedVehicles);
-          }
+        } else if (data && data.length > 0) {
+          // Transform the data to match our Vehicle interface
+          const transformedVehicles: Vehicle[] = data.map(v => ({
+            id: v.id,
+            name: v.type + ' ' + (v.model || ''),
+            type: v.type || '',
+            model: v.model || '',
+            year: v.year || 2020,
+            licensePlate: v.plate_number,
+            status: mapDatabaseStatus(v.status),
+            lastLocation: v.location_id || '',
+            mileage: v.km_reading || 0
+          }));
+          setVehicles(transformedVehicles);
         }
       } catch (error) {
         console.error('Error in fetchVehicles:', error);
@@ -146,6 +144,22 @@ const Vehicles = () => {
 
     fetchVehicles();
   }, []);
+  
+  // Helper function to map database status values to our Vehicle interface status
+  const mapDatabaseStatus = (status?: string): "active" | "maintenance" | "outOfService" => {
+    if (!status) return "active";
+    
+    switch (status.toLowerCase()) {
+      case "available":
+        return "active";
+      case "maintenance":
+        return "maintenance";
+      case "out_of_service":
+        return "outOfService";
+      default:
+        return "active";
+    }
+  };
   
   const filteredVehicles = vehicles.filter(vehicle => {
     const matchesSearch = vehicle.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -173,16 +187,17 @@ const Vehicles = () => {
       // Insert the vehicle into the database
       const { data, error } = await supabase
         .from('vehicles')
-        .insert([{
+        .insert({
           type: vehicleData.type,
           model: vehicleData.model,
           year: vehicleData.year,
-          plate_number: vehicleData.licensePlate,
-          status: vehicleData.status === 'active' ? 'available' : vehicleData.status,
-          fuel_type: vehicleData.fuelType,
+          plate_number: vehicleData.plate_number,
+          status: vehicleData.status,
+          fuel_type: vehicleData.fuel_type,
           color: vehicleData.color,
-          km_reading: vehicleData.mileage || 0
-        }])
+          ownership: vehicleData.ownership,
+          km_reading: vehicleData.km_reading || 0
+        })
         .select();
       
       if (error) {
@@ -199,7 +214,7 @@ const Vehicles = () => {
           model: data[0].model || '',
           year: data[0].year || 2020,
           licensePlate: data[0].plate_number,
-          status: (data[0].status === 'available' ? 'active' : data[0].status === 'maintenance' ? 'maintenance' : 'outOfService') as "active" | "maintenance" | "outOfService",
+          status: mapDatabaseStatus(data[0].status),
           mileage: data[0].km_reading || 0
         };
         
