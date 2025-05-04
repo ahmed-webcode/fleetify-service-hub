@@ -9,7 +9,7 @@ interface Vehicle {
   model: string;
   year: number;
   licensePlate: string;
-  status: "active" | "maintenance" | "unavailable"; // Changed to match what's used in Vehicles.tsx
+  status: "active" | "maintenance" | "outOfService"; // Changed to match VehicleCard.tsx
   lastLocation?: string;
   mileage: number;
 }

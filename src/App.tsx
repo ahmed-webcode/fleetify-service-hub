@@ -48,7 +48,7 @@ const App = () => (
             <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/login" element={<Login />} />
             
-            {/* Protected routes without PageLayout wrapping */}
+            {/* Protected routes without PageLayout */}
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Dashboard />

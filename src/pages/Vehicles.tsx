@@ -10,8 +10,9 @@ import { VehiclesGrid } from "@/components/vehicles/VehiclesGrid";
 import { VehiclesList } from "@/components/vehicles/VehiclesList";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { Header } from "@/components/layout/Header";
 
-// Update the vehicle status type to include "unavailable" instead of "outOfService"
+// Update the vehicle status type to include "outOfService" instead of "unavailable"
 const vehicles = [
   {
     id: "v1",
@@ -75,7 +76,7 @@ const vehicles = [
     model: "L200 Double Cab",
     year: 2020,
     licensePlate: "AAU-7195",
-    status: "unavailable" as const, // Changed from "outOfService" to "unavailable"
+    status: "outOfService" as const, // Changed from "unavailable" to "outOfService"
     lastLocation: "Field Research Site",
     mileage: 32140
   }
@@ -85,6 +86,8 @@ const Vehicles = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [addVehicleOpen, setAddVehicleOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  
   const {
     hasPermission
   } = useAuth();
@@ -117,74 +120,79 @@ const Vehicles = () => {
   };
   
   return (
-    <div className="page-container">
-      <div className="page-title-container">
-        <h1 className="page-title">Vehicles</h1>
-        <p className="page-description">Manage and monitor your fleet</p>
-      </div>
-      
-      <div className="card-uniform">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 md:mb-6 gap-4">
-          {canAddVehicle && (
-            <Button className="gap-2 w-full md:w-auto" onClick={handleAddVehicleClick}>
-              <Plus className="h-4 w-4" />
-              Add Vehicle
-            </Button>
-          )}
-          
-          <VehiclesSearch 
-            searchQuery={searchQuery} 
-            setSearchQuery={setSearchQuery} 
-            filterStatus={filterStatus} 
-            setFilterStatus={setFilterStatus} 
-          />
-        </div>
-      
-        <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div className="text-sm text-muted-foreground">
-            Showing {filteredVehicles.length} of {vehicles.length} vehicles
+    <div className="min-h-screen bg-background">
+      <Header toggleSidebar={() => setSidebarOpen(!sidebarOpen)} sidebarOpen={sidebarOpen} />
+      <main className="flex-1 p-4 md:p-6">
+        <div className="page-container">
+          <div className="page-title-container">
+            <h1 className="page-title">Vehicles</h1>
+            <p className="page-description">Manage and monitor your fleet</p>
           </div>
           
-          <Tabs defaultValue="grid" className="w-full sm:w-auto">
-            <TabsList>
-              <TabsTrigger value="grid" className="gap-2">
-                <div className="grid grid-cols-2 gap-0.5 w-3 h-3">
-                  <div className="bg-current rounded-sm"></div>
-                  <div className="bg-current rounded-sm"></div>
-                  <div className="bg-current rounded-sm"></div>
-                  <div className="bg-current rounded-sm"></div>
-                </div>
-                Grid
-              </TabsTrigger>
-              <TabsTrigger value="list" className="gap-2">
-                <div className="flex flex-col gap-0.5 w-3">
-                  <div className="h-0.5 w-full bg-current rounded-sm"></div>
-                  <div className="h-0.5 w-full bg-current rounded-sm"></div>
-                  <div className="h-0.5 w-full bg-current rounded-sm"></div>
-                </div>
-                List
-              </TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="grid" className="animate-fade-in w-full">
-              <VehiclesGrid vehicles={filteredVehicles} resetFilters={resetFilters} />
-            </TabsContent>
-            
-            <TabsContent value="list" className="animate-fade-in w-full">
-              <VehiclesList vehicles={filteredVehicles} resetFilters={resetFilters} />
-            </TabsContent>
-          </Tabs>
+          <div className="card-uniform">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 md:mb-6 gap-4">
+              {canAddVehicle && (
+                <Button className="gap-2 w-full md:w-auto" onClick={handleAddVehicleClick}>
+                  <Plus className="h-4 w-4" />
+                  Add Vehicle
+                </Button>
+              )}
+              
+              <VehiclesSearch 
+                searchQuery={searchQuery} 
+                setSearchQuery={setSearchQuery} 
+                filterStatus={filterStatus} 
+                setFilterStatus={setFilterStatus} 
+              />
+            </div>
+          
+            <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div className="text-sm text-muted-foreground">
+                Showing {filteredVehicles.length} of {vehicles.length} vehicles
+              </div>
+              
+              <Tabs defaultValue="grid" className="w-full sm:w-auto">
+                <TabsList>
+                  <TabsTrigger value="grid" className="gap-2">
+                    <div className="grid grid-cols-2 gap-0.5 w-3 h-3">
+                      <div className="bg-current rounded-sm"></div>
+                      <div className="bg-current rounded-sm"></div>
+                      <div className="bg-current rounded-sm"></div>
+                      <div className="bg-current rounded-sm"></div>
+                    </div>
+                    Grid
+                  </TabsTrigger>
+                  <TabsTrigger value="list" className="gap-2">
+                    <div className="flex flex-col gap-0.5 w-3">
+                      <div className="h-0.5 w-full bg-current rounded-sm"></div>
+                      <div className="h-0.5 w-full bg-current rounded-sm"></div>
+                      <div className="h-0.5 w-full bg-current rounded-sm"></div>
+                    </div>
+                    List
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="grid" className="animate-fade-in w-full">
+                  <VehiclesGrid vehicles={filteredVehicles} resetFilters={resetFilters} />
+                </TabsContent>
+                
+                <TabsContent value="list" className="animate-fade-in w-full">
+                  <VehiclesList vehicles={filteredVehicles} resetFilters={resetFilters} />
+                </TabsContent>
+              </Tabs>
+            </div>
+          </div>
+          
+          <Dialog open={addVehicleOpen} onOpenChange={setAddVehicleOpen}>
+            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Add New Vehicle</DialogTitle>
+              </DialogHeader>
+              <AddVehicleForm onSubmit={handleFormSubmit} />
+            </DialogContent>
+          </Dialog>
         </div>
-      </div>
-      
-      <Dialog open={addVehicleOpen} onOpenChange={setAddVehicleOpen}>
-        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Add New Vehicle</DialogTitle>
-          </DialogHeader>
-          <AddVehicleForm onSubmit={handleFormSubmit} />
-        </DialogContent>
-      </Dialog>
+      </main>
     </div>
   );
 };

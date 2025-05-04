@@ -2,11 +2,15 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { GeneralMaintenanceRequestForm } from "@/components/maintenance/GeneralMaintenanceRequestForm";
-import { Sidebar, SidebarContent } from "@/components/ui/sidebar";
+import { Header } from "@/components/layout/Header";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function RequestMaintenance() {
+  const [sidebarOpen, setSidebarOpen] = React.useState(false);
+  
   return (
     <div className="min-h-screen bg-background">
+      <Header toggleSidebar={() => setSidebarOpen(!sidebarOpen)} sidebarOpen={sidebarOpen} />
       <main className="flex-1 p-4 md:p-6">
         <div className="page-container">
           <div className="page-title-container">
