@@ -1,51 +1,56 @@
 
-/* Base styles */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* Import other CSS files */
-@import './utils/responsive.css';
 @import './utils/animations.css';
-@import './utils/misc.css';
 @import './utils/spacing.css';
+@import './utils/responsive.css';
+@import './utils/misc.css';
 @import './layout/header.css';
 @import './layout/main.css';
 @import './layout/page.css';
 @import './map.css';
 
-/* Custom layout styles */
-.page-container {
-  @apply w-full max-w-7xl mx-auto space-y-6;
-}
-
-.page-title-container {
-  @apply flex flex-col gap-2 mb-6;
-}
-
-.page-title {
-  @apply text-3xl font-bold tracking-tight;
-}
-
-.page-description {
-  @apply text-muted-foreground;
-}
-
+/* Additional utility classes */
 .card-uniform {
   @apply rounded-lg border bg-card text-card-foreground shadow-sm p-4 md:p-6;
 }
 
-/* Animation utilities */
 .animate-fade-in {
-  animation: fadeIn 0.5s ease-in;
+  animation: fadeIn 0.5s ease-in-out;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+.flex-center {
+  @apply flex items-center justify-center;
 }
 
-/* Status badge styles */
+.flex-between {
+  @apply flex items-center justify-between;
+}
+
+.grid-responsive {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6;
+}
+
+.background-dot-pattern {
+  background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Status badges for various use cases */
 .status-badge {
-  @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+  @apply inline-flex items-center rounded-full px-2 py-1 text-xs font-medium;
+}
+
+.status-active {
+  @apply bg-green-100 text-green-800;
+}
+
+.status-maintenance {
+  @apply bg-amber-100 text-amber-800;
+}
+
+.status-unavailable {
+  @apply bg-red-100 text-red-800;
+}
+
+.status-pending {
+  @apply bg-blue-100 text-blue-800;
 }

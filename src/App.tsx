@@ -6,7 +6,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { PageLayout } from "@/components/layout/PageLayout"; // Ensuring we use the common PageLayout
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Vehicles from "./pages/Vehicles";
@@ -49,164 +48,124 @@ const App = () => (
             <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/login" element={<Login />} />
             
-            {/* Protected routes with PageLayout */}
+            {/* Protected routes without PageLayout wrapping */}
             <Route path="/dashboard" element={
               <ProtectedRoute>
-                <PageLayout>
-                  <Dashboard />
-                </PageLayout>
+                <Dashboard />
               </ProtectedRoute>
             } />
             
             <Route path="/vehicles" element={
               <ProtectedRoute>
-                <PageLayout>
-                  <Vehicles />
-                </PageLayout>
+                <Vehicles />
               </ProtectedRoute>
             } />
             
             <Route path="/gps-tracking" element={
               <ProtectedRoute requiredPermission="track_vehicles">
-                <PageLayout>
-                  <GPSTracking />
-                </PageLayout>
+                <GPSTracking />
               </ProtectedRoute>
             } />
             
             <Route path="/trip-requests" element={
               <ProtectedRoute requiredPermission="request_fleet">
-                <PageLayout>
-                  <TripRequests />
-                </PageLayout>
+                <TripRequests />
               </ProtectedRoute>
             } />
             
             <Route path="/fuel-management" element={
               <ProtectedRoute>
-                <PageLayout>
-                  <FuelManagement />
-                </PageLayout>
+                <FuelManagement />
               </ProtectedRoute>
             } />
             
             <Route path="/service-requests" element={
               <ProtectedRoute>
-                <PageLayout>
-                  <ServiceRequests />
-                </PageLayout>
+                <ServiceRequests />
               </ProtectedRoute>
             } />
             
             <Route path="/service-requests/fleet" element={
               <ProtectedRoute>
-                <PageLayout>
-                  <ServiceRequests />
-                </PageLayout>
+                <ServiceRequests />
               </ProtectedRoute>
             } />
             
             <Route path="/service-requests/fuel" element={
               <ProtectedRoute>
-                <PageLayout>
-                  <ServiceRequests />
-                </PageLayout>
+                <ServiceRequests />
               </ProtectedRoute>
             } />
             
             <Route path="/service-requests/maintenance" element={
               <ProtectedRoute>
-                <PageLayout>
-                  <ServiceRequests />
-                </PageLayout>
+                <ServiceRequests />
               </ProtectedRoute>
             } />
             
             <Route path="/request-maintenance" element={
               <ProtectedRoute requiredPermission="request_maintenance">
-                <PageLayout>
-                  <RequestMaintenance />
-                </PageLayout>
+                <RequestMaintenance />
               </ProtectedRoute>
             } />
             
             <Route path="/report-incident" element={
               <ProtectedRoute requiredPermission="report_incidents">
-                <PageLayout>
-                  <ReportIncident />
-                </PageLayout>
+                <ReportIncident />
               </ProtectedRoute>
             } />
             
             <Route path="/insurance-management" element={
               <ProtectedRoute>
-                <PageLayout>
-                  <InsuranceManagement />
-                </PageLayout>
+                <InsuranceManagement />
               </ProtectedRoute>
             } />
             
             <Route path="/maintenance-requests" element={
               <ProtectedRoute>
-                <PageLayout>
-                  <MaintenanceRequests />
-                </PageLayout>
+                <MaintenanceRequests />
               </ProtectedRoute>
             } />
 
             <Route path="/reports" element={
               <ProtectedRoute requiredPermission="view_reports">
-                <PageLayout>
-                  <Reports />
-                </PageLayout>
+                <Reports />
               </ProtectedRoute>
             } />
             
             <Route path="/settings" element={
               <ProtectedRoute>
-                <PageLayout>
-                  <Settings />
-                </PageLayout>
+                <Settings />
               </ProtectedRoute>
             } />
             
             <Route path="/manage-users" element={
               <ProtectedRoute requiredPermission="add_users">
-                <PageLayout>
-                  <ManageUsers />
-                </PageLayout>
+                <ManageUsers />
               </ProtectedRoute>
             } />
 
             <Route path="/manage-colleges" element={
               <ProtectedRoute requiredPermission="add_users">
-                <PageLayout>
-                  <ManageColleges />
-                </PageLayout>
+                <ManageColleges />
               </ProtectedRoute>
             } />
             
             <Route path="/manage-staff" element={
               <ProtectedRoute requiredPermission="add_users">
-                <PageLayout>
-                  <ManageStaff />
-                </PageLayout>
+                <ManageStaff />
               </ProtectedRoute>
             } />
 
             <Route path="/driver-management" element={
               <ProtectedRoute requiredPermission="add_users">
-                <PageLayout>
-                  <DriverManagement />
-                </PageLayout>
+                <DriverManagement />
               </ProtectedRoute>
             } />
             
             <Route path="/notifications" element={
               <ProtectedRoute>
-                <PageLayout>
-                  <Notifications />
-                </PageLayout>
+                <Notifications />
               </ProtectedRoute>
             } />
             
