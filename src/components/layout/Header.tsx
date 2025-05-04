@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,7 +26,10 @@ export function Header({ toggleSidebar, sidebarOpen }: HeaderProps) {
   const [searchVisible, setSearchVisible] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user: mockUser, logout: mockLogout } = useAuth();
+  const { user: supabaseUser, signOut: supabaseSignOut } = useSupabaseAuth();
+  
+  const user = supabaseUser || mockUser;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -50,8 +54,13 @@ export function Header({ toggleSidebar, sidebarOpen }: HeaderProps) {
     return path.substring(1).charAt(0).toUpperCase() + path.substring(2).replace(/-/g, ' ');
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    if (supabaseUser) {
+      await supabaseSignOut();
+    } else if (mockUser) {
+      mockLogout();
+    }
+    navigate("/login");
   };
 
   return (
@@ -122,16 +131,18 @@ export function Header({ toggleSidebar, sidebarOpen }: HeaderProps) {
               <DropdownMenuTrigger asChild>
                 <div className="w-9 h-9 bg-primary rounded-full flex items-center justify-center text-primary-foreground hover:opacity-90 transition-opacity cursor-pointer">
                   <span className="text-sm font-medium">
-                    {user.fullName?.split(" ").map(n => n[0]).join("").slice(0, 2) || "U"}
+                    {user.user_metadata?.full_name ? 
+                      user.user_metadata.full_name.split(" ").map((n: string) => n[0]).join("").slice(0, 2) : 
+                      user.fullName?.split(" ").map(n => n[0]).join("").slice(0, 2) || "U"}
                   </span>
                 </div>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 z-50">
                 <DropdownMenuLabel>
                   <div className="flex flex-col">
-                    <span>{user.fullName}</span>
+                    <span>{user.user_metadata?.full_name || user.fullName || "User"}</span>
                     <span className="text-xs text-muted-foreground capitalize">
-                      {user.role?.replace('_', ' ') || "User"}
+                      {user.user_metadata?.role?.replace('_', ' ') || user.role?.replace('_', ' ') || "User"}
                     </span>
                   </div>
                 </DropdownMenuLabel>

@@ -11,9 +11,11 @@ import { VehiclesList } from "@/components/vehicles/VehiclesList";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Header } from "@/components/layout/Header";
+import { supabase } from "@/integrations/supabase/client";
+import { useEffect } from "react";
 
 // Update the vehicle status type to include "outOfService" instead of "unavailable"
-const vehicles = [
+const initialVehicles = [
   {
     id: "v1",
     name: "Toyota Land Cruiser",
@@ -82,16 +84,68 @@ const vehicles = [
   }
 ];
 
+interface Vehicle {
+  id: string;
+  name: string;
+  type: string;
+  model: string;
+  year: number;
+  licensePlate: string;
+  status: "active" | "maintenance" | "outOfService";
+  lastLocation?: string;
+  mileage: number;
+}
+
 const Vehicles = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [addVehicleOpen, setAddVehicleOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [vehicles, setVehicles] = useState<Vehicle[]>(initialVehicles);
+  const [loading, setLoading] = useState(true);
   
   const {
     hasPermission
   } = useAuth();
   const canAddVehicle = hasPermission("add_vehicle");
+  
+  useEffect(() => {
+    const fetchVehicles = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from('vehicles')
+          .select('*');
+        
+        if (error) {
+          console.error('Error fetching vehicles:', error);
+          toast.error('Failed to load vehicles');
+        } else if (data) {
+          // If we have database vehicles, transform them to match our Vehicle interface
+          if (data.length > 0) {
+            const transformedVehicles: Vehicle[] = data.map(v => ({
+              id: v.id,
+              name: v.type + ' ' + (v.model || ''),
+              type: v.type || '',
+              model: v.model || '',
+              year: v.year || 2020,
+              licensePlate: v.plate_number,
+              status: (v.status === 'available' ? 'active' : v.status === 'maintenance' ? 'maintenance' : 'outOfService') as "active" | "maintenance" | "outOfService",
+              lastLocation: v.last_location || '',
+              mileage: v.km_reading || 0
+            }));
+            setVehicles(transformedVehicles);
+          }
+        }
+      } catch (error) {
+        console.error('Error in fetchVehicles:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchVehicles();
+  }, []);
   
   const filteredVehicles = vehicles.filter(vehicle => {
     const matchesSearch = vehicle.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -114,9 +168,50 @@ const Vehicles = () => {
     setFilterStatus("all");
   };
   
-  const handleFormSubmit = () => {
-    setAddVehicleOpen(false);
-    toast.success("Vehicle added successfully!");
+  const handleFormSubmit = async (vehicleData: any) => {
+    try {
+      // Insert the vehicle into the database
+      const { data, error } = await supabase
+        .from('vehicles')
+        .insert([{
+          type: vehicleData.type,
+          model: vehicleData.model,
+          year: vehicleData.year,
+          plate_number: vehicleData.licensePlate,
+          status: vehicleData.status === 'active' ? 'available' : vehicleData.status,
+          fuel_type: vehicleData.fuelType,
+          color: vehicleData.color,
+          km_reading: vehicleData.mileage || 0
+        }])
+        .select();
+      
+      if (error) {
+        toast.error('Failed to add vehicle: ' + error.message);
+        return;
+      }
+      
+      if (data && data.length > 0) {
+        // Transform the new vehicle to match our interface
+        const newVehicle: Vehicle = {
+          id: data[0].id,
+          name: data[0].type + ' ' + (data[0].model || ''),
+          type: data[0].type,
+          model: data[0].model || '',
+          year: data[0].year || 2020,
+          licensePlate: data[0].plate_number,
+          status: (data[0].status === 'available' ? 'active' : data[0].status === 'maintenance' ? 'maintenance' : 'outOfService') as "active" | "maintenance" | "outOfService",
+          mileage: data[0].km_reading || 0
+        };
+        
+        // Add the new vehicle to our state
+        setVehicles([...vehicles, newVehicle]);
+        setAddVehicleOpen(false);
+        toast.success("Vehicle added successfully!");
+      }
+    } catch (error) {
+      console.error('Error adding vehicle:', error);
+      toast.error('An unexpected error occurred');
+    }
   };
   
   return (
@@ -173,11 +268,23 @@ const Vehicles = () => {
                 </TabsList>
                 
                 <TabsContent value="grid" className="animate-fade-in w-full">
-                  <VehiclesGrid vehicles={filteredVehicles} resetFilters={resetFilters} />
+                  {loading ? (
+                    <div className="flex justify-center p-8">
+                      <p>Loading vehicles...</p>
+                    </div>
+                  ) : (
+                    <VehiclesGrid vehicles={filteredVehicles} resetFilters={resetFilters} />
+                  )}
                 </TabsContent>
                 
                 <TabsContent value="list" className="animate-fade-in w-full">
-                  <VehiclesList vehicles={filteredVehicles} resetFilters={resetFilters} />
+                  {loading ? (
+                    <div className="flex justify-center p-8">
+                      <p>Loading vehicles...</p>
+                    </div>
+                  ) : (
+                    <VehiclesList vehicles={filteredVehicles} resetFilters={resetFilters} />
+                  )}
                 </TabsContent>
               </Tabs>
             </div>
