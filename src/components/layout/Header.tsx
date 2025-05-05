@@ -71,7 +71,7 @@ export function Header({ toggleSidebar, sidebarOpen }: HeaderProps) {
         .slice(0, 2);
     } else if (mockUser?.fullName) {
       return mockUser.fullName.split(" ")
-        .map(n => n[0])
+        .map((n: string) => n[0])
         .join("")
         .slice(0, 2);
     }
@@ -105,6 +105,15 @@ export function Header({ toggleSidebar, sidebarOpen }: HeaderProps) {
     >
       <div className="flex h-16 items-center justify-between px-4 md:px-6">
         <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:flex lg:hidden"
+            onClick={toggleSidebar}
+          >
+            <Menu className="h-5 w-5" />
+            <span className="sr-only">Toggle Sidebar</span>
+          </Button>
           <h1 className="text-xl font-medium truncate max-w-[200px] sm:max-w-none">{pageTitle()}</h1>
         </div>
 
