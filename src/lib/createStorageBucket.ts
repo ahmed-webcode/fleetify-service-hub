@@ -1,34 +1,36 @@
 
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from '@/integrations/supabase/client';
 
-export const createVehiclesStorageBucket = async () => {
+export const createVehicleImageBucket = async () => {
   try {
-    // Check if bucket exists first
-    const { data: existingBuckets, error: listError } = await supabase.storage.listBuckets();
+    // Check if the bucket already exists
+    const { data: buckets, error: listError } = await supabase.storage.listBuckets();
     
     if (listError) {
-      throw listError;
+      console.error('Error checking for buckets:', listError);
+      return false;
     }
     
-    // Check if vehicles bucket already exists
-    const vehiclesBucketExists = existingBuckets?.some(bucket => bucket.name === 'vehicles');
-    
-    if (!vehiclesBucketExists) {
-      // Create bucket if it doesn't exist
-      const { data, error } = await supabase.storage.createBucket('vehicles', {
-        public: true, // Make images publicly accessible
-        fileSizeLimit: 2097152, // 2MB limit
+    // If the vehicles bucket doesn't exist, create it
+    if (!buckets.find(bucket => bucket.name === 'vehicles')) {
+      const { error: createError } = await supabase.storage.createBucket('vehicles', {
+        public: true,
+        fileSizeLimit: 5 * 1024 * 1024, // 5MB
       });
       
-      if (error) {
-        throw error;
+      if (createError) {
+        console.error('Error creating vehicles bucket:', createError);
+        return false;
       }
       
-      console.log('Vehicles storage bucket created:', data);
-    } else {
-      console.log('Vehicles storage bucket already exists');
+      console.log('Vehicles bucket created successfully');
+      return true;
     }
-  } catch (error) {
-    console.error('Error creating storage bucket:', error);
+    
+    console.log('Vehicles bucket already exists');
+    return true;
+  } catch (err) {
+    console.error('Unexpected error creating bucket:', err);
+    return false;
   }
 };

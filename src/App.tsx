@@ -8,6 +8,7 @@ import { AuthProvider as SupabaseAuthProvider } from "@/contexts/SupabaseAuthCon
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useEffect } from "react";
 import { createVehiclesStorageBucket } from "@/lib/createStorageBucket";
+import { createVehicleImageBucket } from "./lib/createStorageBucket";
 import Login from "./pages/Login";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -44,6 +45,9 @@ const App = () => {
   useEffect(() => {
     createVehiclesStorageBucket();
   }, []);
+
+  // Initialize the vehicle images storage bucket
+  createVehicleImageBucket().catch(console.error);
 
   return (
     <BrowserRouter>

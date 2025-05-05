@@ -146,12 +146,9 @@ export function AddVehicleForm({ onSubmit }) {
           
           if (imageUrl) {
             // Update the vehicle with the image URL
-            // Note: We're avoiding using `image_url` directly since it's not in the table schema
-            const updateData = { made_in: imageUrl }; // Using made_in as a temporary field to store the image URL
-            
             const { error: updateError } = await supabase
               .from('vehicles')
-              .update(updateData)
+              .update({ made_in: imageUrl })
               .eq('id', vehicleId);
               
             if (updateError) {
@@ -370,20 +367,6 @@ export function AddVehicleForm({ onSubmit }) {
                     <SelectItem value="project">Project</SelectItem>
                   </SelectContent>
                 </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="made_in"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Made In (Country)</FormLabel>
-                <FormControl>
-                  <Input placeholder="e.g. Japan" {...field} />
-                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
