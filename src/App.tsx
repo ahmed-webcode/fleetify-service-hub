@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,8 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { AuthProvider as SupabaseAuthProvider } from "@/contexts/SupabaseAuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useEffect } from "react";
-import { createVehiclesStorageBucket } from "@/lib/createStorageBucket";
-import { createVehicleImageBucket } from "./lib/createStorageBucket";
+import { createVehicleImageBucket } from "@/lib/createStorageBucket";
 import Login from "./pages/Login";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -43,11 +43,8 @@ const queryClient = new QueryClient({
 const App = () => {
   // Initialize the storage bucket on app start
   useEffect(() => {
-    createVehiclesStorageBucket();
+    createVehicleImageBucket().catch(console.error);
   }, []);
-
-  // Initialize the vehicle images storage bucket
-  createVehicleImageBucket().catch(console.error);
 
   return (
     <BrowserRouter>

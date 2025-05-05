@@ -34,3 +34,6 @@ export const createVehicleImageBucket = async () => {
     return false;
   }
 };
+
+// Adding the createVehiclesStorageBucket as an alias to maintain backward compatibility
+export const createVehiclesStorageBucket = createVehicleImageBucket;
