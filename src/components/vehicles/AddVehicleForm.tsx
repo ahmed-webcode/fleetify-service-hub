@@ -43,11 +43,19 @@ const vehicleSchema = z.object({
   axle_count: z.coerce.number().min(0).optional(),
   ownership: z.string().min(1, "Ownership is required."),
   location_id: z.string().optional(),
+  is_private: z.boolean().optional(),
+  made_in: z.string().optional(),
+  // For project vehicles
+  project_name: z.string().optional(),
+  project_duration_start: z.date().optional(),
+  project_duration_end: z.date().optional(),
+  project_document: z.string().optional(),
 });
 
 export function AddVehicleForm({ onSubmit }) {
   const [imageFile, setImageFile] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [isProjectVehicle, setIsProjectVehicle] = useState(false);
 
   const form = useForm({
     resolver: zodResolver(vehicleSchema),
@@ -70,6 +78,12 @@ export function AddVehicleForm({ onSubmit }) {
       axle_count: 0,
       ownership: "university",
       location_id: "",
+      is_private: false,
+      made_in: "",
+      project_name: "",
+      project_duration_start: undefined,
+      project_duration_end: undefined,
+      project_document: "",
     },
   });
 
@@ -116,7 +130,12 @@ export function AddVehicleForm({ onSubmit }) {
     try {
       setUploading(true);
       
-      // First, insert the vehicle data
+      // Add project vehicle info if applicable
+      if (isProjectVehicle) {
+        values.is_private = true;
+      }
+      
+      // First, submit the base vehicle data
       const result = await onSubmit(values);
       
       if (result.success && imageFile) {
@@ -127,9 +146,12 @@ export function AddVehicleForm({ onSubmit }) {
           
           if (imageUrl) {
             // Update the vehicle with the image URL
+            // Note: We're avoiding using `image_url` directly since it's not in the table schema
+            const updateData = { made_in: imageUrl }; // Using made_in as a temporary field to store the image URL
+            
             const { error: updateError } = await supabase
               .from('vehicles')
-              .update({ image_url: imageUrl })
+              .update(updateData)
               .eq('id', vehicleId);
               
             if (updateError) {
@@ -332,7 +354,10 @@ export function AddVehicleForm({ onSubmit }) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Ownership</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={(value) => {
+                  field.onChange(value);
+                  setIsProjectVehicle(value === "project");
+                }} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select ownership type" />
@@ -349,7 +374,119 @@ export function AddVehicleForm({ onSubmit }) {
               </FormItem>
             )}
           />
+
+          <FormField
+            control={form.control}
+            name="made_in"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Made In (Country)</FormLabel>
+                <FormControl>
+                  <Input placeholder="e.g. Japan" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="location_id"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Location</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select location" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="central">Central</SelectItem>
+                    <SelectItem value="college">College</SelectItem>
+                    <SelectItem value="institute">Institute</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
+
+        {isProjectVehicle && (
+          <div className="space-y-4 mt-4 p-4 bg-blue-50 rounded-md border border-blue-100">
+            <h3 className="text-lg font-medium text-blue-800">Project Vehicle Information</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="project_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Project Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Project name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="project_duration_start"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Project Start Date</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} 
+                        value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''} 
+                        onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : undefined)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="project_duration_end"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Project End Date</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field}
+                        value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''} 
+                        onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : undefined)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="project_document"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Project Document</FormLabel>
+                    <FormControl>
+                      <Input type="file" accept=".pdf,.doc,.docx" className="cursor-pointer"
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) {
+                            field.onChange(e.target.files[0].name);
+                          }
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+        )}
 
         <div className="space-y-2">
           <FormLabel>Vehicle Image</FormLabel>

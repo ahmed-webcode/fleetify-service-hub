@@ -1,7 +1,6 @@
 
 import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Header } from "@/components/layout/Header";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -9,7 +8,6 @@ import { PageLayout } from "@/components/layout/PageLayout";
 import { GeneralMaintenanceRequestForm } from "@/components/maintenance/GeneralMaintenanceRequestForm";
 
 export default function RequestMaintenance() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { hasPermission } = useAuth();
   
   const handleMaintenanceRequest = async (formData: any) => {

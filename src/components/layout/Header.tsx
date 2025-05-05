@@ -63,8 +63,9 @@ export function Header({ toggleSidebar, sidebarOpen }: HeaderProps) {
     navigate("/login");
   };
 
+  // These helper functions safely access user properties
   const getUserInitials = () => {
-    if (supabaseUser?.user_metadata?.full_name) {
+    if (supabaseUser && supabaseUser.user_metadata?.full_name) {
       return supabaseUser.user_metadata.full_name.split(" ")
         .map((n: string) => n[0])
         .join("")
@@ -79,7 +80,7 @@ export function Header({ toggleSidebar, sidebarOpen }: HeaderProps) {
   };
 
   const getUserName = () => {
-    if (supabaseUser?.user_metadata?.full_name) {
+    if (supabaseUser && supabaseUser.user_metadata?.full_name) {
       return supabaseUser.user_metadata.full_name;
     } else if (mockUser?.fullName) {
       return mockUser.fullName;
@@ -88,7 +89,7 @@ export function Header({ toggleSidebar, sidebarOpen }: HeaderProps) {
   };
 
   const getUserRole = () => {
-    if (supabaseUser?.user_metadata?.role) {
+    if (supabaseUser && supabaseUser.user_metadata?.role) {
       return supabaseUser.user_metadata.role.replace('_', ' ');
     } else if (mockUser?.role) {
       return mockUser.role.replace('_', ' ');
