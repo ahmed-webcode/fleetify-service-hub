@@ -1,13 +1,11 @@
 
-import { PageLayout } from "@/components/layout/PageLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import ReportGenerator from "@/components/reports/ReportGenerator";
 import { FileBarChart, FileText, FileSpreadsheet, Filter } from "lucide-react";
 
 export default function Reports() {
   return (
-    <PageLayout>
+    <>
       <div className="page-container">
         <div className="page-title-container">
           <h1 className="page-title">Reports</h1>
@@ -60,6 +58,6 @@ export default function Reports() {
           </Card>
         </div>
       </div>
-    </PageLayout>
+    </>
   );
 }

@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { PageLayout } from "@/components/layout/PageLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -101,7 +100,7 @@ export default function ReportIncident() {
   };
 
   return (
-    <PageLayout>
+    <>
       <div className="page-container">
         <div className="page-title-container">
           <h1 className="page-title">Report Incident</h1>
@@ -293,6 +292,6 @@ export default function ReportIncident() {
           </Form>
         </Card>
       </div>
-    </PageLayout>
+    </>
   );
 }

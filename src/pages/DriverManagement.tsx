@@ -1,6 +1,5 @@
 
 import React, { useState } from 'react';
-import { PageLayout } from '@/components/layout/PageLayout';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -139,7 +138,7 @@ const DriverManagement = () => {
   };
 
   return (
-    <PageLayout>
+    <>
       <div className="page-container">
         <div className="page-title-container">
           <h1 className="page-title">Driver Management</h1>
@@ -417,7 +416,7 @@ const DriverManagement = () => {
           </Dialog>
         </div>
       </div>
-    </PageLayout>
+    </>
   );
 };
 

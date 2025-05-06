@@ -5,7 +5,6 @@ import { Plus, Filter, Clock, Car } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TripRequestForm } from "@/components/trips/TripRequestForm";
 import { useAuth } from "@/contexts/AuthContext";
-import { PageLayout } from "@/components/layout/PageLayout";
 
 export default function TripRequests() {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -74,7 +73,7 @@ export default function TripRequests() {
   const canApproveTrip = hasPermission("approve_fleet");
 
   return (
-    <PageLayout>
+    <>
       <div className="page-container">
         <div className="page-title-container">
           <h1 className="page-title">Trip Requests</h1>
@@ -196,6 +195,6 @@ export default function TripRequests() {
 
         <TripRequestForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} />
       </div>
-    </PageLayout>
+    </>
   );
 }

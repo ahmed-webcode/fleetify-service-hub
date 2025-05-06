@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from "react";
-import { PageLayout } from "@/components/layout/PageLayout";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -63,7 +62,7 @@ const GPSTracking = () => {
   const unavailableVehicles = vehicles.filter(v => v.status === 'unavailable').length;
   
   return (
-    <PageLayout>
+    <>
       <div className="page-container">
         <div className="page-title-container">
           <h1 className="page-title">GPS Tracking</h1>
@@ -230,7 +229,7 @@ const GPSTracking = () => {
           </div>
         </div>
       </div>
-    </PageLayout>
+    </>
   );
 };
 

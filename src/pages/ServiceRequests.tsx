@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { PageLayout } from "@/components/layout/PageLayout";
 import { ServiceRequestForm } from "@/components/services/ServiceRequestForm";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -78,7 +77,7 @@ const ServiceRequests = () => {
   });
 
   return (
-    <PageLayout>
+    <>
       <div className="page-container">
         <div className="page-title-container">
           <h1 className="page-title">Service Requests</h1>
@@ -252,7 +251,7 @@ const ServiceRequests = () => {
           </Tabs>
         </div>
       </div>
-    </PageLayout>
+    </>
   );
 };
 

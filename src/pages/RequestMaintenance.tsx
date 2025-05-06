@@ -1,10 +1,8 @@
 
-import React from "react";
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { PageLayout } from "@/components/layout/PageLayout";
 import { GeneralMaintenanceRequestForm } from "@/components/maintenance/GeneralMaintenanceRequestForm";
 
 export default function RequestMaintenance() {
@@ -35,7 +33,7 @@ export default function RequestMaintenance() {
   
   if (!hasPermission("request_maintenance")) {
     return (
-      <PageLayout>
+      <>
         <div className="flex flex-col items-center justify-center py-12">
           <div className="rounded-full bg-muted p-4 mb-4">
             <svg
@@ -58,12 +56,12 @@ export default function RequestMaintenance() {
             You don't have permission to request maintenance. Please contact your administrator for assistance.
           </p>
         </div>
-      </PageLayout>
+      </>
     );
   }
   
   return (
-    <PageLayout>
+    <>
       <div className="page-container">
         <div className="page-title-container">
           <h1 className="page-title">Request Maintenance</h1>
@@ -86,6 +84,6 @@ export default function RequestMaintenance() {
           </div>
         </div>
       </div>
-    </PageLayout>
+    </>
   );
 }

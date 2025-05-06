@@ -79,7 +79,7 @@ export function VehicleCard({
   return (
     <Card className="overflow-hidden transition-all duration-200 hover:shadow-md">
       <div className="relative">
-        <div className="bg-gradient-to-r from-slate-700 to-slate-800 h-24 flex items-center justify-center">
+        <div className="bg-gradient-to-r from-slate-700 to-slate-800 h-40 flex items-center justify-center">
           <Car className="h-12 w-12 text-white opacity-50" />
         </div>
         <div className="absolute top-3 right-3">

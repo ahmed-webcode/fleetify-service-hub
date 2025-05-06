@@ -1,6 +1,5 @@
 
 import { useState } from "react";
-import { PageLayout } from "@/components/layout/PageLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { ListFilter, Clock, Calendar, Fuel, ArrowRight, MoreVertical } from "lucide-react";
@@ -41,7 +40,7 @@ export default function FuelManagement() {
   ];
 
   return (
-    <PageLayout>
+    <>
       <div className="page-container">
         <div className="page-title-container">
           <h1 className="page-title">Fuel Management</h1>
@@ -254,6 +253,6 @@ export default function FuelManagement() {
           </CardHeader>
         </Card>
       </div>
-    </PageLayout>
+    </>
   );
 }

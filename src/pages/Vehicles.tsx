@@ -9,7 +9,6 @@ import { VehiclesGrid } from "@/components/vehicles/VehiclesGrid";
 import { VehiclesList } from "@/components/vehicles/VehiclesList";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { PageLayout } from "@/components/layout/PageLayout";
 import { supabase } from "@/integrations/supabase/client";
 
 // Define the Vehicle interface to match what's coming from the database
@@ -235,7 +234,7 @@ const Vehicles = () => {
   };
   
   return (
-    <PageLayout>
+    <>
       <div className="page-container">
         <div className="page-title-container">
           <h1 className="page-title">Vehicles</h1>
@@ -259,11 +258,6 @@ const Vehicles = () => {
             />
           </div>
         
-          <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div className="text-sm text-muted-foreground">
-              Showing {filteredVehicles.length} of {vehicles.length} vehicles
-            </div>
-            
             <Tabs defaultValue="grid" className="w-full sm:w-auto">
               <TabsList>
                 <TabsTrigger value="grid" className="gap-2">
@@ -304,8 +298,11 @@ const Vehicles = () => {
                   <VehiclesList vehicles={filteredVehicles} resetFilters={resetFilters} />
                 )}
               </TabsContent>
+              <div className="text-sm text-center text-muted-foreground mt-4">
+                Showing {filteredVehicles.length} of {vehicles.length} vehicles
+              </div>
             </Tabs>
-          </div>
+
         </div>
         
         <Dialog open={addVehicleOpen} onOpenChange={setAddVehicleOpen}>
@@ -317,7 +314,7 @@ const Vehicles = () => {
           </DialogContent>
         </Dialog>
       </div>
-    </PageLayout>
+    </>
   );
 };
 

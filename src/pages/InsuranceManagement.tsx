@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import { PageLayout } from "@/components/layout/PageLayout";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { InsurancePoliciesList } from "@/components/insurance/InsurancePoliciesList";
@@ -168,7 +167,7 @@ export default function InsuranceManagement() {
   };
   
   return (
-    <PageLayout>
+    <>
       <div className="page-container">
         <div className="page-title-container">
           <h1 className="page-title">Insurance Management</h1>
@@ -220,7 +219,25 @@ export default function InsuranceManagement() {
         </div>
         
         <Card className="p-6">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+          <div className="flex flex-col justify-between items-start mb-6 gap-4">
+          <div className="self-end">
+              {activeTab === "policies" && (
+                <Button onClick={() => setAddPolicyDialogOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" /> Add Policy
+                </Button>
+              )}
+              {activeTab === "claims" && (
+                <Button onClick={() => setReportClaimDialogOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" /> Report Claim
+                </Button>
+              )}
+              {activeTab === "reports" && (
+                <Button onClick={handleExportReport}>
+                  <Download className="h-4 w-4 mr-2" /> Export Report
+                </Button>
+              )}
+            </div>
+
             <Tabs 
               value={activeTab} 
               onValueChange={setActiveTab}
@@ -258,24 +275,6 @@ export default function InsuranceManagement() {
                 </div>
               </TabsContent>
             </Tabs>
-            
-            <div className="flex items-center gap-2">
-              {activeTab === "policies" && (
-                <Button onClick={() => setAddPolicyDialogOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" /> Add Policy
-                </Button>
-              )}
-              {activeTab === "claims" && (
-                <Button onClick={() => setReportClaimDialogOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" /> Report Claim
-                </Button>
-              )}
-              {activeTab === "reports" && (
-                <Button onClick={handleExportReport}>
-                  <Download className="h-4 w-4 mr-2" /> Export Report
-                </Button>
-              )}
-            </div>
           </div>
         </Card>
       </div>
@@ -297,6 +296,6 @@ export default function InsuranceManagement() {
           <ReportInsuranceClaimForm onSubmit={handleClaimSubmit} />
         </DialogContent>
       </Dialog>
-    </PageLayout>
+    </>
   );
 }
