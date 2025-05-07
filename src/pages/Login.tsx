@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
+import { useJWTAuth } from "@/contexts/JWTAuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,15 +10,14 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Car, AlertCircle, Shield } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { Link } from "react-router-dom";
 
 export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
-  const { signIn, user } = useSupabaseAuth();
+  const { login: mockLogin } = useAuth();
+  const { login: jwtLogin, user } = useJWTAuth();
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -51,8 +50,8 @@ export default function Login() {
     setIsLoading(true);
     
     try {
-      // Try Supabase auth first (assuming username is email)
-      const { error, success } = await signIn(username, password);
+      // Try JWT auth first
+      const success = await jwtLogin(username, password);
       
       if (success) {
         toast.success(`Welcome back!`);
@@ -60,15 +59,13 @@ export default function Login() {
         return;
       } 
       
-      if (error) {
-        // If Supabase fails, try the mock auth
-        const success = await login(username, password);
-        if (success) {
-          toast.success(`Welcome back!`);
-          navigate(from, { replace: true });
-        } else {
-          setError("Invalid username or password");
-        }
+      // If JWT auth fails, try the mock auth as fallback
+      const mockSuccess = await mockLogin(username, password);
+      if (mockSuccess) {
+        toast.success(`Welcome back!`);
+        navigate(from, { replace: true });
+      } else {
+        setError("Invalid username or password");
       }
     } catch (err) {
       setError("An unexpected error occurred");
@@ -114,11 +111,11 @@ export default function Login() {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="username">Username / Email</Label>
+                <Label htmlFor="username">Username</Label>
                 <Input
                   id="username"
                   type="text"
-                  placeholder="username or email"
+                  placeholder="username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   autoComplete="username"
@@ -146,12 +143,6 @@ export default function Login() {
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? "Logging in..." : "Login"}
               </Button>
-              
-              <div className="text-center">
-                <Link to="/auth" className="text-sm text-primary hover:underline">
-                  Don't have an account? Sign up
-                </Link>
-              </div>
             </form>
           </CardContent>
           <CardFooter>

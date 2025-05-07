@@ -22,6 +22,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useNavigate } from 'react-router-dom';
 
 interface VehicleCardProps {
   id: string;
@@ -50,6 +51,8 @@ export function VehicleCard({
   onDelete,
   onViewDetails
 }: VehicleCardProps) {
+  const navigate = useNavigate();
+  
   const getStatusColor = (status: string) => {
     switch (status) {
       case "active":
@@ -76,6 +79,14 @@ export function VehicleCard({
     }
   };
 
+  const handleViewDetails = () => {
+    if (onViewDetails) {
+      onViewDetails(id);
+    } else {
+      navigate(`/vehicles/${id}`);
+    }
+  };
+
   return (
     <Card className="overflow-hidden transition-all duration-200 hover:shadow-md">
       <div className="relative">
@@ -90,7 +101,7 @@ export function VehicleCard({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onViewDetails?.(id)}>
+              <DropdownMenuItem onClick={handleViewDetails}>
                 <Info className="mr-2 h-4 w-4" /> View Details
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onEdit?.(id)}>
@@ -147,7 +158,7 @@ export function VehicleCard({
             variant="outline" 
             size="sm" 
             className="flex-1"
-            onClick={() => onViewDetails?.(id)}
+            onClick={handleViewDetails}
           >
             Details
           </Button>
