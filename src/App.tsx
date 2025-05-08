@@ -5,13 +5,14 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { JWTAuthProvider } from "@/contexts/JWTAuthContext";
+import { AuthProvider as SupabaseAuthProvider } from "@/contexts/SupabaseAuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-
+import { useEffect } from "react";
+import { createVehicleImageBucket } from "@/lib/createStorageBucket";
 import Login from "./pages/Login";
+import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Vehicles from "./pages/Vehicles";
-import VehicleDetail from "./pages/VehicleDetail";
 import ServiceRequests from "./pages/ServiceRequests";
 import GPSTracking from "./pages/GPSTracking";
 import NotFound from "./pages/NotFound";
@@ -28,6 +29,7 @@ import MaintenanceRequests from "./pages/MaintenanceRequests";
 import RequestMaintenance from "./pages/RequestMaintenance";
 import ReportIncident from "./pages/ReportIncident";
 import InsuranceManagement from "./pages/InsuranceManagement";
+import VehicleDetail from './pages/VehicleDetail';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -40,10 +42,15 @@ const queryClient = new QueryClient({
 });
 
 const App = () => {
+  // Initialize the storage bucket on app start
+  useEffect(() => {
+    createVehicleImageBucket().catch(console.error);
+  }, []);
+
   return (
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
-        <JWTAuthProvider>
+        <SupabaseAuthProvider>
           <AuthProvider>
             <TooltipProvider>
               <Toaster />
@@ -52,8 +59,9 @@ const App = () => {
                 {/* Public routes */}
                 <Route path="/" element={<Navigate to="/login" replace />} />
                 <Route path="/login" element={<Login />} />
+                <Route path="/auth" element={<Auth />} />
                 
-                {/* Protected routes with PageLayout */}
+                {/* Protected routes without PageLayout */}
                 <Route path="/dashboard" element={
                   <ProtectedRoute>
                     <Dashboard />
@@ -186,7 +194,7 @@ const App = () => {
               </Routes>
             </TooltipProvider>
           </AuthProvider>
-        </JWTAuthProvider>
+        </SupabaseAuthProvider>
       </QueryClientProvider>
     </BrowserRouter>
   );

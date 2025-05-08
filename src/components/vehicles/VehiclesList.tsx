@@ -1,7 +1,7 @@
-
 import { Button } from "@/components/ui/button";
 import { NoVehiclesFound } from "@/components/vehicles/NoVehiclesFound";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
+import { useNavigate } from 'react-router-dom';
 
 interface Vehicle {
   id: string;
@@ -18,12 +18,23 @@ interface Vehicle {
 interface VehiclesListProps {
   vehicles: Vehicle[];
   resetFilters: () => void;
+  onViewDetails?: (id: string) => void; 
 }
 
-export function VehiclesList({ vehicles, resetFilters }: VehiclesListProps) {
+export function VehiclesList({ vehicles, resetFilters, onViewDetails }: VehiclesListProps) {
+  const navigate = useNavigate();
+
   if (vehicles.length === 0) {
     return <NoVehiclesFound resetFilters={resetFilters} />;
   }
+
+  const handleViewDetails = (id: string) => {
+    if (onViewDetails) {
+      onViewDetails(id);
+    } else {
+      navigate(`/vehicles/${id}`);
+    }
+  };
   
   return (
     <div className="rounded-lg border border-border overflow-hidden">
@@ -68,7 +79,13 @@ export function VehiclesList({ vehicles, resetFilters }: VehiclesListProps) {
                 </span>
               </TableCell>
               <TableCell className="text-right">
-                <Button variant="ghost" size="sm">Details</Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => handleViewDetails(vehicle.id)}
+                >
+                  Details
+                </Button>
               </TableCell>
             </TableRow>
           ))}

@@ -1,27 +1,27 @@
 
 import { Card } from "@/components/ui/card";
-import { useJWTAuth } from "@/contexts/JWTAuthContext";
-import { httpClient } from "@/lib/httpClient";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { GeneralMaintenanceRequestForm } from "@/components/maintenance/GeneralMaintenanceRequestForm";
 
 export default function RequestMaintenance() {
-  const { hasPermission } = useJWTAuth();
+  const { hasPermission } = useAuth();
   
   const handleMaintenanceRequest = async (formData: any) => {
     try {
-      // This is where you would make an API call to your backend
-      // const response = await httpClient.post('/api/maintenance-requests', {
-      //   vehicleId: formData.vehicleId,
-      //   maintenanceType: formData.maintenanceType,
-      //   description: formData.description,
-      //   odometerReading: formData.odometerReading || 0,
-      //   serviceDate: new Date().toISOString().split('T')[0],
-      //   status: 'pending'
-      // });
-      
-      // For now, just simulate a successful API call
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const { data, error } = await supabase
+        .from('maintenance_records')
+        .insert([{
+          vehicle_id: formData.vehicleId,
+          type: formData.maintenanceType,
+          description: formData.description,
+          service_date: new Date().toISOString().split('T')[0],
+          odometer_reading: formData.odometerReading || 0,
+          status: 'pending'
+        }]);
+        
+      if (error) throw error;
       
       toast.success('Maintenance request submitted successfully!');
       return { success: true };
