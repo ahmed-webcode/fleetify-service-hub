@@ -72,19 +72,21 @@ export type Permission =
   | 'add_users'
   | 'manage_drivers' 
   | 'request_fleet'
+  | 'approve_fleet'  // Added this permission
   | 'approve_maintenance'
   | 'request_maintenance'
   | 'report_incidents'
   | 'track_vehicles'
-  | 'view_reports';
+  | 'view_reports'
+  | 'add_vehicle';    // Added this permission
 
 // Map roles to permissions
 export const ROLE_PERMISSIONS: Record<number, Permission[]> = {
-  1: ['add_users', 'manage_drivers', 'request_fleet', 'approve_maintenance', 'request_maintenance', 'report_incidents', 'track_vehicles', 'view_reports'], // Transport Director
+  1: ['add_users', 'manage_drivers', 'request_fleet', 'approve_fleet', 'approve_maintenance', 'request_maintenance', 'report_incidents', 'track_vehicles', 'view_reports', 'add_vehicle'], // Transport Director
   2: ['approve_maintenance', 'request_maintenance', 'report_incidents', 'view_reports'], // Maintenance Manager
-  3: ['manage_drivers', 'request_fleet', 'report_incidents', 'track_vehicles'], // Deployment Manager
+  3: ['manage_drivers', 'request_fleet', 'approve_fleet', 'report_incidents', 'track_vehicles'], // Deployment Manager
   4: ['request_maintenance', 'report_incidents', 'view_reports'], // Fuel Manager
-  5: ['add_users', 'manage_drivers', 'request_fleet', 'approve_maintenance', 'request_maintenance', 'report_incidents', 'track_vehicles', 'view_reports'], // Operational Director
+  5: ['add_users', 'manage_drivers', 'request_fleet', 'approve_fleet', 'approve_maintenance', 'request_maintenance', 'report_incidents', 'track_vehicles', 'view_reports', 'add_vehicle'], // Operational Director
   6: ['request_maintenance', 'report_incidents'], // Fuel Attendant
   7: ['request_maintenance', 'report_incidents'], // Driver
   8: ['request_fleet'], // Staff

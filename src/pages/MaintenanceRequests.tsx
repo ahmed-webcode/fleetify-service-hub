@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { PageLayout } from "@/components/layout/PageLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -34,7 +35,7 @@ interface MaintenanceRequest {
 
 const MaintenanceRequests = () => {
   const [view, setView] = useState("new");
-  const { user } = useAuth();
+  const { user, selectedRole, hasPermission } = useAuth();
   
   const [maintenanceRequests, setMaintenanceRequests] = useState<MaintenanceRequest[]>([
     { 
@@ -108,9 +109,9 @@ const MaintenanceRequests = () => {
     setView("history");
   };
 
-  // Is user MTL (maintenance team leader)
-  const isMTL = user?.role === 'mtl';
-  const isDirector = user?.role === 'transport_director';
+  // Check if user is MTL (maintenance team leader) based on role name
+  const isMTL = selectedRole?.name === 'Maintenance Manager';
+  const isDirector = selectedRole?.name === 'Transport Director';
   
   // Filter requests for MTL - they see all pending maintenance requests
   // Directors see all requests for reports
