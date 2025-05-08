@@ -3,7 +3,15 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { apiClient } from "@/lib/apiClient";
-import { decodeJwt, isTokenExpired, getRolesFromToken, Role, ROLE_DETAILS, Permission, ROLE_PERMISSIONS } from "@/lib/jwtUtils";
+import { 
+  decodeJwt, 
+  isTokenExpired, 
+  Role, 
+  ROLE_DETAILS, 
+  Permission, 
+  ROLE_PERMISSIONS, 
+  mapRoleNamesToRoles 
+} from "@/lib/jwtUtils";
 
 // Define authentication state interface
 interface AuthState {
@@ -48,10 +56,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const storedToken = localStorage.getItem("auth_token");
       const storedUser = localStorage.getItem("auth_user");
       const storedSelectedRole = localStorage.getItem("selected_role");
+      const storedRoles = localStorage.getItem("auth_roles");
       
       if (storedToken && !isTokenExpired(storedToken)) {
-        const roles = getRolesFromToken(storedToken);
         const user = storedUser ? JSON.parse(storedUser) : null;
+        const roles = storedRoles ? JSON.parse(storedRoles) : [];
         const selectedRole = storedSelectedRole ? JSON.parse(storedSelectedRole) : 
                            (roles.length === 1 ? roles[0] : null);
         
@@ -69,6 +78,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           localStorage.removeItem("auth_token");
           localStorage.removeItem("auth_user");
           localStorage.removeItem("selected_role");
+          localStorage.removeItem("auth_roles");
         }
         setAuthState(prev => ({...prev, isLoading: false}));
       }
@@ -81,20 +91,34 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const login = async (username: string, password: string): Promise<{success: boolean, multipleRoles: boolean}> => {
     try {
       // Get JWT token from API
-      const token = await apiClient.auth.login(username, password);
+      const response = await apiClient.auth.login(username, password);
       
-      if (!token) {
+      if (!response || !response.token) {
         throw new Error("Authentication failed");
       }
+      
+      const token = response.token;
       
       // Store token in localStorage
       localStorage.setItem("auth_token", token);
       
-      // Get user roles from token
-      const roles = getRolesFromToken(token);
+      // Extract user info from token
+      const payload = decodeJwt(token);
+      if (!payload) {
+        throw new Error("Invalid token format");
+      }
+      
+      // Map role names from response to Role objects
+      const roles = mapRoleNamesToRoles(response.roles);
+      
+      // Store roles in localStorage
+      localStorage.setItem("auth_roles", JSON.stringify(roles));
       
       // Store user info
-      const user = { username, fullName: username }; // Use username as fullName if not available in token
+      const user = { 
+        username: payload.sub, 
+        fullName: payload.sub // Use username as fullName if not available in token
+      };
       localStorage.setItem("auth_user", JSON.stringify(user));
       
       // Determine if we need role selection
@@ -175,9 +199,28 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       value={{
         ...authState,
         login,
-        logout,
-        selectRole,
-        hasRole,
+        logout: () => {
+          apiClient.auth.logout();
+          setAuthState({
+            token: null,
+            user: null,
+            roles: [],
+            selectedRole: null,
+            isAuthenticated: false,
+            isLoading: false,
+          });
+          navigate("/login", { state: { loggedOut: true } });
+        },
+        selectRole: (role: Role) => {
+          localStorage.setItem("selected_role", JSON.stringify(role));
+          setAuthState(prev => ({...prev, selectedRole: role}));
+          navigate("/dashboard");
+          toast.success(`Logged in as ${role.name}`);
+        },
+        hasRole: (roleId: number): boolean => {
+          if (!authState.selectedRole) return false;
+          return authState.selectedRole.id === roleId;
+        },
         hasPermission,
       }}
     >

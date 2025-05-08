@@ -4,6 +4,12 @@ import { toast } from "sonner";
 // Base URL configuration
 const API_BASE_URL = "http://localhost:8080/api";
 
+// Response type for login
+interface LoginResponse {
+  roles: string[];
+  token: string;
+}
+
 // Utility function to handle HTTP errors
 const handleHttpError = (error: any): never => {
   const message = error.message || "An unknown error occurred";
@@ -62,7 +68,7 @@ async function fetchWithErrorHandling<T>(
     if (contentType && contentType.includes("application/json")) {
       return await response.json() as T;
     } else {
-      // For text responses (like our token)
+      // For text responses
       const textResult = await response.text();
       // Attempt to cast as T - this works for primitive types like string
       return textResult as unknown as T;
@@ -76,8 +82,8 @@ async function fetchWithErrorHandling<T>(
 export const apiClient = {
   // Auth endpoints
   auth: {
-    login: (username: string, password: string): Promise<string> => {
-      return fetchWithErrorHandling<string>("/auth/login", {
+    login: (username: string, password: string): Promise<LoginResponse> => {
+      return fetchWithErrorHandling<LoginResponse>("/auth/login", {
         method: "POST",
         body: JSON.stringify({ username, password }),
       });
@@ -86,6 +92,7 @@ export const apiClient = {
       localStorage.removeItem("auth_token");
       localStorage.removeItem("auth_user");
       localStorage.removeItem("selected_role");
+      localStorage.removeItem("auth_roles");
       return Promise.resolve();
     }
   },

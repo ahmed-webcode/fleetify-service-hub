@@ -6,7 +6,7 @@ export interface Role {
 
 export interface JwtPayload {
   sub: string;
-  roles: Role[];
+  // No longer has roles in the JWT payload
   iat: number;
   exp: number;
 }
@@ -48,10 +48,22 @@ export function isTokenExpired(token: string): boolean {
   return payload.exp < currentTime;
 }
 
-// Get all roles from JWT token
-export function getRolesFromToken(token: string): Role[] {
-  const payload = decodeJwt(token);
-  return payload?.roles || [];
+// Get role ID from role name
+export function getRoleIdByName(roleName: string): number {
+  for (const [id, details] of Object.entries(ROLE_DETAILS)) {
+    if (details.name === roleName) {
+      return parseInt(id, 10);
+    }
+  }
+  return 0; // Default if not found
+}
+
+// Map role names to Role objects
+export function mapRoleNamesToRoles(roleNames: string[]): Role[] {
+  return roleNames.map(name => {
+    const id = getRoleIdByName(name);
+    return { id, name };
+  });
 }
 
 // Map role IDs to role names and descriptions
