@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth, Permission } from '@/contexts/AuthContext';
@@ -6,6 +6,7 @@ import {
     BarChart,
     Car,
     ChevronLeft,
+    ChevronDown,
     MapPin,
     Settings,
     User,
@@ -23,11 +24,14 @@ import {
     HelpCircle,
     LogOut,
     UserCog,
+    Menu,
 } from 'lucide-react';
 
 interface SidebarProps {
     isCollapsed: boolean;
     setIsCollapsed: (collapsed: boolean) => void;
+    isMobileOpen?: boolean;
+    setIsMobileOpen?: (open: boolean) => void;
 }
 
 interface SidebarItem {
@@ -36,37 +40,50 @@ interface SidebarItem {
     path: string;
     permission: string | null;
     children?: SidebarItem[];
+    exactMatch?: boolean;
 }
 
-export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
+export function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobileOpen }: SidebarProps) {
     const { user, hasPermission, selectedRole } = useAuth();
     const location = useLocation();
-    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+    const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768);
     const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
 
-    useEffect(() => {
-        const handleResize = () => {
-            setIsMobile(window.innerWidth < 768);
-        };
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
+    const handleResize = useCallback(() => {
+        const mobile = window.innerWidth < 768;
+        setIsMobileView(mobile);
+        if (!mobile && setIsMobileOpen) {
+            setIsMobileOpen(false); 
+        }
+    }, [setIsMobileOpen]);
 
     useEffect(() => {
-        const savedState = localStorage.getItem('sidebarState');
-        if (savedState) {
-            setIsCollapsed(savedState === 'closed');
+        window.addEventListener('resize', handleResize);
+        handleResize(); 
+        return () => window.removeEventListener('resize', handleResize);
+    }, [handleResize]);
+
+    useEffect(() => {
+        if (!isMobileView) {
+            const savedState = localStorage.getItem('sidebarCollapsedState');
+            if (savedState) {
+                setIsCollapsed(savedState === 'true');
+            }
         }
         const savedOpenGroups = localStorage.getItem('sidebarOpenGroups');
         if (savedOpenGroups) {
             setOpenGroups(JSON.parse(savedOpenGroups));
         }
-    }, [setIsCollapsed]);
+    }, [setIsCollapsed, isMobileView]);
 
-    const handleToggle = () => {
-        const newCollapsedState = !isCollapsed;
-        setIsCollapsed(newCollapsedState);
-        localStorage.setItem('sidebarState', newCollapsedState ? 'closed' : 'open');
+    const handleDesktopToggle = () => {
+        const newState = !isCollapsed;
+        setIsCollapsed(newState);
+        localStorage.setItem('sidebarCollapsedState', newState.toString());
+    };
+    
+    const handleMobileToggle = () => {
+        setIsMobileOpen?.(!isMobileOpen);
     };
 
     const toggleGroup = (groupName: string) => {
@@ -78,504 +95,225 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
         localStorage.setItem('sidebarOpenGroups', JSON.stringify(newOpenGroups));
     };
 
-    // Reorganized sidebar items
     const sidebarItems: SidebarItem[] = [
+        { name: 'Dashboard', icon: <BarChart size={20} />, path: '/dashboard', permission: null, exactMatch: true },
         {
-            name: 'Dashboard',
-            icon: <BarChart size={20} />,
-            path: '/dashboard',
-            permission: null,
-        },
-        {
-            name: 'Fleet Operations',
-            icon: <Car size={20} />,
-            path: '#',
-            permission: null,
+            name: 'Fleet Operations', icon: <Car size={20} />, path: '#fleet-ops', permission: null,
             children: [
-                {
-                    name: 'Vehicles',
-                    icon: <Car size={20} />,
-                    path: '/vehicles',
-                    permission: null,
-                },
-                {
-                    name: 'GPS Tracking',
-                    icon: <MapPin size={20} />,
-                    path: '/gps-tracking',
-                    permission: 'track_vehicles',
-                },
-                {
-                    name: 'Trip Requests',
-                    icon: <PlaneTakeoff size={20} />,
-                    path: '/trip-requests',
-                    permission: 'request_fleet',
-                },
-                {
-                    name: 'Fuel Management',
-                    icon: <Fuel size={20} />,
-                    path: '/fuel-management',
-                    permission: null,
-                },
+                { name: 'Vehicles', icon: <Car size={18} />, path: '/vehicles', permission: null },
+                { name: 'GPS Tracking', icon: <MapPin size={18} />, path: '/gps-tracking', permission: 'track_vehicles' },
+                { name: 'Trip Requests', icon: <PlaneTakeoff size={18} />, path: '/trip-requests', permission: 'request_fleet' },
+                { name: 'Fuel Management', icon: <Fuel size={18} />, path: '/fuel-management', permission: null },
             ],
         },
+        { name: 'Service Requests', icon: <FileText size={20} />, path: '/service-requests', permission: null },
         {
-            name: 'Service Requests',
-            icon: <FileText size={20} />,
-            path: '/service-requests',
-            permission: null,
-        },
-        {
-            name: 'Services & Incidents',
-            icon: <Wrench size={20} />,
-            path: '#',
-            permission: null,
+            name: 'Services & Incidents', icon: <Wrench size={20} />, path: '#services', permission: null,
             children: [
-                {
-                    name: 'Maintenance Records',
-                    icon: <Wrench size={20} />,
-                    path: '/maintenance-requests',
-                    permission: 'approve_maintenance',
-                },
-                {
-                    name: 'Request Maintenance',
-                    icon: <FileText size={20} />,
-                    path: '/request-maintenance',
-                    permission: 'request_maintenance',
-                },
-                {
-                    name: 'Report Incident',
-                    icon: <Shield size={20} />,
-                    path: '/report-incident',
-                    permission: 'report_incidents',
-                },
-                {
-                    name: 'Insurance Management',
-                    icon: <Shield size={20} />,
-                    path: '/insurance-management',
-                    permission: null,
-                },
+                { name: 'Maintenance Records', icon: <Wrench size={18} />, path: '/maintenance-requests', permission: 'approve_maintenance' },
+                { name: 'Request Maintenance', icon: <FileText size={18} />, path: '/request-maintenance', permission: 'request_maintenance' },
+                { name: 'Report Incident', icon: <Shield size={18} />, path: '/report-incident', permission: 'report_incidents' },
+                { name: 'Insurance Management', icon: <Shield size={18} />, path: '/insurance-management', permission: null },
             ],
         },
+        { name: 'Reports', icon: <BarChart size={20} />, path: '/reports', permission: 'view_reports' },
         {
-            name: 'Reports',
-            icon: <BarChart size={20} />,
-            path: '/reports',
-            permission: 'view_reports',
-        },
-        {
-            name: 'Administration',
-            icon: <UserCog size={20} />, // Icon similar to the reference image
-            path: '#',
-            permission: null, // Overall admin section visibility (can be more specific)
+            name: 'Administration', icon: <UserCog size={20} />, path: '#admin', permission: 'view_admin_section', // Example permission for whole section
             children: [
                 {
-                    name: 'User Management', // Formerly "Users"
-                    icon: <Users size={20} />,
-                    path: '#',
-                    permission: 'add_users', // Permission for the "Users" sub-section
+                    name: 'User Management', icon: <Users size={18} />, path: '#user-mgmt', permission: 'manage_users_section', // Example permission for sub-section
                     children: [
-                        {
-                            name: 'Staff',
-                            icon: <Users size={20} />,
-                            path: '/manage-staff',
-                            permission: 'add_users',
-                        },
-                        {
-                            name: 'Drivers',
-                            icon: <User size={20} />,
-                            path: '/driver-management',
-                            permission: 'manage_drivers',
-                        },
+                        { name: 'Staff', icon: <Users size={16} />, path: '/manage-staff', permission: 'add_users' },
+                        { name: 'Drivers', icon: <User size={16} />, path: '/driver-management', permission: 'manage_drivers' },
                     ],
                 },
                 {
-                    name: 'Organizational Units', // Formerly "Organization"
-                    icon: <Building size={20} />,
-                    path: '#',
-                    permission: null, // Permission for the "Organization" sub-section
+                    name: 'Organizational Units', icon: <Building size={18} />, path: '#org-units', permission: 'manage_org_units_section',
                     children: [
-                        {
-                            name: 'Colleges',
-                            icon: <GraduationCap size={20} />,
-                            path: '/colleges',
-                            permission: null,
-                        },
-                        {
-                            name: 'Institutes',
-                            icon: <BookOpen size={20} />,
-                            path: '/institutes',
-                            permission: null,
-                        },
-                        {
-                            name: 'Central Offices',
-                            icon: <Landmark size={20} />,
-                            path: '/central-offices',
-                            permission: null,
-                        },
+                        { name: 'Colleges', icon: <GraduationCap size={16} />, path: '/colleges', permission: null },
+                        { name: 'Institutes', icon: <BookOpen size={16} />, path: '/institutes', permission: null },
+                        { name: 'Central Offices', icon: <Landmark size={16} />, path: '/central-offices', permission: null },
                     ],
                 },
             ],
         },
-        {
-            name: 'Settings',
-            icon: <Settings size={20} />,
-            path: '/settings',
-            permission: null,
-        },
+        { name: 'Settings', icon: <Settings size={20} />, path: '/settings', permission: null },
     ];
 
-    const filteredSidebarItems = sidebarItems.filter((item) => {
-        // If item has no specific permission, it's visible by default (children will be checked later)
-        if (!item.permission) return true;
-        // Otherwise, check if user has the permission for this top-level item
-        return hasPermission(item.permission as Permission);
-    });
+    const renderSidebarItems = (items: SidebarItem[], level: number = 0): React.ReactNode[] => {
+        return items
+            .filter(item => !item.permission || hasPermission(item.permission as Permission))
+            .map((item) => {
+                const effectiveChildren = item.children?.filter(child => !child.permission || hasPermission(child.permission as Permission)) || [];
+                const isGroup = item.path.startsWith('#');
 
-    const renderSidebarItems = (items: SidebarItem[], isChild: boolean = false) => {
-        return items.map((item) => {
-            const visibleChildren = item.children
-                ? item.children.filter(
-                      (child) => !child.permission || hasPermission(child.permission as Permission)
-                  )
-                : [];
+                if (isGroup) {
+                    if (effectiveChildren.length === 0) return null; 
+                    const isOpen = openGroups[item.name] || false;
+                    const isParentActive = effectiveChildren.some(child => location.pathname.startsWith(child.path) && child.path !== '/');
 
-            if (item.children && visibleChildren.length === 0 && item.path === '#') {
-                // If this parent item itself requires a permission and the user doesn't have it,
-                // it would have been filtered by `filteredSidebarItems` if it's top-level.
-                // If it's a sub-parent (like User Management), its own permission is checked below.
-                // This primarily hides parent groups if NO children are accessible.
-                if (item.permission && !hasPermission(item.permission as Permission)) return null; // Hide if parent itself is not permitted
-                if (!item.permission) return null; // Hide if parent has no permission and no visible children
-            }
-
-            // For sub-parents that have their own permission (e.g., User Management under Administration)
-            if (item.permission && !hasPermission(item.permission as Permission)) {
-                return null;
-            }
-
-            if (item.children && visibleChildren.length > 0) {
-                const isOpen = openGroups[item.name] || false;
-                const isParentActive = visibleChildren.some(
-                    (child) => location.pathname.startsWith(child.path) && child.path !== '/'
-                );
+                    return (
+                        <div key={item.name} className="w-full">
+                            <button
+                                type="button"
+                                className={cn(
+                                    'flex items-center gap-3 w-full text-sm rounded-md transition-colors duration-150 ease-in-out',
+                                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1',
+                                    level === 0 ? 'px-3 py-2.5 text-slate-700 hover:bg-slate-100 hover:text-slate-900' : 'px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-slate-800',
+                                    (isOpen || (isParentActive && !isCollapsed)) && !isCollapsed && (level === 0 ? 'bg-slate-100 text-slate-900 font-medium' : 'text-slate-800 font-medium'),
+                                    isCollapsed && level === 0 && 'justify-center p-2.5',
+                                    isCollapsed && level > 0 && 'hidden' 
+                                )}
+                                onClick={() => !isCollapsed && toggleGroup(item.name)}
+                                title={isCollapsed ? item.name : undefined}
+                                aria-expanded={isOpen}
+                            >
+                                <span className={cn('text-slate-500', (isOpen || isParentActive) && !isCollapsed && 'text-blue-600', isCollapsed && isParentActive && 'text-blue-600')}>
+                                    {item.icon}
+                                </span>
+                                {!isCollapsed && <span className="flex-1 text-left truncate">{item.name}</span>}
+                                {!isCollapsed && <ChevronDown size={16} className={cn('text-slate-400 transition-transform duration-200', isOpen ? 'rotate-180' : 'rotate-0')} />}
+                            </button>
+                            {!isCollapsed && isOpen && (
+                                <div className="mt-1 space-y-0.5 pl-5">
+                                    {renderSidebarItems(effectiveChildren, level + 1)}
+                                </div>
+                            )}
+                        </div>
+                    );
+                }
 
                 return (
-                    <div key={item.name} className="w-full">
-                        <button
-                            className={cn(
-                                'flex items-center gap-3 w-full px-3 py-2.5 rounded-md text-slate-600 hover:bg-slate-100 hover:text-slate-800 transition-colors',
-                                (isOpen || isParentActive) &&
-                                    !isCollapsed &&
-                                    'bg-slate-50 text-slate-800 font-medium',
-                                isCollapsed && 'justify-center px-0 py-2.5'
-                            )}
-                            onClick={() => !isCollapsed && toggleGroup(item.name)}
-                            title={isCollapsed ? item.name : undefined}
-                        >
-                            <span
-                                className={cn(
-                                    isParentActive && !isCollapsed
-                                        ? 'text-blue-600'
-                                        : 'text-slate-500'
-                                )}
-                            >
-                                {item.icon}
-                            </span>
-                            {!isCollapsed && (
-                                <>
-                                    <span className="flex-1 text-left">{item.name}</span>
-                                    <ChevronLeft
-                                        size={16}
-                                        className={cn(
-                                            'transition-transform text-slate-500',
-                                            isOpen ? '-rotate-90' : 'rotate-0'
-                                        )}
-                                    />
-                                </>
-                            )}
-                        </button>
-
-                        {!isCollapsed && isOpen && (
-                            <div className="mt-1 space-y-1 pl-5">
-                                {renderSidebarItems(visibleChildren, true)}
-                            </div>
-                        )}
-                    </div>
+                    <NavLink
+                        key={item.path}
+                        to={item.path}
+                        end={item.exactMatch || item.path === '/'}
+                        className={({ isActive }) =>
+                            cn(
+                                'flex items-center gap-3 text-sm rounded-md transition-colors duration-150 ease-in-out group',
+                                'focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1',
+                                level === 0 ? 'px-3 py-2.5 text-slate-700 hover:bg-slate-100 hover:text-slate-900' : 'px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-slate-800',
+                                isActive && (level === 0 ? 'bg-blue-600 text-white hover:bg-blue-600 hover:text-white font-medium' : 'bg-blue-50 text-blue-700 font-medium hover:bg-blue-100'),
+                                isCollapsed && level === 0 && 'justify-center p-2.5',
+                                isCollapsed && level > 0 && 'hidden' 
+                            )
+                        }
+                        title={isCollapsed ? item.name : undefined}
+                    >
+                        <span className={cn('text-slate-500 group-hover:text-slate-700', 'group-[.bg-blue-600]:text-white', 'group-[.bg-blue-50]:text-blue-600')}>
+                            {item.icon}
+                        </span>
+                        {!isCollapsed && <span className="truncate">{item.name}</span>}
+                    </NavLink>
                 );
-            }
+            });
+    };
 
-            // Leaf node NavLink (or parent that acts as a direct link but has no visible children handled above)
-            return (
-                <NavLink
-                    key={item.path}
-                    to={item.path}
-                    className={({ isActive }) =>
-                        cn(
-                            'flex items-center gap-3 px-3 py-2.5 rounded-md text-slate-600 hover:bg-slate-100 hover:text-slate-800 transition-colors group',
-                            isActive &&
-                                item.path !== '#' &&
-                                'bg-blue-600 text-white hover:bg-blue-600 hover:text-white font-medium',
-                            isCollapsed && 'justify-center px-0 py-2.5',
-                            isChild && 'py-2'
-                        )
-                    }
-                    title={isCollapsed ? item.name : undefined}
-                >
-                    <span
-                        className={cn(
-                            'text-slate-500 group-hover:text-slate-700',
-                            'group-[.bg-blue-600]:text-white'
-                        )}
-                    >
-                        {item.icon}
-                    </span>
-                    {!isCollapsed && <span>{item.name}</span>}
+    const getUserDisplayName = () => user?.fullName || user?.username || 'User';
+    const getUserRoleDisplay = () => selectedRole?.name || 'System Role';
+
+    const sidebarContent = (
+        <>
+            <div className={cn('flex items-center h-16 px-4 border-b border-slate-200 shrink-0', isCollapsed && !isMobileView ? 'justify-center' : 'justify-between')}>
+                <NavLink to="/dashboard" className="flex items-center gap-2" title="FleetHub Dashboard">
+                    <Car size={(isCollapsed && !isMobileView) ? 30 : 26} className="text-blue-600" />
+                    {(!isCollapsed || isMobileView) && <span className="text-xl font-semibold text-slate-800 tracking-tight">FleetHub</span>}
                 </NavLink>
-            );
-        });
-    };
-
-    const commonSidebarClasses =
-        'flex flex-col h-screen bg-white border-r border-slate-200 shadow-sm transition-all duration-300';
-
-    const getUserDisplayName = () => {
-        return user?.fullName || user?.username || 'Transport Director';
-    };
-
-    const getUserRoleDisplay = () => {
-        return selectedRole?.name || 'System User';
-    };
-
-    if (isMobile && !isCollapsed) {
-        return (
-            <div className="fixed inset-0 z-40 bg-black/50" onClick={handleToggle}>
-                <aside
-                    className={cn(commonSidebarClasses, 'fixed left-0 top-0 w-64 z-50')}
-                    onClick={(e) => e.stopPropagation()}
-                >
-                    <div className="flex items-center justify-between h-16 px-4 border-b border-slate-200">
-                        <NavLink to="/dashboard" className="flex items-center gap-2">
-                            <Car size={28} className="text-blue-600" />
-                            <span className="text-xl font-bold text-slate-800">FleetHub</span>
-                        </NavLink>
-                        <button
-                            onClick={handleToggle}
-                            className="p-2 rounded-md hover:bg-slate-100 text-slate-600"
-                        >
-                            <ChevronLeft size={20} />
-                        </button>
-                    </div>
-
-                    <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-1">
-                        {renderSidebarItems(filteredSidebarItems)}
-                    </nav>
-
-                    <div className="px-2 py-2 border-t border-slate-200 space-y-1">
-                        <NavLink
-                            to="/notifications"
-                            className={({ isActive }) =>
-                                cn(
-                                    'flex items-center gap-3 px-3 py-2.5 rounded-md text-slate-600 hover:bg-slate-100 hover:text-slate-800 transition-colors group',
-                                    isActive &&
-                                        'bg-blue-600 text-white hover:bg-blue-600 hover:text-white font-medium'
-                                )
-                            }
-                        >
-                            <Bell
-                                size={20}
-                                className="text-slate-500 group-hover:text-slate-700 group-[.bg-blue-600]:text-white"
-                            />
-                            <span className="flex-1">Notifications</span>
-                            <span className="bg-blue-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
-                                3
-                            </span>
-                        </NavLink>
-                        <NavLink
-                            to="/help-support"
-                            className={({ isActive }) =>
-                                cn(
-                                    'flex items-center gap-3 px-3 py-2.5 rounded-md text-slate-600 hover:bg-slate-100 hover:text-slate-800 transition-colors group',
-                                    isActive &&
-                                        'bg-blue-600 text-white hover:bg-blue-600 hover:text-white font-medium'
-                                )
-                            }
-                        >
-                            <HelpCircle
-                                size={20}
-                                className="text-slate-500 group-hover:text-slate-700 group-[.bg-blue-600]:text-white"
-                            />
-                            <span>Help & Support</span>
-                        </NavLink>
-                    </div>
-
-                    <div className="p-3 border-t border-slate-200">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2.5">
-                                <User
-                                    size={36}
-                                    className="rounded-full text-slate-600 bg-slate-100 p-1.5"
-                                />
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-semibold text-slate-800 truncate">
-                                        {getUserDisplayName()}
-                                    </p>
-                                    <p className="text-xs text-slate-500 truncate">
-                                        {getUserRoleDisplay()}
-                                    </p>
-                                </div>
-                            </div>
-                            <button
-                                className="p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-md"
-                                title="Logout"
-                            >
-                                <LogOut size={18} />
-                            </button>
-                        </div>
-                    </div>
-                </aside>
-            </div>
-        );
-    }
-
-    return (
-        <aside className={cn(commonSidebarClasses, 'relative', isCollapsed ? 'w-[72px]' : 'w-64')}>
-            <div
-                className={cn(
-                    'flex items-center h-16 px-4 border-b border-slate-200',
-                    isCollapsed ? 'justify-center' : 'justify-between'
-                )}
-            >
-                <NavLink
-                    to="/dashboard"
-                    className="flex items-center gap-2"
-                    title="FleetHub Dashboard"
-                >
-                    <Car size={isCollapsed ? 32 : 28} className="text-blue-600" />
-                    {!isCollapsed && (
-                        <span className="text-xl font-bold text-slate-800">FleetHub</span>
-                    )}
-                </NavLink>
-                {!isMobile && !isCollapsed && (
-                    <button
-                        onClick={handleToggle}
-                        className="p-2 rounded-md hover:bg-slate-100 text-slate-600"
-                        title="Collapse sidebar"
-                    >
-                        <ChevronLeft size={20} />
+                {isMobileView ? (
+                     <button onClick={handleMobileToggle} className="p-1.5 rounded-md hover:bg-slate-100 text-slate-500 hover:text-slate-700 md:hidden" title="Close menu">
+                        <ChevronLeft size={18} />
+                    </button>
+                ) : !isCollapsed && (
+                    <button onClick={handleDesktopToggle} className="p-1.5 rounded-md hover:bg-slate-100 text-slate-500 hover:text-slate-700" title="Collapse sidebar">
+                        <ChevronLeft size={18} />
                     </button>
                 )}
             </div>
 
-            {!isMobile && isCollapsed && (
-                <button
-                    onClick={handleToggle}
-                    className="absolute left-full top-4 -ml-[16px] z-10 p-1 bg-white border border-slate-300 rounded-full shadow-md hover:bg-slate-50 text-slate-600 transition-all hover:shadow-lg"
-                    title="Expand sidebar"
-                >
-                    <ChevronLeft size={18} className="rotate-180" />
-                </button>
-            )}
-
-            <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-1">
-                {renderSidebarItems(filteredSidebarItems)}
+            <nav className="flex-1 overflow-y-auto overflow-x-hidden py-3 px-2 space-y-0.5">
+                {renderSidebarItems(sidebarItems)}
             </nav>
 
-            <div
-                className={cn(
-                    'border-t border-slate-200',
-                    isCollapsed && 'flex flex-col items-center'
-                )}
-            >
-                <div
-                    className={cn(
-                        'px-2 py-2 space-y-1',
-                        isCollapsed && 'w-full flex flex-col items-center'
-                    )}
-                >
+            <div className="mt-auto shrink-0 border-t border-slate-200">
+                <div className={cn('px-2 py-2 space-y-0.5')}>
                     <NavLink
                         to="/notifications"
-                        className={({ isActive }) =>
-                            cn(
-                                'flex items-center gap-3 px-3 py-2.5 rounded-md text-slate-600 hover:bg-slate-100 hover:text-slate-800 transition-colors group',
-                                isActive &&
-                                    'bg-blue-600 text-white hover:bg-blue-600 hover:text-white font-medium',
-                                isCollapsed && 'p-2.5 justify-center'
-                            )
-                        }
-                        title={isCollapsed ? 'Notifications' : undefined}
-                    >
-                        <Bell
-                            size={20}
-                            className="text-slate-500 group-hover:text-slate-700 group-[.bg-blue-600]:text-white"
-                        />
-                        {!isCollapsed && <span className="flex-1">Notifications</span>}
-                        {!isCollapsed && (
-                            <span className="bg-blue-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
-                                3
-                            </span>
+                        className={({ isActive }) => cn(
+                            'flex items-center gap-3 px-3 py-2 rounded-md text-sm text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-colors group',
+                            isActive && 'bg-blue-600 text-white hover:bg-blue-700 hover:text-white font-medium',
+                            isCollapsed && !isMobileView && 'p-2.5 justify-center'
                         )}
+                        title={isCollapsed && !isMobileView ? 'Notifications' : undefined}
+                    >
+                        <Bell size={19} className="text-slate-500 group-hover:text-slate-700 group-[.bg-blue-600]:text-white" />
+                        {(!isCollapsed || isMobileView) && <span className="flex-1 truncate">Notifications</span>}
+                        {(!isCollapsed || isMobileView) && <span className="ml-auto bg-blue-500 text-white text-xs font-semibold px-1.5 py-0.5 rounded-full">3</span>}
                     </NavLink>
                     <NavLink
                         to="/help-support"
-                        className={({ isActive }) =>
-                            cn(
-                                'flex items-center gap-3 px-3 py-2.5 rounded-md text-slate-600 hover:bg-slate-100 hover:text-slate-800 transition-colors group',
-                                isActive &&
-                                    'bg-blue-600 text-white hover:bg-blue-600 hover:text-white font-medium',
-                                isCollapsed && 'p-2.5 justify-center'
-                            )
-                        }
-                        title={isCollapsed ? 'Help & Support' : undefined}
+                        className={({ isActive }) => cn(
+                            'flex items-center gap-3 px-3 py-2 rounded-md text-sm text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-colors group',
+                            isActive && 'bg-blue-600 text-white hover:bg-blue-700 hover:text-white font-medium',
+                            isCollapsed && !isMobileView && 'p-2.5 justify-center'
+                        )}
+                        title={isCollapsed && !isMobileView ? 'Help & Support' : undefined}
                     >
-                        <HelpCircle
-                            size={20}
-                            className="text-slate-500 group-hover:text-slate-700 group-[.bg-blue-600]:text-white"
-                        />
-                        {!isCollapsed && <span>Help & Support</span>}
+                        <HelpCircle size={19} className="text-slate-500 group-hover:text-slate-700 group-[.bg-blue-600]:text-white" />
+                        {(!isCollapsed || isMobileView) && <span className="truncate">Help & Support</span>}
                     </NavLink>
                 </div>
-
-                <div
-                    className={cn(
-                        'p-3',
-                        isCollapsed
-                            ? 'border-t border-slate-200 w-full flex justify-center py-2.5'
-                            : 'border-t border-slate-200'
-                    )}
-                >
-                    {!isCollapsed ? (
+                <div className={cn('p-3 border-t border-slate-200')}>
+                    {(!isCollapsed || isMobileView) ? (
                         <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2.5">
-                                <User
-                                    size={36}
-                                    className="rounded-full text-slate-600 bg-slate-100 p-1.5"
-                                />
+                            <NavLink to="/profile" className="flex items-center gap-2.5 group min-w-0">
+                                <User size={36} className="rounded-full text-slate-500 bg-slate-100 p-1.5 group-hover:bg-slate-200 transition-colors shrink-0" />
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-semibold text-slate-800 truncate">
-                                        {getUserDisplayName()}
-                                    </p>
-                                    <p className="text-xs text-slate-500 truncate">
-                                        {getUserRoleDisplay()}
-                                    </p>
+                                    <p className="text-sm font-medium text-slate-800 truncate group-hover:text-blue-600 transition-colors">{getUserDisplayName()}</p>
+                                    <p className="text-xs text-slate-500 truncate">{getUserRoleDisplay()}</p>
                                 </div>
-                            </div>
-                            <button
-                                className="p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-md"
-                                title="Logout"
-                            >
+                            </NavLink>
+                            <button className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors shrink-0" title="Logout">
                                 <LogOut size={18} />
                             </button>
                         </div>
                     ) : (
-                        <button
-                            className="p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-md"
-                            title="Logout"
-                        >
-                            <LogOut size={20} />
-                        </button>
+                        <NavLink to="/profile" className="p-2 flex justify-center items-center text-slate-500 hover:text-blue-600 hover:bg-slate-100 rounded-md transition-colors" title={getUserDisplayName()}>
+                            <User size={20} />
+                        </NavLink>
                     )}
                 </div>
             </div>
+        </>
+    );
+
+    if (isMobileView) {
+        return (
+            <>
+                {isMobileOpen && <div className="fixed inset-0 z-30 bg-black/30 backdrop-blur-sm md:hidden" onClick={handleMobileToggle} aria-hidden="true" />}
+                <aside
+                    className={cn(
+                        'fixed left-0 top-0 z-40 h-screen w-64 bg-white border-r border-slate-200 shadow-lg flex flex-col transition-transform duration-300 ease-in-out md:hidden',
+                        isMobileOpen ? 'translate-x-0' : '-translate-x-full'
+                    )}
+                >
+                    {sidebarContent}
+                </aside>
+            </>
+        );
+    }
+
+    return (
+        <aside className={cn('relative h-screen bg-white border-r border-slate-200 shadow-sm flex flex-col transition-width duration-300 ease-in-out', isCollapsed ? 'w-[72px]' : 'w-64')}>
+            {sidebarContent}
+            {isCollapsed && (
+                <button
+                    onClick={handleDesktopToggle}
+                    className="absolute left-full top-3 -translate-x-1/2 z-10 p-1 bg-white border border-slate-300 rounded-full shadow-md hover:bg-slate-50 text-slate-600 transition-all hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+                    title="Expand sidebar"
+                >
+                    <Menu size={16} />
+                </button>
+            )}
         </aside>
     );
 }

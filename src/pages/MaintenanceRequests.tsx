@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from "react";
-import { PageLayout } from "@/components/layout/PageLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { 
@@ -117,7 +116,7 @@ const MaintenanceRequests = () => {
   // Directors see all requests for reports
 
   return (
-    <PageLayout>
+    <>
       <div className="page-container">
         <div className="page-title-container">
           <h1 className="page-title">Maintenance Requests</h1>
@@ -423,7 +422,7 @@ const MaintenanceRequests = () => {
           </Tabs>
         </div>
       </div>
-    </PageLayout>
+    </>
   );
 };
 
