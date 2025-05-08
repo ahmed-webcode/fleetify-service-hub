@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Bell, Menu, Search, X, Settings, LogOut } from "lucide-react";
@@ -6,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
-import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,11 +24,8 @@ export function Header({ toggleSidebar, sidebarOpen }: HeaderProps) {
   const [searchVisible, setSearchVisible] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user: mockUser, logout: mockLogout } = useAuth();
-  const { user: supabaseUser, signOut: supabaseSignOut } = useSupabaseAuth();
+  const { user, logout } = useAuth();
   
-  const user = supabaseUser || mockUser;
-
   useEffect(() => {
     const handleScroll = () => {
       const isScrolled = window.scrollY > 10;
@@ -55,46 +50,31 @@ export function Header({ toggleSidebar, sidebarOpen }: HeaderProps) {
   };
 
   const handleLogout = async () => {
-    if (supabaseUser) {
-      await supabaseSignOut();
-    } else if (mockUser) {
-      mockLogout();
-    }
+    logout();
     navigate("/login");
   };
 
   // These helper functions safely access user properties
   const getUserInitials = () => {
-    if (supabaseUser && supabaseUser.user_metadata?.full_name) {
-      return supabaseUser.user_metadata.full_name.split(" ")
-        .map((n: string) => n[0])
-        .join("")
-        .slice(0, 2);
-    } else if (mockUser?.fullName) {
-      return mockUser.fullName.split(" ")
+    if (user?.fullName) {
+      return user.fullName.split(" ")
         .map((n: string) => n[0])
         .join("")
         .slice(0, 2);
     }
-    return "U";
+    return user?.username.substring(0, 2).toUpperCase() || "U";
   };
 
   const getUserName = () => {
-    if (supabaseUser && supabaseUser.user_metadata?.full_name) {
-      return supabaseUser.user_metadata.full_name;
-    } else if (mockUser?.fullName) {
-      return mockUser.fullName;
+    if (user?.fullName) {
+      return user.fullName;
     }
-    return "User";
+    return user?.username || "User";
   };
 
   const getUserRole = () => {
-    if (supabaseUser && supabaseUser.user_metadata?.role) {
-      return supabaseUser.user_metadata.role.replace('_', ' ');
-    } else if (mockUser?.role) {
-      return mockUser.role.replace('_', ' ');
-    }
-    return "User";
+    const { selectedRole } = useAuth();
+    return selectedRole?.name || "User";
   };
 
   return (

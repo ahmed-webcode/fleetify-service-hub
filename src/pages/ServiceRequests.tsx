@@ -1,258 +1,267 @@
-
-import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
-import { ServiceRequestForm } from "@/components/services/ServiceRequestForm";
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PlusCircle, ListFilter, Clock, CheckCircle, XCircle, FileText } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Search, Calendar, Bell, ChevronRight, Plus, Filter } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
+import { HasPermission } from "@/components/auth/HasPermission";
+import { useNavigate } from "react-router-dom";
 
-type ServiceType = "fleet" | "fuel" | "maintenance";
-type RequestStatus = "pending" | "approved" | "rejected" | "completed";
+const serviceTypes = ["Fuel", "Maintenance", "Fleet", "All"];
 
-interface ServiceRequest {
-  id: string;
-  type: string;
-  vehicle: string;
-  date: string;
-  status: RequestStatus;
-  details?: string;
-  requestedBy?: string;
-}
+export default function ServiceRequests() {
+  const [activeTab, setActiveTab] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
+  const { hasPermission } = useAuth();
+  const navigate = useNavigate();
 
-const ServiceRequests = () => {
-  const [view, setView] = useState("new");
-  const location = useLocation();
-  const { user, hasPermission } = useAuth();
-  
-  const getServiceTypeFromUrl = (): ServiceType => {
-    if (location.pathname.includes("/fleet")) return "fleet";
-    if (location.pathname.includes("/fuel")) return "fuel";
-    if (location.pathname.includes("/maintenance")) return "maintenance";
-    return "fleet"; // Default
-  };
-  
-  const [serviceRequests, setServiceRequests] = useState<ServiceRequest[]>([
-    { id: 'SR-2310', type: 'Fleet', vehicle: 'Toyota Land Cruiser (AAU-3201)', date: '2023-06-18', status: 'pending', requestedBy: 'John Doe' },
-    { id: 'SR-2309', type: 'Maintenance', vehicle: 'Nissan Patrol (AAU-1450)', date: '2023-06-17', status: 'approved', details: 'Engine oil change and filter replacement', requestedBy: 'Mary Johnson' },
-    { id: 'SR-2308', type: 'Fuel', vehicle: 'Toyota Hilux (AAU-8742)', date: '2023-06-15', status: 'completed', requestedBy: 'James Smith' },
-    { id: 'SR-2307', type: 'Fleet', vehicle: 'Toyota Corolla (AAU-5214)', date: '2023-06-14', status: 'rejected', requestedBy: 'Sarah Williams' },
-    { id: 'SR-2306', type: 'Maintenance', vehicle: 'Hyundai H-1 (AAU-6390)', date: '2023-06-13', status: 'pending', details: 'Brake system check and maintenance', requestedBy: 'Robert Brown' },
-    { id: 'SR-2305', type: 'Fuel', vehicle: 'Mitsubishi L200 (AAU-7195)', date: '2023-06-12', status: 'completed', requestedBy: 'Elizabeth Davis' },
-    { id: 'SR-2304', type: 'Maintenance', vehicle: 'Toyota Land Cruiser (AAU-3555)', date: '2023-06-11', status: 'pending', details: 'Suspension system repair', requestedBy: 'Michael Wilson' },
-    { id: 'SR-2303', type: 'Maintenance', vehicle: 'Toyota Hilux (AAU-4298)', date: '2023-06-10', status: 'pending', details: 'Air conditioning system repair', requestedBy: 'Jennifer Taylor' },
-  ]);
-  
-  const [selectedServiceType, setSelectedServiceType] = useState<ServiceType>(getServiceTypeFromUrl());
-  
-  useEffect(() => {
-    setSelectedServiceType(getServiceTypeFromUrl());
-  }, [location.pathname]);
-
-  const handleStatusChange = (requestId: string, newStatus: RequestStatus) => {
-    setServiceRequests(prevRequests => 
-      prevRequests.map(request => 
-        request.id === requestId 
-          ? { ...request, status: newStatus } 
-          : request
-      )
-    );
-    
-    toast.success(`Request ${newStatus === 'approved' ? 'approved' : 'rejected'} successfully`);
+  // Helper function to determine if the current user can approve requests
+  const canApproveRequests = () => {
+    return hasPermission("approve_maintenance");
   };
 
-  const handleRequestSubmit = () => {
-    toast.success("Service request submitted successfully");
-    setView("history");
+  // Get current user role for display
+  const getUserRoleDisplay = () => {
+    const { selectedRole } = useAuth();
+    return selectedRole?.name || "";
   };
-
-  // Filter requests based on user role
-  const filteredRequests = serviceRequests.filter(request => {
-    if (user?.role === 'mtl') {
-      // MTL only sees maintenance requests
-      return request.type === 'Maintenance';
-    }
-    return true;
-  });
 
   return (
-    <>
-      <div className="page-container">
-        <div className="page-title-container">
-          <h1 className="page-title">Service Requests</h1>
-          <p className="page-description">
-            {user?.role === 'mtl' 
-              ? 'Manage and approve maintenance requests' 
-              : 'Submit and manage service requests for your fleet'}
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Service Requests</h1>
+          <p className="text-muted-foreground">
+            Manage and track service requests across the fleet
           </p>
         </div>
-        
-        <div className="card-uniform">
-          <Tabs 
-            defaultValue="new" 
-            value={view} 
-            onValueChange={setView}
-            className="space-y-6"
-          >
-            <div className="flex justify-between items-center">
-              <TabsList>
-                <TabsTrigger value="new" className="gap-2">
-                  <PlusCircle className="h-4 w-4" />
-                  New Request
-                </TabsTrigger>
-                <TabsTrigger value="history" className="gap-2">
-                  <Clock className="h-4 w-4" />
-                  Request History
-                </TabsTrigger>
-                {user?.role === 'mtl' && (
-                  <TabsTrigger value="pending" className="gap-2">
-                    <FileText className="h-4 w-4" />
-                    Pending Approvals
-                  </TabsTrigger>
-                )}
-              </TabsList>
-              
-              {view === "history" && (
-                <Button variant="outline" size="sm" className="gap-2">
-                  <ListFilter className="h-4 w-4" />
-                  Filter
-                </Button>
-              )}
-            </div>
-            
-            <TabsContent value="new" className="animate-fade-in">
-              <ServiceRequestForm 
-                defaultServiceType={selectedServiceType} 
-                onSubmitSuccess={handleRequestSubmit}
-              />
-            </TabsContent>
-            
-            <TabsContent value="history" className="animate-fade-in">
-              <div className="rounded-lg border border-border overflow-hidden">
-                <table className="w-full responsive-table">
-                  <thead className="bg-muted/50">
-                    <tr>
-                      <th className="text-left py-3 px-4 text-sm font-medium">Request ID</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium">Type</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium hidden md:table-cell">Vehicle</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium hidden lg:table-cell">Date</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium">Status</th>
-                      <th className="text-right py-3 px-4 text-sm font-medium">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {filteredRequests.map((request) => (
-                      <tr key={request.id} className="hover:bg-muted/30 transition-colors">
-                        <td className="py-3 px-4 font-medium">
-                          {request.id}
-                        </td>
-                        <td className="py-3 px-4">
-                          {request.type}
-                        </td>
-                        <td className="py-3 px-4 hidden md:table-cell">
-                          {request.vehicle}
-                        </td>
-                        <td className="py-3 px-4 hidden lg:table-cell">
-                          {request.date}
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className={`status-badge ${
-                            request.status === 'completed' 
-                              ? 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                              : request.status === 'approved'
-                              ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                              : request.status === 'pending'
-                              ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-                              : 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                          }`}>
-                            {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-right">
-                          <Button variant="ghost" size="sm">Details</Button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </TabsContent>
-            
-            {user?.role === 'mtl' && (
-              <TabsContent value="pending" className="animate-fade-in">
-                <div className="rounded-lg border border-border overflow-hidden">
-                  <table className="w-full responsive-table">
-                    <thead className="bg-muted/50">
-                      <tr>
-                        <th className="text-left py-3 px-4 text-sm font-medium">Request ID</th>
-                        <th className="text-left py-3 px-4 text-sm font-medium hidden md:table-cell">Vehicle</th>
-                        <th className="text-left py-3 px-4 text-sm font-medium hidden lg:table-cell">Date</th>
-                        <th className="text-left py-3 px-4 text-sm font-medium">Requested By</th>
-                        <th className="text-left py-3 px-4 text-sm font-medium hidden md:table-cell">Details</th>
-                        <th className="text-right py-3 px-4 text-sm font-medium">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border">
-                      {filteredRequests
-                        .filter(request => request.status === 'pending')
-                        .map((request) => (
-                          <tr key={request.id} className="hover:bg-muted/30 transition-colors">
-                            <td className="py-3 px-4 font-medium">
-                              {request.id}
-                            </td>
-                            <td className="py-3 px-4 hidden md:table-cell">
-                              {request.vehicle}
-                            </td>
-                            <td className="py-3 px-4 hidden lg:table-cell">
-                              {request.date}
-                            </td>
-                            <td className="py-3 px-4">
-                              {request.requestedBy || 'Unknown'}
-                            </td>
-                            <td className="py-3 px-4 hidden md:table-cell">
-                              <span className="line-clamp-1">{request.details || 'No details provided'}</span>
-                            </td>
-                            <td className="py-3 px-4 text-right">
-                              <div className="flex justify-end gap-2">
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
-                                  onClick={() => handleStatusChange(request.id, 'approved')}
-                                  className="text-green-600 hover:text-green-700 gap-1"
-                                >
-                                  <CheckCircle className="h-4 w-4" />
-                                  Approve
-                                </Button>
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
-                                  onClick={() => handleStatusChange(request.id, 'rejected')}
-                                  className="text-red-600 hover:text-red-700 gap-1"
-                                >
-                                  <XCircle className="h-4 w-4" />
-                                  Reject
-                                </Button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                    </tbody>
-                  </table>
-                  {filteredRequests.filter(request => request.status === 'pending').length === 0 && (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <FileText className="mx-auto h-12 w-12 mb-2 opacity-20" />
-                      <p>No pending maintenance requests</p>
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
-            )}
-          </Tabs>
+
+        <div className="flex items-center gap-2">
+          <HasPermission permission="request_maintenance">
+            <Button
+              onClick={() => navigate("/request-maintenance")}
+              className="gap-1"
+            >
+              <Plus className="h-4 w-4" />
+              New Request
+            </Button>
+          </HasPermission>
+          <Button variant="outline" size="icon">
+            <Filter className="h-4 w-4" />
+            <span className="sr-only">Filter</span>
+          </Button>
         </div>
       </div>
-    </>
-  );
-};
 
-export default ServiceRequests;
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        {serviceTypes.map((type, index) => (
+          <Card key={type}>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base font-medium">
+                {type} Requests
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{(index + 1) * 3}</div>
+              <p className="text-xs text-muted-foreground">
+                {index === 0 ? "2 pending approval" : "1 pending approval"}
+              </p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <div className="bg-white rounded-md border">
+        <div className="p-4 border-b">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <h2 className="text-xl font-semibold">Recent Requests</h2>
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search requests..."
+                className="w-full pl-8"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+
+        <Tabs
+          defaultValue="all"
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="w-full"
+        >
+          <div className="px-4 border-b">
+            <TabsList className="h-12 w-full justify-start gap-4 rounded-none border-b-0 bg-transparent p-0">
+              <TabsTrigger
+                value="all"
+                className="data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none rounded-none border-b-2 border-transparent px-4 py-3"
+              >
+                All
+              </TabsTrigger>
+              <TabsTrigger
+                value="pending"
+                className="data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none rounded-none border-b-2 border-transparent px-4 py-3"
+              >
+                Pending
+              </TabsTrigger>
+              <TabsTrigger
+                value="approved"
+                className="data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none rounded-none border-b-2 border-transparent px-4 py-3"
+              >
+                Approved
+              </TabsTrigger>
+              <TabsTrigger
+                value="rejected"
+                className="data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none rounded-none border-b-2 border-transparent px-4 py-3"
+              >
+                Rejected
+              </TabsTrigger>
+              <TabsTrigger
+                value="completed"
+                className="data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none rounded-none border-b-2 border-transparent px-4 py-3"
+              >
+                Completed
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          <TabsContent value="all" className="p-0">
+            <div className="divide-y">
+              {/* Example service request rows - replace with real data */}
+              <div className="p-4 hover:bg-muted/50">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <Bell className="h-9 w-9 text-primary bg-primary/10 p-2 rounded-full" />
+                    <div>
+                      <h3 className="font-semibold">
+                        Fuel Request - Toyota Landcruiser
+                      </h3>
+                      <div className="flex flex-col xs:flex-row xs:items-center gap-1 xs:gap-3 text-sm text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Calendar className="h-3.5 w-3.5" />
+                          <span>23 Apr 2025</span>
+                        </span>
+                        <span className="hidden xs:inline">•</span>
+                        <span>40 liters requested</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 self-end md:self-center">
+                    <Badge
+                      variant="outline"
+                      className="bg-amber-50 text-amber-700 border-amber-200"
+                    >
+                      Pending
+                    </Badge>
+                    {canApproveRequests() && (
+                      <Button variant="outline" size="sm">
+                        Approve
+                      </Button>
+                    )}
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 hover:bg-muted/50">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <Bell className="h-9 w-9 text-blue-600 bg-blue-100 p-2 rounded-full" />
+                    <div>
+                      <h3 className="font-semibold">
+                        Maintenance Request - Nissan Patrol
+                      </h3>
+                      <div className="flex flex-col xs:flex-row xs:items-center gap-1 xs:gap-3 text-sm text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Calendar className="h-3.5 w-3.5" />
+                          <span>20 Apr 2025</span>
+                        </span>
+                        <span className="hidden xs:inline">•</span>
+                        <span>Oil change and brake inspection</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 self-end md:self-center">
+                    <Badge
+                      variant="outline"
+                      className="bg-emerald-50 text-emerald-700 border-emerald-200"
+                    >
+                      Approved
+                    </Badge>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 hover:bg-muted/50">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <Bell className="h-9 w-9 text-purple-600 bg-purple-100 p-2 rounded-full" />
+                    <div>
+                      <h3 className="font-semibold">
+                        Fleet Request - Student Field Trip
+                      </h3>
+                      <div className="flex flex-col xs:flex-row xs:items-center gap-1 xs:gap-3 text-sm text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Calendar className="h-3.5 w-3.5" />
+                          <span>18 Apr 2025</span>
+                        </span>
+                        <span className="hidden xs:inline">•</span>
+                        <span>25 passengers</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 self-end md:self-center">
+                    <Badge
+                      variant="outline"
+                      className="bg-rose-50 text-rose-700 border-rose-200"
+                    >
+                      Rejected
+                    </Badge>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="pending" className="p-0">
+            <div className="p-4 text-center text-muted-foreground">
+              Loading pending requests...
+            </div>
+          </TabsContent>
+
+          <TabsContent value="approved" className="p-0">
+            <div className="p-4 text-center text-muted-foreground">
+              Loading approved requests...
+            </div>
+          </TabsContent>
+
+          <TabsContent value="rejected" className="p-0">
+            <div className="p-4 text-center text-muted-foreground">
+              Loading rejected requests...
+            </div>
+          </TabsContent>
+
+          <TabsContent value="completed" className="p-0">
+            <div className="p-4 text-center text-muted-foreground">
+              Loading completed requests...
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  );
+}

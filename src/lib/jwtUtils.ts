@@ -66,3 +66,27 @@ export const ROLE_DETAILS: Record<number, { name: string, description: string }>
   8: { name: 'Staff', description: 'General staff of the university' },
   9: { name: 'Mechanic', description: 'Responsible for maintaining the vehicle' },
 };
+
+// Permission type definition
+export type Permission = 
+  | 'add_users'
+  | 'manage_drivers' 
+  | 'request_fleet'
+  | 'approve_maintenance'
+  | 'request_maintenance'
+  | 'report_incidents'
+  | 'track_vehicles'
+  | 'view_reports';
+
+// Map roles to permissions
+export const ROLE_PERMISSIONS: Record<number, Permission[]> = {
+  1: ['add_users', 'manage_drivers', 'request_fleet', 'approve_maintenance', 'request_maintenance', 'report_incidents', 'track_vehicles', 'view_reports'], // Transport Director
+  2: ['approve_maintenance', 'request_maintenance', 'report_incidents', 'view_reports'], // Maintenance Manager
+  3: ['manage_drivers', 'request_fleet', 'report_incidents', 'track_vehicles'], // Deployment Manager
+  4: ['request_maintenance', 'report_incidents', 'view_reports'], // Fuel Manager
+  5: ['add_users', 'manage_drivers', 'request_fleet', 'approve_maintenance', 'request_maintenance', 'report_incidents', 'track_vehicles', 'view_reports'], // Operational Director
+  6: ['request_maintenance', 'report_incidents'], // Fuel Attendant
+  7: ['request_maintenance', 'report_incidents'], // Driver
+  8: ['request_fleet'], // Staff
+  9: ['request_maintenance', 'report_incidents'], // Mechanic
+};

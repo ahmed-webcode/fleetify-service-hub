@@ -39,7 +39,7 @@ interface SidebarItem {
 }
 
 export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
-    const { user, hasPermission } = useAuth();
+    const { user, hasPermission, selectedRole } = useAuth();
     const location = useLocation();
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
     const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
@@ -338,7 +338,14 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
     const commonSidebarClasses =
         'flex flex-col h-screen bg-white border-r border-slate-200 shadow-sm transition-all duration-300';
 
-    // ... (rest of the component remains the same: mobile view, desktop main structure, bottom section)
+    const getUserDisplayName = () => {
+        return user?.fullName || user?.username || 'Transport Director';
+    };
+
+    const getUserRoleDisplay = () => {
+        return selectedRole?.name || 'System User';
+    };
+
     if (isMobile && !isCollapsed) {
         return (
             <div className="fixed inset-0 z-40 bg-black/50" onClick={handleToggle}>
@@ -410,10 +417,10 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
                                 />
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm font-semibold text-slate-800 truncate">
-                                        {user?.fullName || 'Transport Director'}
+                                        {getUserDisplayName()}
                                     </p>
                                     <p className="text-xs text-slate-500 truncate">
-                                        {user?.role?.replace(/_/g, ' ') || 'System User'}
+                                        {getUserRoleDisplay()}
                                     </p>
                                 </div>
                             </div>
@@ -545,10 +552,10 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
                                 />
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm font-semibold text-slate-800 truncate">
-                                        {user?.fullName || 'Transport Director'}
+                                        {getUserDisplayName()}
                                     </p>
                                     <p className="text-xs text-slate-500 truncate">
-                                        {user?.role?.replace(/_/g, ' ') || 'System User'}
+                                        {getUserRoleDisplay()}
                                     </p>
                                 </div>
                             </div>

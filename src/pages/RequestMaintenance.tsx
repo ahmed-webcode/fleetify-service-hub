@@ -1,28 +1,25 @@
 
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { GeneralMaintenanceRequestForm } from "@/components/maintenance/GeneralMaintenanceRequestForm";
+import { apiClient } from "@/lib/apiClient";
 
 export default function RequestMaintenance() {
   const { hasPermission } = useAuth();
   
   const handleMaintenanceRequest = async (formData: any) => {
     try {
-      const { data, error } = await supabase
-        .from('maintenance_records')
-        .insert([{
-          vehicle_id: formData.vehicleId,
-          type: formData.maintenanceType,
-          description: formData.description,
-          service_date: new Date().toISOString().split('T')[0],
-          odometer_reading: formData.odometerReading || 0,
-          status: 'pending'
-        }]);
+      // Using our API client instead of Supabase
+      const response = await apiClient.maintenance.create({
+        vehicleId: formData.vehicleId,
+        type: formData.maintenanceType,
+        description: formData.description,
+        serviceDate: new Date().toISOString().split('T')[0],
+        odometerReading: formData.odometerReading || 0,
+        status: 'pending'
+      });
         
-      if (error) throw error;
-      
       toast.success('Maintenance request submitted successfully!');
       return { success: true };
     } catch (error: any) {

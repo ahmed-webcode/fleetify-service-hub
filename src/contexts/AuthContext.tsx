@@ -3,12 +3,15 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { apiClient } from "@/lib/apiClient";
-import { decodeJwt, isTokenExpired, getRolesFromToken, Role, ROLE_DETAILS } from "@/lib/jwtUtils";
+import { decodeJwt, isTokenExpired, getRolesFromToken, Role, ROLE_DETAILS, Permission, ROLE_PERMISSIONS } from "@/lib/jwtUtils";
 
 // Define authentication state interface
 interface AuthState {
   token: string | null;
-  user: { username: string } | null;
+  user: { 
+    username: string;
+    fullName?: string; // Optional as it might not be in the JWT
+  } | null;
   roles: Role[];
   selectedRole: Role | null;
   isAuthenticated: boolean;
@@ -21,6 +24,7 @@ interface AuthContextType extends AuthState {
   logout: () => void;
   selectRole: (role: Role) => void;
   hasRole: (roleId: number) => boolean;
+  hasPermission: (permission: Permission) => boolean;
 }
 
 // Create context with default values
@@ -90,7 +94,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const roles = getRolesFromToken(token);
       
       // Store user info
-      const user = { username };
+      const user = { username, fullName: username }; // Use username as fullName if not available in token
       localStorage.setItem("auth_user", JSON.stringify(user));
       
       // Determine if we need role selection
@@ -159,6 +163,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return authState.selectedRole.id === roleId;
   };
 
+  // Function to check if user has a specific permission
+  const hasPermission = (permission: Permission): boolean => {
+    if (!authState.selectedRole) return false;
+    const roleId = authState.selectedRole.id;
+    return ROLE_PERMISSIONS[roleId]?.includes(permission) || false;
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -167,6 +178,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         logout,
         selectRole,
         hasRole,
+        hasPermission,
       }}
     >
       {children}
@@ -185,4 +197,44 @@ export const useAuth = (): AuthContextType => {
 
 // Export role constants
 export { ROLE_DETAILS };
-export type { Role };
+export type { Role, Permission };
+
+// Mock data for UI components that need it
+export interface User {
+  id: string;
+  username: string;
+  fullName: string;
+  role: UserRole;
+  email?: string;
+  college?: string;
+  institute?: string;
+  campus?: string;
+}
+
+export type UserRole = 'transport_director' | 'operational_director' | 'fotl' | 'ftl' | 'staff';
+
+export const AVAILABLE_ROLES: UserRole[] = [
+  'transport_director',
+  'operational_director',
+  'fotl',
+  'ftl',
+  'staff'
+];
+
+export const MOCK_COLLEGES = [
+  { id: '1', name: 'College of Natural and Social Sciences' },
+  { id: '2', name: 'College of Business and Economics' },
+  { id: '3', name: 'College of Health Sciences' }
+];
+
+export const MOCK_INSTITUTES = [
+  { id: '1', name: 'Institute of Technology', collegeId: '1' },
+  { id: '2', name: 'Institute of Management', collegeId: '2' },
+  { id: '3', name: 'Institute of Medicine', collegeId: '3' }
+];
+
+export const MOCK_CAMPUSES = [
+  { id: '1', name: 'Main Campus', instituteId: '1' },
+  { id: '2', name: 'Commerce Campus', instituteId: '2' },
+  { id: '3', name: 'Black Lion Campus', instituteId: '3' }
+];

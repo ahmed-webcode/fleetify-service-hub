@@ -1,258 +1,247 @@
-
 import { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { ListFilter, Clock, Calendar, Fuel, ArrowRight, MoreVertical } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
-import { ServiceRequestForm } from "@/components/services/ServiceRequestForm";
+import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Plus, PlusCircle, AlertTriangle, BarChart } from "lucide-react";
+import { HasPermission } from "@/components/auth/HasPermission";
 
 export default function FuelManagement() {
-  const [view, setView] = useState("requests");
   const { hasPermission } = useAuth();
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-
-  // Can approve fuel requests
-  const canApprove = hasPermission("approve_normal_fuel") || hasPermission("approve_special_fuel");
   
-  // Sample fuel requests data
-  const fuelRequests = [
-    { id: "FR001", vehicle: "Toyota Land Cruiser (AAU-3201)", requestedBy: "John Doe", amount: 35, date: "2023-06-15", status: "pending" },
-    { id: "FR002", vehicle: "Nissan Patrol (AAU-1450)", requestedBy: "Jane Smith", amount: 42, date: "2023-06-14", status: "approved" },
-    { id: "FR003", vehicle: "Toyota Hilux (AAU-8742)", requestedBy: "Alex Johnson", amount: 28, date: "2023-06-13", status: "completed" },
-    { id: "FR004", vehicle: "Toyota Corolla (AAU-5214)", requestedBy: "Sarah Brown", amount: 18, date: "2023-06-12", status: "rejected" },
-  ];
+  // Just a placeholder - we'll use real data fetching in a production app
+  const [loading, setLoading] = useState(false);
 
-  // Sample fuel consumption data
-  const fuelConsumption = [
-    { id: "FC001", vehicle: "Toyota Land Cruiser (AAU-3201)", driver: "John Doe", amount: 35, date: "2023-06-10", mileage: 58245 },
-    { id: "FC002", vehicle: "Nissan Patrol (AAU-1450)", driver: "Jane Smith", amount: 42, date: "2023-06-08", mileage: 37129 },
-    { id: "FC003", vehicle: "Toyota Hilux (AAU-8742)", driver: "Alex Johnson", amount: 28, date: "2023-06-05", mileage: 124756 },
-    { id: "FC004", vehicle: "Toyota Corolla (AAU-5214)", driver: "Sarah Brown", amount: 18, date: "2023-06-01", mileage: 95874 },
-  ];
+  // Component that shows when user doesn't have access
+  const AccessRestricted = () => (
+    <div className="flex flex-col items-center justify-center py-12">
+      <div className="rounded-full bg-muted p-4 mb-4">
+        <AlertTriangle className="h-8 w-8 text-muted-foreground" />
+      </div>
+      <h3 className="text-lg font-medium mb-2">Access Restricted</h3>
+      <p className="text-muted-foreground text-center max-w-md">
+        You don't have permission to access the Fuel Management page.
+        Please contact your administrator for assistance.
+      </p>
+    </div>
+  );
 
   return (
-    <>
-      <div className="page-container">
-        <div className="page-title-container">
-          <h1 className="page-title">Fuel Management</h1>
-          <p className="page-description">Manage fuel requests and consumption records</p>
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Fuel Management</h1>
+          <p className="text-muted-foreground">
+            Track and manage fuel consumption across your fleet
+          </p>
         </div>
-        
-        <Card className="mb-6">
-          <CardHeader>
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-              <div>
-                <CardTitle>Fuel Overview</CardTitle>
-                <CardDescription>Summary of fuel usage and requests</CardDescription>
-              </div>
-              
-              <ServiceRequestForm 
-                defaultServiceType="fuel"
-                isDialog={true}
-                isOpen={isDialogOpen}
-                onClose={() => setIsDialogOpen(false)}
-              />
 
-              {hasPermission("request_fuel") && (
-                <Button className="gap-2" onClick={() => setIsDialogOpen(true)}>
-                  <Fuel className="h-4 w-4" />
-                  New Fuel Request
-                </Button>
-              )}
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Monthly Consumption
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between">
-                    <div className="text-2xl font-bold">2,450 L</div>
-                    <div className="text-emerald-500 text-sm font-medium flex items-center gap-1">
-                      <ArrowRight className="h-4 w-4" />
-                      <span>View Details</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Pending Requests
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between">
-                    <div className="text-2xl font-bold">12</div>
-                    <div className="text-emerald-500 text-sm font-medium flex items-center gap-1">
-                      <ArrowRight className="h-4 w-4" />
-                      <span>Review</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Average per Vehicle
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between">
-                    <div className="text-2xl font-bold">85 L</div>
-                    <div className="text-emerald-500 text-sm font-medium flex items-center gap-1">
-                      <ArrowRight className="h-4 w-4" />
-                      <span>Analytics</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="pb-0">
-            <Tabs defaultValue="requests" value={view} onValueChange={setView}>
-              <div className="flex justify-between items-center">
-                <TabsList>
-                  <TabsTrigger value="requests" className="gap-2">
-                    <Clock className="h-4 w-4" />
-                    Fuel Requests
-                  </TabsTrigger>
-                  <TabsTrigger value="consumption" className="gap-2">
-                    <Calendar className="h-4 w-4" />
-                    Consumption History
-                  </TabsTrigger>
-                </TabsList>
-              </div>
-            
-              <div className="mt-6">
-                <div className="flex justify-end mb-4">
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <ListFilter className="h-4 w-4" />
-                    Filter
-                  </Button>
-                </div>
-                
-                <TabsContent value="requests" className="mt-0">
-                  <div className="rounded-lg border overflow-hidden">
-                    <table className="w-full responsive-table">
-                      <thead className="bg-muted/50">
-                        <tr>
-                          <th className="text-left py-3 px-4 text-sm font-medium">Request ID</th>
-                          <th className="text-left py-3 px-4 text-sm font-medium">Vehicle</th>
-                          <th className="text-left py-3 px-4 text-sm font-medium hidden md:table-cell">Requested By</th>
-                          <th className="text-left py-3 px-4 text-sm font-medium hidden lg:table-cell">Date</th>
-                          <th className="text-left py-3 px-4 text-sm font-medium">Amount (L)</th>
-                          <th className="text-left py-3 px-4 text-sm font-medium">Status</th>
-                          <th className="text-right py-3 px-4 text-sm font-medium">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-border">
-                        {fuelRequests.map((request) => (
-                          <tr key={request.id} className="hover:bg-muted/30 transition-colors">
-                            <td className="py-3 px-4">{request.id}</td>
-                            <td className="py-3 px-4">{request.vehicle}</td>
-                            <td className="py-3 px-4 hidden md:table-cell">{request.requestedBy}</td>
-                            <td className="py-3 px-4 hidden lg:table-cell">{request.date}</td>
-                            <td className="py-3 px-4">{request.amount}</td>
-                            <td className="py-3 px-4">
-                              <span className={`status-badge ${
-                                request.status === 'completed' 
-                                  ? 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                  : request.status === 'approved'
-                                  ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                                  : request.status === 'pending'
-                                  ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-                                  : 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                              }`}>
-                                {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
-                              </span>
-                            </td>
-                            <td className="py-2 px-4 text-right">
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                    <MoreVertical className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                  <DropdownMenuItem>View Details</DropdownMenuItem>
-                                  {canApprove && request.status === "pending" && (
-                                    <>
-                                      <DropdownMenuSeparator />
-                                      <DropdownMenuItem className="text-green-600">
-                                        Approve Request
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem className="text-red-600">
-                                        Reject Request
-                                      </DropdownMenuItem>
-                                    </>
-                                  )}
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="consumption" className="mt-0">
-                  <div className="rounded-lg border overflow-hidden">
-                    <table className="w-full responsive-table">
-                      <thead className="bg-muted/50">
-                        <tr>
-                          <th className="text-left py-3 px-4 text-sm font-medium">Record ID</th>
-                          <th className="text-left py-3 px-4 text-sm font-medium">Vehicle</th>
-                          <th className="text-left py-3 px-4 text-sm font-medium hidden md:table-cell">Driver</th>
-                          <th className="text-left py-3 px-4 text-sm font-medium hidden lg:table-cell">Date</th>
-                          <th className="text-left py-3 px-4 text-sm font-medium">Amount (L)</th>
-                          <th className="text-left py-3 px-4 text-sm font-medium">Mileage (km)</th>
-                          <th className="text-right py-3 px-4 text-sm font-medium">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-border">
-                        {fuelConsumption.map((record) => (
-                          <tr key={record.id} className="hover:bg-muted/30 transition-colors">
-                            <td className="py-3 px-4">{record.id}</td>
-                            <td className="py-3 px-4">{record.vehicle}</td>
-                            <td className="py-3 px-4 hidden md:table-cell">{record.driver}</td>
-                            <td className="py-3 px-4 hidden lg:table-cell">{record.date}</td>
-                            <td className="py-3 px-4">{record.amount}</td>
-                            <td className="py-3 px-4">{record.mileage.toLocaleString()}</td>
-                            <td className="py-2 px-4 text-right">
-                              <Button variant="ghost" size="sm">View</Button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </TabsContent>
-              </div>
-            </Tabs>
-          </CardHeader>
-        </Card>
+        <HasPermission 
+          permission="request_maintenance" 
+          fallback={null}
+        >
+          <Button className="gap-1.5">
+            <Plus className="h-4 w-4" />
+            <span>Request Fuel</span>
+          </Button>
+        </HasPermission>
       </div>
-    </>
+
+      {!hasPermission("view_reports") ? (
+        <AccessRestricted />
+      ) : (
+        <>
+          {/* Stats Cards */}
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Total Consumption
+                </CardTitle>
+                <BarChart className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">1,248 L</div>
+                <p className="text-xs text-muted-foreground">
+                  +12% from last month
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Average Cost
+                </CardTitle>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  className="h-4 w-4 text-muted-foreground"
+                >
+                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                </svg>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">$1.73</div>
+                <p className="text-xs text-muted-foreground">
+                  Per liter in current month
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Pending Requests
+                </CardTitle>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  className="h-4 w-4 text-muted-foreground"
+                >
+                  <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                </svg>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">8</div>
+                <p className="text-xs text-muted-foreground">
+                  Awaiting approval
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Most Active Vehicle
+                </CardTitle>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  className="h-4 w-4 text-muted-foreground"
+                >
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">Toyota Hiace</div>
+                <p className="text-xs text-muted-foreground">
+                  328 liters consumed
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Fuel Management Tabs */}
+          <Tabs defaultValue="consumption" className="space-y-4">
+            <TabsList>
+              <TabsTrigger value="consumption">Consumption</TabsTrigger>
+              <TabsTrigger value="requests">Requests</TabsTrigger>
+              <TabsTrigger value="reports">Reports</TabsTrigger>
+            </TabsList>
+            <TabsContent value="consumption" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Fuel Consumption History</CardTitle>
+                  <CardDescription>
+                    Monthly breakdown of fuel usage across all vehicles
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pl-2">
+                  {/* Placeholder for chart */}
+                  <div className="h-[300px] w-full rounded-md border border-dashed flex items-center justify-center">
+                    <p className="text-center text-muted-foreground">
+                      Fuel consumption chart will be displayed here
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value="requests" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Fuel Requests</CardTitle>
+                  <CardDescription>
+                    Manage and track fuel requests
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="rounded-md border border-dashed p-8">
+                    <div className="flex flex-col items-center justify-center text-center">
+                      <PlusCircle className="h-12 w-12 text-muted-foreground opacity-50 mb-2" />
+                      <h3 className="text-lg font-medium mb-1">No requests yet</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        There are no fuel requests at the moment. Create one to get started.
+                      </p>
+                      <Button>
+                        <Plus className="mr-2 h-4 w-4" />
+                        New Fuel Request
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value="reports" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Fuel Reports</CardTitle>
+                  <CardDescription>
+                    Download and analyze fuel reports
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="rounded-md border p-4">
+                      <h3 className="font-medium mb-2">Monthly Consumption Report</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Detailed breakdown of fuel usage by vehicle for the current month
+                      </p>
+                      <Button variant="outline">Download Report</Button>
+                    </div>
+                    <div className="rounded-md border p-4">
+                      <h3 className="font-medium mb-2">Quarterly Cost Analysis</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Financial analysis of fuel expenses for the last quarter
+                      </p>
+                      <Button variant="outline">Download Report</Button>
+                    </div>
+                  </div>
+                </CardContent>
+                <CardFooter className="border-t px-6 py-4">
+                  <Button variant="outline" className="w-full">
+                    Generate Custom Report
+                  </Button>
+                </CardFooter>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </>
+      )}
+    </div>
   );
 }
