@@ -1,348 +1,172 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { jwtDecode } from "jwt-decode";
+import { apiClient } from "@/lib/apiClient";
+import { decodeJwt, isTokenExpired, getRolesFromToken, Role, ROLE_DETAILS } from "@/lib/jwtUtils";
 
-// Define user roles
-export type UserRole = 
-  | "transport_director" 
-  | "operational_director" 
-  | "fotl" 
-  | "ftl"
-  | "mtl"
-  | "regular_staff"; // Added regular staff role
-
-// Define permission types
-export type Permission = 
-  | "approve_special_fuel" 
-  | "add_users" 
-  | "add_vehicle" 
-  | "view_reports" 
-  | "track_vehicles"
-  | "request_fuel" 
-  | "request_fleet" 
-  | "request_maintenance"
-  | "approve_normal_fuel"
-  | "approve_fleet"
-  | "assign_driver"
-  | "manage_drivers"
-  | "approve_maintenance"
-  | "report_incidents"; // Added incident reporting permission
-
-export interface User {
-  id: string;
-  username: string;
-  fullName: string;
-  role: UserRole;
-  email?: string;
-  college?: string;
-  institute?: string;
-  campus?: string;
-}
-
-export interface College {
-  id: string;
-  name: string;
-}
-
-export interface Institute {
-  id: string;
-  name: string;
-  collegeId: string;
-}
-
-export interface Campus {
-  id: string;
-  name: string;
-  instituteId: string;
-}
-
-interface AuthContextType {
-  user: User | null;
+// Define authentication state interface
+interface AuthState {
   token: string | null;
-  login: (username: string, password: string) => Promise<boolean>;
-  logout: () => void;
+  user: { username: string } | null;
+  roles: Role[];
+  selectedRole: Role | null;
   isAuthenticated: boolean;
-  hasPermission: (permission: Permission) => boolean;
-  refreshToken: () => Promise<boolean>;
+  isLoading: boolean;
 }
 
-// Mock users for demonstration purposes
-const MOCK_USERS = [
-  {
-    id: "1",
-    username: "transport_director",
-    password: "password123",
-    fullName: "Transport Director",
-    role: "transport_director" as UserRole,
-    email: "transport.director@aau.edu.et",
-    college: "Science",
-    institute: "Technology",
-    campus: "Main Campus"
-  },
-  {
-    id: "2",
-    username: "operational_director",
-    password: "password123",
-    fullName: "Operational Director",
-    role: "operational_director" as UserRole,
-    email: "operational.director@aau.edu.et",
-    college: "Science",
-    institute: "Technology",
-    campus: "Main Campus"
-  },
-  {
-    id: "3",
-    username: "fotl",
-    password: "password123",
-    fullName: "FOTL User",
-    role: "fotl" as UserRole,
-    email: "fotl@aau.edu.et",
-    college: "Science",
-    institute: "Technology",
-    campus: "Main Campus"
-  },
-  {
-    id: "4",
-    username: "ftl",
-    password: "password123",
-    fullName: "FTL User",
-    role: "ftl" as UserRole,
-    email: "ftl@aau.edu.et",
-    college: "Science",
-    institute: "Technology",
-    campus: "Main Campus"
-  },
-  {
-    id: "5",
-    username: "mtl",
-    password: "password123",
-    fullName: "Maintenance Team Leader",
-    role: "mtl" as UserRole,
-    email: "mtl@aau.edu.et",
-    college: "Science",
-    institute: "Technology",
-    campus: "Main Campus"
-  },
-  {
-    id: "6",
-    username: "staff",
-    password: "password123",
-    fullName: "Regular Staff",
-    role: "regular_staff" as UserRole,
-    email: "staff@aau.edu.et",
-    college: "College of Business and Economics",
-    institute: "Institute of Management",
-    campus: "Commerce Campus"
-  },
-];
+// Define authentication context interface
+interface AuthContextType extends AuthState {
+  login: (username: string, password: string) => Promise<{success: boolean, multipleRoles: boolean}>;
+  logout: () => void;
+  selectRole: (role: Role) => void;
+  hasRole: (roleId: number) => boolean;
+}
 
-// Updated Role permissions mapping to include regular staff
-const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
-  // Transport Director: Full authority
-  transport_director: [
-    "approve_special_fuel",
-    "add_users",
-    "add_vehicle",
-    "view_reports",
-    "track_vehicles",
-    "approve_normal_fuel",
-    "approve_fleet",
-    "assign_driver",
-    "manage_drivers",
-    "request_fuel",
-    "request_fleet",
-    "request_maintenance",
-    "report_incidents"
-  ],
-  // Operational Director: Can make requests
-  operational_director: [
-    "request_fuel",
-    "request_fleet",
-    "request_maintenance",
-    "view_reports",
-    "track_vehicles", 
-    "report_incidents"
-  ],
-  // FOTL: Approves normal fuel requests and sees reports
-  fotl: [
-    "approve_normal_fuel",
-    "view_reports",
-    "report_incidents"
-  ],
-  // FTL: Approves fleet requests and assigns drivers
-  ftl: [
-    "approve_fleet",
-    "assign_driver",
-    "view_reports",
-    "track_vehicles", 
-    "report_incidents"
-  ],
-  // MTL: Approves maintenance requests
-  mtl: [
-    "approve_maintenance",
-    "view_reports",
-    "report_incidents"
-  ],
-  // Regular staff: Can request maintenance, fuel and report incidents
-  regular_staff: [
-    "request_maintenance",
-    "request_fuel",
-    "request_fleet",
-    "report_incidents"
-  ]
-};
-
-// Generate a JWT token (mock)
-const generateToken = (user: Omit<User, "password">) => {
-  // This is a simplification. In a real app, the token would be generated by the server
-  const payload = {
-    sub: user.id,
-    username: user.username,
-    role: user.role,
-    exp: Math.floor(Date.now() / 1000) + 60 * 60, // 1 hour expiry
-  };
-  
-  // A very simplified "JWT" - in reality, this would be created with proper JWT libraries
-  return btoa(JSON.stringify(payload));
-};
-
-const transportDirectorPermissions = [
-  "add_vehicle",
-  "edit_vehicle", 
-  "delete_vehicle",
-  "approve_fleet",
-  "approve_fuel",
-  "approve_maintenance",
-  "assign_driver",
-  "track_vehicles",
-  "view_reports",
-  "add_users",
-  "edit_users",
-  "delete_users",
-  "access_gps_tracking" // Added GPS tracking permission
-];
-
-const operationalDirectorPermissions = [
-  "approve_fleet",
-  "approve_fuel",
-  "view_reports",
-  "access_gps_tracking" // Added GPS tracking permission
-];
-
-const ftlPermissions = [
-  "request_fleet",
-  "request_fuel",
-  "request_maintenance",
-  "access_gps_tracking" // Added GPS tracking permission
-];
-
+// Create context with default values
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+// Auth provider component
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [authState, setAuthState] = useState<AuthState>({
+    token: null,
+    user: null,
+    roles: [],
+    selectedRole: null,
+    isAuthenticated: false,
+    isLoading: true,
+  });
   const navigate = useNavigate();
 
-  // Check if user is logged in on mount
+  // Initialize auth state from storage
   useEffect(() => {
-    const storedToken = localStorage.getItem("token");
-    if (storedToken) {
-      try {
-        // Decode the token to get user information
-        const decoded = JSON.parse(atob(storedToken));
+    const initializeAuth = () => {
+      const storedToken = localStorage.getItem("auth_token");
+      const storedUser = localStorage.getItem("auth_user");
+      const storedSelectedRole = localStorage.getItem("selected_role");
+      
+      if (storedToken && !isTokenExpired(storedToken)) {
+        const roles = getRolesFromToken(storedToken);
+        const user = storedUser ? JSON.parse(storedUser) : null;
+        const selectedRole = storedSelectedRole ? JSON.parse(storedSelectedRole) : 
+                           (roles.length === 1 ? roles[0] : null);
         
-        // Check if token is expired
-        if (decoded.exp && decoded.exp * 1000 < Date.now()) {
-          // Token has expired
-          localStorage.removeItem("token");
-          localStorage.removeItem("user");
-          return;
+        setAuthState({
+          token: storedToken,
+          user,
+          roles,
+          selectedRole,
+          isAuthenticated: true,
+          isLoading: false,
+        });
+      } else {
+        // Clear storage if token is expired or invalid
+        if (storedToken) {
+          localStorage.removeItem("auth_token");
+          localStorage.removeItem("auth_user");
+          localStorage.removeItem("selected_role");
         }
-        
-        // Find the user
-        const foundUser = MOCK_USERS.find(u => u.id === decoded.sub);
-        if (foundUser) {
-          const { password, ...userWithoutPassword } = foundUser;
-          setUser(userWithoutPassword);
-          setToken(storedToken);
-        } else {
-          localStorage.removeItem("token");
-          localStorage.removeItem("user");
-        }
-      } catch (error) {
-        console.error("Failed to decode token", error);
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
+        setAuthState(prev => ({...prev, isLoading: false}));
       }
-    }
+    };
+
+    initializeAuth();
   }, []);
 
-  // Login function with JWT token
-  const login = async (username: string, password: string): Promise<boolean> => {
-    // This would be an API call in a real application
-    const foundUser = MOCK_USERS.find(
-      (u) => u.username === username && u.password === password
-    );
-
-    if (foundUser) {
-      const { password: _, ...userWithoutPassword } = foundUser;
-      setUser(userWithoutPassword);
+  // Login function
+  const login = async (username: string, password: string): Promise<{success: boolean, multipleRoles: boolean}> => {
+    try {
+      // Get JWT token from API
+      const token = await apiClient.auth.login(username, password);
       
-      // Generate and store JWT token
-      const newToken = generateToken(userWithoutPassword);
-      setToken(newToken);
+      if (!token) {
+        throw new Error("Authentication failed");
+      }
       
-      localStorage.setItem("token", newToken);
-      localStorage.setItem("user", JSON.stringify(userWithoutPassword));
-      return true;
+      // Store token in localStorage
+      localStorage.setItem("auth_token", token);
+      
+      // Get user roles from token
+      const roles = getRolesFromToken(token);
+      
+      // Store user info
+      const user = { username };
+      localStorage.setItem("auth_user", JSON.stringify(user));
+      
+      // Determine if we need role selection
+      const multipleRoles = roles.length > 1;
+      
+      // If there's only one role, select it automatically
+      if (roles.length === 1) {
+        localStorage.setItem("selected_role", JSON.stringify(roles[0]));
+        setAuthState({
+          token,
+          user,
+          roles,
+          selectedRole: roles[0],
+          isAuthenticated: true,
+          isLoading: false,
+        });
+      } else {
+        // Don't set selectedRole yet if multiple roles
+        setAuthState({
+          token,
+          user,
+          roles,
+          selectedRole: null,
+          isAuthenticated: true,
+          isLoading: false,
+        });
+      }
+      
+      return { success: true, multipleRoles };
+    } catch (error) {
+      toast.error("Login failed: " + (error as Error).message);
+      return { success: false, multipleRoles: false };
     }
+  };
 
-    return false;
+  // Role selection function
+  const selectRole = (role: Role) => {
+    localStorage.setItem("selected_role", JSON.stringify(role));
+    setAuthState(prev => ({...prev, selectedRole: role}));
+    navigate("/dashboard");
+    toast.success(`Logged in as ${role.name}`);
   };
 
   // Logout function
   const logout = () => {
-    setUser(null);
-    setToken(null);
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    // Call API logout endpoint if needed
+    apiClient.auth.logout();
+    
+    // Reset auth state
+    setAuthState({
+      token: null,
+      user: null,
+      roles: [],
+      selectedRole: null,
+      isAuthenticated: false,
+      isLoading: false,
+    });
+    
+    // Redirect to login
     navigate("/login", { state: { loggedOut: true } });
   };
 
-  // Refresh token function
-  const refreshToken = async (): Promise<boolean> => {
-    // In a real application, this would call an API endpoint to refresh the token
-    if (!user) return false;
-    
-    try {
-      // Generate a new token with updated expiry
-      const newToken = generateToken(user);
-      setToken(newToken);
-      localStorage.setItem("token", newToken);
-      return true;
-    } catch (error) {
-      console.error("Failed to refresh token", error);
-      return false;
-    }
-  };
-
-  // Check if user has a specific permission
-  const hasPermission = (permission: Permission): boolean => {
-    if (!user) return false;
-    return ROLE_PERMISSIONS[user.role].includes(permission);
+  // Function to check if user has a specific role
+  const hasRole = (roleId: number): boolean => {
+    if (!authState.selectedRole) return false;
+    return authState.selectedRole.id === roleId;
   };
 
   return (
     <AuthContext.Provider
       value={{
-        user,
-        token,
+        ...authState,
         login,
         logout,
-        isAuthenticated: !!user,
-        hasPermission,
-        refreshToken
+        selectRole,
+        hasRole,
       }}
     >
       {children}
@@ -350,6 +174,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
+// Hook to use auth context
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (context === undefined) {
@@ -358,39 +183,6 @@ export const useAuth = (): AuthContextType => {
   return context;
 };
 
-// Export additional mock data for UI components
-export const MOCK_COLLEGES: College[] = [
-  { id: "1", name: "College of Natural and Social Sciences" },
-  { id: "2", name: "College of Business and Economics" },
-  { id: "3", name: "College of Health Sciences" },
-  { id: "4", name: "College of Law and Governance" },
-  { id: "5", name: "College of Education and Behavioral Studies" }
-];
-
-export const MOCK_INSTITUTES: Institute[] = [
-  { id: "1", name: "Institute of Technology", collegeId: "1" },
-  { id: "2", name: "Institute of Biotechnology", collegeId: "1" },
-  { id: "3", name: "Institute of Management", collegeId: "2" },
-  { id: "4", name: "Institute of Medicine", collegeId: "3" },
-  { id: "5", name: "Institute of Legal Studies", collegeId: "4" },
-  { id: "6", name: "Institute of Educational Research", collegeId: "5" }
-];
-
-export const MOCK_CAMPUSES: Campus[] = [
-  { id: "1", name: "Main Campus", instituteId: "1" },
-  { id: "2", name: "5 Kilo Campus", instituteId: "1" },
-  { id: "3", name: "Lideta Campus", instituteId: "2" },
-  { id: "4", name: "Commerce Campus", instituteId: "3" },
-  { id: "5", name: "Black Lion Campus", instituteId: "4" },
-  { id: "6", name: "Amist Kilo Campus", instituteId: "5" },
-  { id: "7", name: "Sidist Kilo Campus", instituteId: "6" }
-];
-
-export const AVAILABLE_ROLES: UserRole[] = [
-  "transport_director", 
-  "operational_director", 
-  "fotl", 
-  "ftl", 
-  "mtl", 
-  "regular_staff"
-];
+// Export role constants
+export { ROLE_DETAILS };
+export type { Role };

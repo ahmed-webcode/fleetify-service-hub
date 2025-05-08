@@ -1,43 +1,88 @@
 
-import { useState, useEffect } from "react";
-import { useNavigate, Navigate, useLocation } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
-import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
+import { useState } from "react";
+import { Navigate, useLocation } from "react-router-dom";
+import { useAuth, ROLE_DETAILS } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Car, AlertCircle, Shield } from "lucide-react";
+import { Car, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { toast } from "sonner";
-import { Link } from "react-router-dom";
+import { Loader2 } from "lucide-react";
+import type { Role } from "@/contexts/AuthContext";
+
+// Role selection screen after successful login
+const RoleSelection = ({ roles, onSelect }: { roles: Role[], onSelect: (role: Role) => void }) => {
+  return (
+    <div className="space-y-6">
+      <div className="text-center mb-4">
+        <h2 className="text-2xl font-bold">Select Your Role</h2>
+        <p className="text-slate-600">Choose which role you would like to use for this session</p>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {roles.map((role) => {
+          const roleDetails = ROLE_DETAILS[role.id];
+          return (
+            <Card 
+              key={role.id} 
+              className="cursor-pointer hover:border-primary hover:shadow-md transition-all"
+              onClick={() => onSelect(role)}
+            >
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">{roleDetails?.name || role.name}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-slate-600">
+                  {roleDetails?.description || "Role in the fleet management system"}
+                </p>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
 
 export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
-  const { signIn, user } = useSupabaseAuth();
-  const navigate = useNavigate();
+  const { login, isAuthenticated, roles, selectRole, selectedRole } = useAuth();
   const location = useLocation();
   
   // Get the redirect path from location state if available
   const from = location.state?.from?.pathname || "/dashboard";
 
-  // If already logged in, redirect to dashboard
-  if (user) {
+  // If already fully logged in, redirect to dashboard
+  if (isAuthenticated && selectedRole) {
     return <Navigate to="/dashboard" replace />;
   }
 
-  // Check if user was logged out (via state)
-  useEffect(() => {
-    if (location.state?.loggedOut) {
-      toast.info("You have been logged out");
-      // Clear the state
-      window.history.replaceState({}, document.title);
-    }
-  }, [location.state]);
+  // Show role selection if authenticated but no role selected yet
+  if (isAuthenticated && roles.length > 1 && !selectedRole) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 flex items-center justify-center p-4">
+        <div className="w-full max-w-3xl">
+          <div className="text-center mb-8">
+            <div className="mx-auto w-16 h-16 bg-primary rounded-full flex items-center justify-center mb-4">
+              <Car className="h-8 w-8 text-primary-foreground" />
+            </div>
+            <h1 className="text-3xl font-bold">FleetHub</h1>
+            <p className="text-slate-600">Addis Ababa University Fleet Management</p>
+          </div>
+          
+          <Card className="border-0 shadow-lg">
+            <CardContent className="py-6">
+              <RoleSelection roles={roles} onSelect={selectRole} />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,24 +96,18 @@ export default function Login() {
     setIsLoading(true);
     
     try {
-      // Try Supabase auth first (assuming username is email)
-      const { error, success } = await signIn(username, password);
+      // Attempt login via our auth context
+      const { success, multipleRoles } = await login(username, password);
       
       if (success) {
-        toast.success(`Welcome back!`);
-        navigate(from, { replace: true });
-        return;
-      } 
-      
-      if (error) {
-        // If Supabase fails, try the mock auth
-        const success = await login(username, password);
-        if (success) {
-          toast.success(`Welcome back!`);
-          navigate(from, { replace: true });
-        } else {
-          setError("Invalid username or password");
+        // If we have multiple roles, the role selection page will show next
+        // If only one role, we'll redirect automatically to the dashboard
+        if (!multipleRoles) {
+          // No need to do anything here, redirect will happen automatically
+          // since selectedRole will be set in the auth context
         }
+      } else {
+        setError("Login failed. Please check your credentials.");
       }
     } catch (err) {
       setError("An unexpected error occurred");
@@ -77,14 +116,6 @@ export default function Login() {
       setIsLoading(false);
     }
   };
-
-  // Sample credentials to show on the login page
-  const credentialInfo = [
-    { role: "Transport Director", username: "transport_director", description: "Full system access" },
-    { role: "Operational Director", username: "operational_director", description: "Request services" },
-    { role: "FOTL", username: "fotl", description: "Fuel approvals" },
-    { role: "FTL", username: "ftl", description: "Fleet approvals" },
-  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 flex items-center justify-center p-4">
@@ -101,7 +132,7 @@ export default function Login() {
           <CardHeader>
             <CardTitle>Login to your account</CardTitle>
             <CardDescription>
-              Enter your credentials to access your account
+              Enter your credentials to access the fleet management system
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -114,11 +145,11 @@ export default function Login() {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="username">Username / Email</Label>
+                <Label htmlFor="username">Username</Label>
                 <Input
                   id="username"
                   type="text"
-                  placeholder="username or email"
+                  placeholder="username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   autoComplete="username"
@@ -128,9 +159,7 @@ export default function Login() {
               </div>
 
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
-                </div>
+                <Label htmlFor="password">Password</Label>
                 <Input
                   id="password"
                   type="password"
@@ -144,31 +173,20 @@ export default function Login() {
               </div>
 
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Logging in..." : "Login"}
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Logging in...
+                  </>
+                ) : (
+                  "Login"
+                )}
               </Button>
-              
-              <div className="text-center">
-                <Link to="/auth" className="text-sm text-primary hover:underline">
-                  Don't have an account? Sign up
-                </Link>
-              </div>
             </form>
           </CardContent>
           <CardFooter>
-            <div className="w-full text-sm text-slate-500">
-              <p className="mb-2 font-medium">Demo credentials (use password: password123)</p>
-              <div className="grid grid-cols-2 gap-2">
-                {credentialInfo.map((cred) => (
-                  <div key={cred.username} className="border rounded p-2 text-xs hover:bg-slate-50 cursor-pointer" onClick={() => setUsername(cred.username)}>
-                    <div className="font-medium flex items-center gap-1">
-                      <Shield className="h-3 w-3 text-primary" />
-                      {cred.role}
-                    </div>
-                    <div className="text-slate-400">@{cred.username}</div>
-                    <div className="text-slate-500 text-[10px] mt-1">{cred.description}</div>
-                  </div>
-                ))}
-              </div>
+            <div className="w-full text-xs text-slate-500 text-center">
+              <p>Demo account: <span className="font-medium">transport_director</span> / <span className="font-medium">password</span></p>
             </div>
           </CardFooter>
         </Card>
