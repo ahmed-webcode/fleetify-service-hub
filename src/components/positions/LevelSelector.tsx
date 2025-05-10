@@ -57,8 +57,7 @@ export const LevelSelector = ({
     if (levelId === 0) return "Select level";
 
     if (useProjects) {
-      // Now TypeScript knows projects is ProjectOption[]
-      const project = projects.find((p: ProjectOption) => p.id === levelId);
+      const project = projects.find((p) => p.id === levelId);
       return project ? project.name : "Select level";
     } else {
       const level = levels.find((l) => l.id === levelId);
@@ -111,12 +110,11 @@ export const LevelSelector = ({
                     </div>
                   ) : (
                     <>
-                      {/* Now TypeScript knows projects is ProjectOption[] */}
                       {projects.length === 0 ? (
                         <CommandEmpty>No projects found.</CommandEmpty>
                       ) : (
                         <CommandGroup>
-                          {projects.map((project: ProjectOption) => (
+                          {projects.map((project) => (
                             <CommandItem
                               key={project.id}
                               value={project.id.toString()}
