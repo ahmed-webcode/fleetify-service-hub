@@ -57,6 +57,7 @@ export const LevelSelector = ({
     if (levelId === 0) return "Select level";
 
     if (useProjects) {
+      // Now TypeScript knows projects is ProjectOption[]
       const project = projects.find((p: ProjectOption) => p.id === levelId);
       return project ? project.name : "Select level";
     } else {
@@ -110,6 +111,7 @@ export const LevelSelector = ({
                     </div>
                   ) : (
                     <>
+                      {/* Now TypeScript knows projects is ProjectOption[] */}
                       {projects.length === 0 ? (
                         <CommandEmpty>No projects found.</CommandEmpty>
                       ) : (
