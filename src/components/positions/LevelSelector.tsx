@@ -44,7 +44,7 @@ export const LevelSelector = ({
 
   // Fetch projects when using projects mode and search term is present
   const {
-    data: projects = [],
+    data: projects = [] as ProjectOption[],
     isLoading: isLoadingProjects,
   } = useQuery({
     queryKey: ["projects", debouncedSearchTerm],

@@ -33,7 +33,7 @@ const PositionsManagement = () => {
 
   // Fetch positions
   const { 
-    data: positions = [], 
+    data: positions = [] as Position[], 
     isLoading, 
     error 
   } = useQuery({
@@ -79,7 +79,7 @@ const PositionsManagement = () => {
   };
 
   return (
-    <PageLayout title="Positions Management">
+    <PageLayout>
       <div className="container mx-auto py-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-semibold">Positions Management</h1>
