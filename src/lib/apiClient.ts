@@ -1,4 +1,3 @@
-
 import { toast } from "sonner";
 
 // Base URL configuration
@@ -170,5 +169,92 @@ export const apiClient = {
         body: JSON.stringify(incidentData),
       });
     }
+  },
+
+  // Positions endpoints
+  positions: {
+    getAll: () => {
+      return fetchWithErrorHandling("/positions");
+    },
+    getById: (id: number) => {
+      return fetchWithErrorHandling(`/positions/${id}`);
+    },
+    create: (positionData: CreatePositionDto) => {
+      return fetchWithErrorHandling("/positions", {
+        method: "POST",
+        body: JSON.stringify(positionData),
+      });
+    },
+    update: (positionData: UpdatePositionDto) => {
+      return fetchWithErrorHandling("/positions", {
+        method: "PATCH",
+        body: JSON.stringify(positionData),
+      });
+    },
+    delete: (id: number) => {
+      return fetchWithErrorHandling(`/positions/${id}`, {
+        method: "DELETE",
+      });
+    },
+  },
+
+  // Levels endpoints
+  levels: {
+    getAll: () => {
+      return fetchWithErrorHandling("/levels");
+    },
+  },
+
+  // Projects endpoints
+  projects: {
+    searchAutocomplete: (search: string, limit: number = 10) => {
+      return fetchWithErrorHandling(`/projects/autocomplete?search=${encodeURIComponent(search)}&limit=${limit}`);
+    },
   }
 };
+
+// Types for Position Management
+export interface Position {
+  id: number;
+  name: string;
+  description: string;
+  fuelQuota: number;
+  vehicleEntitlement: boolean;
+  policyReference: string;
+  levelName: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreatePositionDto {
+  name: string;
+  description: string;
+  fuelQuota: number;
+  vehicleEntitlement: boolean;
+  policyReference: string;
+  levelId: number;
+}
+
+export interface UpdatePositionDto {
+  id: number;
+  name?: string;
+  description?: string;
+  fuelQuota?: number;
+  vehicleEntitlement?: boolean;
+  policyReference?: string;
+  levelId?: number;
+}
+
+export interface Level {
+  id: number;
+  parentId: number | null;
+  name: string;
+  children: number[];
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+
+export interface ProjectOption {
+  id: number;
+  name: string;
+}

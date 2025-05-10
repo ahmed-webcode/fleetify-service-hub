@@ -26,6 +26,7 @@ import RequestMaintenance from "./pages/RequestMaintenance";
 import ReportIncident from "./pages/ReportIncident";
 import InsuranceManagement from "./pages/InsuranceManagement";
 import VehicleDetail from './pages/VehicleDetail';
+import PositionsManagement from './pages/PositionsManagement';
 
 // Define role IDs for easier reference in protected routes
 const ROLES = {
@@ -163,6 +164,12 @@ const App = () => {
               <Route path="/driver-management" element={
                 <ProtectedRoute allowedRoleIds={[ROLES.TRANSPORT_DIRECTOR, ROLES.DEPLOYMENT_MANAGER]}>
                   <DriverManagement />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/positions-management" element={
+                <ProtectedRoute allowedRoleIds={[ROLES.TRANSPORT_DIRECTOR, ROLES.OPERATIONAL_DIRECTOR]}>
+                  <PositionsManagement />
                 </ProtectedRoute>
               } />
               

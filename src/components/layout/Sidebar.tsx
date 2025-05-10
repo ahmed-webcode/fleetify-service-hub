@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -25,6 +26,7 @@ import {
     LogOut,
     UserCog,
     Menu,
+    Briefcase,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -125,6 +127,7 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
                     children: [
                         { name: 'Staff', icon: <Users size={16} />, path: '/manage-staff', permission: 'add_users' },
                         { name: 'Drivers', icon: <User size={16} />, path: '/driver-management', permission: 'manage_drivers' },
+                        { name: 'Positions', icon: <Briefcase size={16} />, path: '/positions-management', permission: null },
                     ],
                 },
                 {
