@@ -74,7 +74,9 @@ export function AddVehicleForm({ onSubmit }) {
     queryKey: ["users"],
     queryFn: async () => {
       try {
-        return await apiClient.users.getAll();
+        const u = await apiClient.users.getAll() as any;
+        console.log(u);
+        return u;
       } catch (error) {
         console.error("Failed to fetch users:", error);
         toast.error("Failed to load users");
@@ -189,8 +191,8 @@ export function AddVehicleForm({ onSubmit }) {
           // Update the vehicle with image URLs
           if (imgSrc || libreSrc) {
             const updateData = {};
-            if (imgSrc) updateData.img_src = imgSrc;
-            if (libreSrc) updateData.libre_src = libreSrc;
+            if (imgSrc) updateData["img_src"] = imgSrc;
+            if (libreSrc) updateData["libre_src"] = libreSrc;
             
             const { error: updateError } = await supabase
               .from('vehicles')

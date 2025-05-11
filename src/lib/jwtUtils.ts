@@ -90,11 +90,13 @@ export type Permission =
   | 'report_incidents'
   | 'track_vehicles'
   | 'view_reports'
+  | 'view_admin_section'
+  | 'manage_users_section'
   | 'add_vehicle';    // Added this permission
 
 // Map roles to permissions
 export const ROLE_PERMISSIONS: Record<number, Permission[]> = {
-  1: ['add_users', 'manage_drivers', 'request_fleet', 'approve_fleet', 'approve_maintenance', 'request_maintenance', 'report_incidents', 'track_vehicles', 'view_reports', 'add_vehicle'], // Transport Director
+  1: ['add_users', 'manage_drivers', 'approve_fleet', 'approve_maintenance', 'request_maintenance', 'report_incidents', 'track_vehicles', 'view_reports', 'add_vehicle', 'view_admin_section', 'manage_users_section'], // Transport Director
   2: ['approve_maintenance', 'request_maintenance', 'report_incidents', 'view_reports'], // Maintenance Manager
   3: ['manage_drivers', 'request_fleet', 'approve_fleet', 'report_incidents', 'track_vehicles'], // Deployment Manager
   4: ['request_maintenance', 'report_incidents', 'view_reports'], // Fuel Manager

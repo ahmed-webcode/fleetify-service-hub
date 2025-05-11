@@ -7,7 +7,6 @@ import {
   CreatePositionDto,
   UpdatePositionDto 
 } from "@/lib/apiClient";
-import { PageLayout } from "@/components/layout/PageLayout";
 import { Button } from "@/components/ui/button";
 import { 
   Table, 
@@ -79,7 +78,7 @@ const PositionsManagement = () => {
   };
 
   return (
-    <PageLayout>
+    <>
       <div className="container mx-auto py-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-semibold">Positions Management</h1>
@@ -114,14 +113,14 @@ const PositionsManagement = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {positions.length === 0 ? (
+                {(positions as any).length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center py-4 text-gray-500">
                       No positions found. Add your first position.
                     </TableCell>
                   </TableRow>
                 ) : (
-                  positions.map((position) => (
+                  (positions as any).map((position) => (
                     <TableRow key={position.id}>
                       <TableCell className="font-medium">{position.name}</TableCell>
                       <TableCell>{position.levelName}</TableCell>
@@ -183,7 +182,7 @@ const PositionsManagement = () => {
           />
         </>
       )}
-    </PageLayout>
+    </>
   );
 };
 

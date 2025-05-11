@@ -120,10 +120,10 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
         },
         { name: 'Reports', icon: <BarChart size={20} />, path: '/reports', permission: 'view_reports' },
         {
-            name: 'Administration', icon: <UserCog size={20} />, path: '#admin', permission: 'view_admin_section', // Example permission for whole section
+            name: 'Administration', icon: <UserCog size={20} />, path: '#admin', permission: 'view_admin_section',
             children: [
                 {
-                    name: 'User Management', icon: <Users size={18} />, path: '#user-mgmt', permission: 'manage_users_section', // Example permission for sub-section
+                    name: 'User Management', icon: <Users size={18} />, path: '#user-mgmt', permission: 'manage_users_section',
                     children: [
                         { name: 'Staff', icon: <Users size={16} />, path: '/manage-staff', permission: 'add_users' },
                         { name: 'Drivers', icon: <User size={16} />, path: '/driver-management', permission: 'manage_drivers' },

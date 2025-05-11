@@ -57,7 +57,7 @@ export const LevelSelector = ({
     if (levelId === 0) return "Select level";
 
     if (useProjects) {
-      const project = projects.find((p) => p.id === levelId);
+      const project = (projects as ProjectOption[]).find((p) => p.id === levelId);
       return project ? project.name : "Select level";
     } else {
       const level = levels.find((l) => l.id === levelId);
@@ -110,11 +110,11 @@ export const LevelSelector = ({
                     </div>
                   ) : (
                     <>
-                      {projects.length === 0 ? (
+                      {(projects as ProjectOption[]).length === 0 ? (
                         <CommandEmpty>No projects found.</CommandEmpty>
                       ) : (
                         <CommandGroup>
-                          {projects.map((project) => (
+                          {(projects as ProjectOption[]).map((project) => (
                             <CommandItem
                               key={project.id}
                               value={project.id.toString()}

@@ -17,7 +17,8 @@ import {
   Monitor, 
   Users, 
   Building,
-  ArrowRight
+  ArrowRight,
+  PersonStanding
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -253,6 +254,25 @@ export default function Settings() {
                     </Link>
                   </CardContent>
                 </Card>
+
+                <Card>
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center gap-2">
+                      <PersonStanding className="h-5 w-5 text-primary" />
+                      <CardTitle>Position Management</CardTitle>
+                    </div>
+                    <CardDescription>Manage user positions in colleges, institutes, and campuses</CardDescription>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <p className="text-sm mb-4">Define the user organizational hierarchy for Addis Ababa University.</p>
+                    <Link to="/positions-management">
+                      <Button className="w-full gap-1">
+                        Manage Positions <ArrowRight className="h-4 w-4" />
+                      </Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+
               </CardContent>
             </Card>
           </TabsContent>

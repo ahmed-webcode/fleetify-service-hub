@@ -96,6 +96,13 @@ export const apiClient = {
     }
   },
 
+  // User endpoints
+  users: {
+    getAll: () => {
+      return fetchWithErrorHandling("/users");
+    }
+  },
+
   // Vehicle endpoints
   vehicles: {
     getAll: () => {
