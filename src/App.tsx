@@ -101,17 +101,36 @@ const App = () => {
                 </ProtectedRoute>
               } />
               
+              {/* Service request routes */}
               <Route path="/service-requests" element={
                 <ProtectedRoute>
                   <ServiceRequests />
                 </ProtectedRoute>
               } />
               
-              <Route path="/request-maintenance" element={
+              <Route path="/service-requests/fleet" element={
+                <ProtectedRoute>
+                  <ServiceRequests />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/service-requests/fuel" element={
+                <ProtectedRoute>
+                  <ServiceRequests />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/service-requests/maintenance" element={
+                <ProtectedRoute allowedRoleIds={[ROLES.TRANSPORT_DIRECTOR, ROLES.MAINTENANCE_MANAGER, ROLES.MECHANIC, ROLES.OPERATIONAL_DIRECTOR, ROLES.DRIVER]}>
+                  <ServiceRequests />
+                </ProtectedRoute>
+              } />
+              
+              {/* <Route path="/request-maintenance" element={
                 <ProtectedRoute allowedRoleIds={[ROLES.TRANSPORT_DIRECTOR, ROLES.MAINTENANCE_MANAGER, ROLES.MECHANIC, ROLES.OPERATIONAL_DIRECTOR, ROLES.DRIVER]}>
                   <RequestMaintenance />
                 </ProtectedRoute>
-              } />
+              } /> */}
               
               <Route path="/report-incident" element={
                 <ProtectedRoute>

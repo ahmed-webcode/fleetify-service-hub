@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -55,13 +54,13 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
         const mobile = window.innerWidth < 768;
         setIsMobileView(mobile);
         if (!mobile && setIsMobileOpen) {
-            setIsMobileOpen(false); 
+            setIsMobileOpen(false);
         }
     }, [setIsMobileOpen]);
 
     useEffect(() => {
         window.addEventListener('resize', handleResize);
-        handleResize(); 
+        handleResize();
         return () => window.removeEventListener('resize', handleResize);
     }, [handleResize]);
 
@@ -83,7 +82,7 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
         setIsCollapsed(newState);
         localStorage.setItem('sidebarCollapsedState', newState.toString());
     };
-    
+
     const handleMobileToggle = () => {
         setIsMobileOpen?.(!isMobileOpen);
     };
@@ -108,12 +107,22 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
                 { name: 'Fuel Management', icon: <Fuel size={18} />, path: '/fuel-management', permission: null },
             ],
         },
-        { name: 'Service Requests', icon: <FileText size={20} />, path: '/service-requests', permission: null },
         {
-            name: 'Services & Incidents', icon: <Wrench size={20} />, path: '#services', permission: null,
+            name: 'Service Requests',
+            icon: <FileText size={20} />,
+            path: '#service-requests',
+            permission: null,
+            children: [
+                { name: 'Fleet Service', icon: <Car size={18} />, path: '/service-requests/fleet', permission: null },
+                { name: 'Fuel Service', icon: <Fuel size={18} />, path: '/service-requests/fuel', permission: null },
+                { name: 'Maintenance', icon: <Wrench size={18} />, path: '/service-requests/maintenance', permission: null }
+            ]
+        },
+        {
+            name: 'Records & Incidents', icon: <Wrench size={20} />, path: '#services', permission: null,
             children: [
                 { name: 'Maintenance Records', icon: <Wrench size={18} />, path: '/maintenance-requests', permission: 'approve_maintenance' },
-                { name: 'Request Maintenance', icon: <FileText size={18} />, path: '/request-maintenance', permission: 'request_maintenance' },
+                // { name: 'Request Maintenance', icon: <FileText size={18} />, path: '/request-maintenance', permission: 'request_maintenance' },
                 { name: 'Report Incident', icon: <Shield size={18} />, path: '/report-incident', permission: 'report_incidents' },
                 { name: 'Insurance Management', icon: <Shield size={18} />, path: '/insurance-management', permission: null },
             ],
@@ -151,7 +160,16 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
                 const isGroup = item.path.startsWith('#');
 
                 if (isGroup) {
-                    if (effectiveChildren.length === 0) return null; 
+                    if (effectiveChildren.length === 0 && item.children && item.children.length > 0) { // Only hide if all children are filtered out by permission
+                        return null;
+                    }
+                    if (effectiveChildren.length === 0 && !item.children) { // If it's meant to be a group but has no children defined, it's probably an error or just a header
+                        // Decide how to handle this case: render as a non-clickable header or hide
+                        // For now, let's assume if it's a group it must have children to be useful
+                        // return null; // Hiding if no effective children
+                    }
+
+
                     const isOpen = openGroups[item.name] || false;
                     const isParentActive = effectiveChildren.some(child => location.pathname.startsWith(child.path) && child.path !== '/');
 
@@ -165,7 +183,7 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
                                     level === 0 ? 'px-3 py-2.5 text-slate-700 hover:bg-slate-100 hover:text-slate-900' : 'px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-slate-800',
                                     (isOpen || (isParentActive && !isCollapsed)) && !isCollapsed && (level === 0 ? 'bg-slate-100 text-slate-900 font-medium' : 'text-slate-800 font-medium'),
                                     isCollapsed && level === 0 && 'justify-center p-2.5',
-                                    isCollapsed && level > 0 && 'hidden' 
+                                    isCollapsed && level > 0 && 'hidden'
                                 )}
                                 onClick={() => !isCollapsed && toggleGroup(item.name)}
                                 title={isCollapsed ? item.name : undefined}
@@ -175,9 +193,9 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
                                     {item.icon}
                                 </span>
                                 {!isCollapsed && <span className="flex-1 text-left truncate">{item.name}</span>}
-                                {!isCollapsed && <ChevronDown size={16} className={cn('text-slate-400 transition-transform duration-200', isOpen ? 'rotate-180' : 'rotate-0')} />}
+                                {!isCollapsed && effectiveChildren.length > 0 && <ChevronDown size={16} className={cn('text-slate-400 transition-transform duration-200', isOpen ? 'rotate-180' : 'rotate-0')} />}
                             </button>
-                            {!isCollapsed && isOpen && (
+                            {!isCollapsed && isOpen && effectiveChildren.length > 0 && (
                                 <div className="mt-1 space-y-0.5 pl-5">
                                     {renderSidebarItems(effectiveChildren, level + 1)}
                                 </div>
@@ -198,10 +216,15 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
                                 level === 0 ? 'px-3 py-2.5 text-slate-700 hover:bg-slate-100 hover:text-slate-900' : 'px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-slate-800',
                                 isActive && (level === 0 ? 'bg-blue-600 text-white hover:bg-blue-600 hover:text-white font-medium' : 'bg-blue-50 text-blue-700 font-medium hover:bg-blue-100'),
                                 isCollapsed && level === 0 && 'justify-center p-2.5',
-                                isCollapsed && level > 0 && 'hidden' 
+                                isCollapsed && level > 0 && 'hidden'
                             )
                         }
                         title={isCollapsed ? item.name : undefined}
+                        onClick={() => {
+                            if (isMobileView && setIsMobileOpen) {
+                                setIsMobileOpen(false);
+                            }
+                        }}
                     >
                         <span className={cn('text-slate-500 group-hover:text-slate-700', 'group-[.bg-blue-600]:text-white', 'group-[.bg-blue-50]:text-blue-600')}>
                             {item.icon}
@@ -247,6 +270,7 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
                             isCollapsed && !isMobileView && 'p-2.5 justify-center'
                         )}
                         title={isCollapsed && !isMobileView ? 'Notifications' : undefined}
+                        onClick={() => { if (isMobileView && setIsMobileOpen) setIsMobileOpen(false); }}
                     >
                         <Bell size={19} className="text-slate-500 group-hover:text-slate-700 group-[.bg-blue-600]:text-white" />
                         {(!isCollapsed || isMobileView) && <span className="flex-1 truncate">Notifications</span>}
@@ -260,6 +284,7 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
                             isCollapsed && !isMobileView && 'p-2.5 justify-center'
                         )}
                         title={isCollapsed && !isMobileView ? 'Help & Support' : undefined}
+                        onClick={() => { if (isMobileView && setIsMobileOpen) setIsMobileOpen(false); }}
                     >
                         <HelpCircle size={19} className="text-slate-500 group-hover:text-slate-700 group-[.bg-blue-600]:text-white" />
                         {(!isCollapsed || isMobileView) && <span className="truncate">Help & Support</span>}
@@ -268,7 +293,7 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
                 <div className={cn('p-3 border-t border-slate-200')}>
                     {(!isCollapsed || isMobileView) ? (
                         <div className="flex items-center justify-between">
-                            <NavLink to="/profile" className="flex items-center gap-2.5 group min-w-0">
+                            <NavLink to="/profile" className="flex items-center gap-2.5 group min-w-0" onClick={() => { if (isMobileView && setIsMobileOpen) setIsMobileOpen(false); }}>
                                 <User size={36} className="rounded-full text-slate-500 bg-slate-100 p-1.5 group-hover:bg-slate-200 transition-colors shrink-0" />
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm font-medium text-slate-800 truncate group-hover:text-blue-600 transition-colors">{getUserDisplayName()}</p>
@@ -308,7 +333,7 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
     return (
         <aside className={cn('relative h-screen bg-white border-r border-slate-200 shadow-sm flex flex-col transition-width duration-300 ease-in-out', isCollapsed ? 'w-[72px]' : 'w-64')}>
             {sidebarContent}
-            {isCollapsed && (
+            {isCollapsed && !isMobileView && ( // Ensure button only shows on desktop collapsed
                 <button
                     onClick={handleDesktopToggle}
                     className="absolute left-full top-3 -translate-x-1/2 z-10 p-1 bg-white border border-slate-300 rounded-full shadow-md hover:bg-slate-50 text-slate-600 transition-all hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"

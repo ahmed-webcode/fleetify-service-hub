@@ -8,18 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { Link } from "react-router-dom";
 import { 
   UserCircle, 
   Bell, 
-  Shield, 
   Languages, 
-  Monitor, 
-  Users, 
-  Building,
-  ArrowRight,
-  PersonStanding
-} from "lucide-react";
+  Monitor} from "lucide-react";
 import { toast } from "sonner";
 
 export default function Settings() {
@@ -53,12 +46,6 @@ export default function Settings() {
             <Bell className="h-4 w-4" />
             <span>Notifications</span>
           </TabsTrigger>
-          {hasPermission("add_users") && (
-            <TabsTrigger value="administration" className="flex items-center gap-2">
-              <Shield className="h-4 w-4" />
-              <span>Administration</span>
-            </TabsTrigger>
-          )}
           <TabsTrigger value="appearance" className="flex items-center gap-2">
             <Monitor className="h-4 w-4" />
             <span>Appearance</span>
@@ -211,73 +198,6 @@ export default function Settings() {
           </Card>
         </TabsContent>
 
-        {hasPermission("add_users") && (
-          <TabsContent value="administration" className="space-y-4 mt-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>System Administration</CardTitle>
-                <CardDescription>Manage system users and organizational structure</CardDescription>
-              </CardHeader>
-              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Card>
-                  <CardHeader className="pb-2">
-                    <div className="flex items-center gap-2">
-                      <Users className="h-5 w-5 text-primary" />
-                      <CardTitle>User Management</CardTitle>
-                    </div>
-                    <CardDescription>Manage user accounts and permissions</CardDescription>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <p className="text-sm mb-4">Create, edit, and manage user accounts for the fleet management system.</p>
-                    <Link to="/manage-users">
-                      <Button className="w-full gap-1">
-                        Manage Users <ArrowRight className="h-4 w-4" />
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader className="pb-2">
-                    <div className="flex items-center gap-2">
-                      <Building className="h-5 w-5 text-primary" />
-                      <CardTitle>Organizational Structure</CardTitle>
-                    </div>
-                    <CardDescription>Manage colleges, institutes, and campuses</CardDescription>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <p className="text-sm mb-4">Define the organizational hierarchy for Addis Ababa University.</p>
-                    <Link to="/manage-colleges">
-                      <Button className="w-full gap-1">
-                        Manage Structure <ArrowRight className="h-4 w-4" />
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="pb-2">
-                    <div className="flex items-center gap-2">
-                      <PersonStanding className="h-5 w-5 text-primary" />
-                      <CardTitle>Position Management</CardTitle>
-                    </div>
-                    <CardDescription>Manage user positions in colleges, institutes, and campuses</CardDescription>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <p className="text-sm mb-4">Define the user organizational hierarchy for Addis Ababa University.</p>
-                    <Link to="/positions-management">
-                      <Button className="w-full gap-1">
-                        Manage Positions <ArrowRight className="h-4 w-4" />
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-
-              </CardContent>
-            </Card>
-          </TabsContent>
-        )}
-        
         <TabsContent value="appearance" className="space-y-4 mt-4">
           <Card>
             <CardHeader>
