@@ -1,4 +1,3 @@
-
 import { toast } from "sonner";
 
 // Base URL configuration
@@ -249,9 +248,9 @@ export const apiClient = {
     },
     
     update: (id: number, projectData: UpdateProjectDto) => {
-      return fetchWithErrorHandling<Project>(`/projects`, {
+      return fetchWithErrorHandling<Project>(`/projects/${id}`, {
         method: "PATCH",
-        body: JSON.stringify({ id, ...projectData }),
+        body: JSON.stringify(projectData),
       });
     }
   }
