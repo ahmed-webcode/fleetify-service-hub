@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { apiClient, ProjectOption } from '@/lib/apiClient';
 import { FlattenedLevel } from '@/lib/levelService';
@@ -123,7 +122,7 @@ export const LevelSelector = ({
           <SelectLabel>Levels</SelectLabel>
           {levels.map((level) => (
             <SelectItem key={level.id} value={level.id.toString()}>
-              {level.name} {level.depth > 0 && `(${level.parentNames})`}
+              {level.name} {level.depth > 0 && `(${level.path.split(' > ').slice(0, -1).join(' > ')})`}
             </SelectItem>
           ))}
         </SelectGroup>

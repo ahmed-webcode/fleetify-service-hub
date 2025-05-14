@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -252,7 +251,7 @@ const Vehicles = () => {
             name: v.type + ' ' + (v.model || ''),
             type: v.type || '',
             model: v.model || '',
-            year: v.made_year || 2020,
+            year: v.made_year || 2020, // Using made_year from db as year in our interface
             licensePlate: v.plate_number,
             status: mapDatabaseStatus(v.status),
             lastLocation: v.location_id || '',
@@ -339,7 +338,7 @@ const Vehicles = () => {
   
   const handleFormSubmit = async (vehicleData: any) => {
     try {
-      // Insert the vehicle into the database
+      // Insert the vehicle into the database - using correct field names
       const { data, error } = await supabase
         .from('vehicles')
         .insert({
@@ -380,7 +379,7 @@ const Vehicles = () => {
           name: data[0].type + ' ' + (data[0].model || ''),
           type: data[0].type,
           model: data[0].model || '',
-          year: data[0].made_year || 2020,
+          year: data[0].made_year || 2020, // Using made_year from db as year in our interface
           licensePlate: data[0].plate_number,
           status: mapDatabaseStatus(data[0].status),
           mileage: data[0].km_reading || 0,

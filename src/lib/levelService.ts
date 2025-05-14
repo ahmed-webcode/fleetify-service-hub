@@ -8,6 +8,7 @@ export interface FlattenedLevel {
   name: string;
   path: string;
   depth: number;
+  parentNames?: string; // Add this property
 }
 
 // Key used for localStorage
