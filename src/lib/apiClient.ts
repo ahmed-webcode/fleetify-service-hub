@@ -1,3 +1,4 @@
+
 import { toast } from "sonner";
 
 // Base URL configuration
@@ -180,26 +181,33 @@ export const apiClient = {
 
   // Positions endpoints
   positions: {
-    getAll: () => {
-      return fetchWithErrorHandling("/positions");
+    getAll: (params?: PositionQueryParams) => {
+      const queryString = params ? 
+        `?${new URLSearchParams(
+          Object.entries(params)
+            .filter(([_, value]) => value !== undefined && value !== null)
+            .map(([key, value]) => [key, value.toString()])
+        ).toString()}` : '';
+      
+      return fetchWithErrorHandling<PageResponse<Position>>(`/positions${queryString}`);
     },
     getById: (id: number) => {
-      return fetchWithErrorHandling(`/positions/${id}`);
+      return fetchWithErrorHandling<Position>(`/positions/${id}`);
     },
     create: (positionData: CreatePositionDto) => {
-      return fetchWithErrorHandling("/positions", {
+      return fetchWithErrorHandling<Position>("/positions", {
         method: "POST",
         body: JSON.stringify(positionData),
       });
     },
     update: (positionData: UpdatePositionDto) => {
-      return fetchWithErrorHandling("/positions", {
+      return fetchWithErrorHandling<Position>("/positions", {
         method: "PATCH",
         body: JSON.stringify(positionData),
       });
     },
     delete: (id: number) => {
-      return fetchWithErrorHandling(`/positions/${id}`, {
+      return fetchWithErrorHandling<void>(`/positions/${id}`, {
         method: "DELETE",
       });
     },
@@ -229,6 +237,7 @@ export interface Position {
   vehicleEntitlement: boolean;
   policyReference: string;
   levelName: string;
+  status?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -264,4 +273,41 @@ export interface Level {
 export interface ProjectOption {
   id: number;
   name: string;
+}
+
+// Pagination types
+export interface PageResponse<T> {
+  content: T[];
+  pageable: Pageable;
+  last: boolean;
+  totalElements: number;
+  totalPages: number;
+  first: boolean;
+  size: number;
+  number: number;
+  sort: Sort;
+  numberOfElements: number;
+  empty: boolean;
+}
+
+export interface Pageable {
+  pageNumber: number;
+  pageSize: number;
+  sort: Sort;
+  offset: number;
+  unpaged: boolean;
+  paged: boolean;
+}
+
+export interface Sort {
+  empty: boolean;
+  sorted: boolean;
+  unsorted: boolean;
+}
+
+export interface PositionQueryParams {
+  page?: number;
+  size?: number;
+  sortBy?: string;
+  direction?: 'ASC' | 'DESC';
 }
