@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { apiClient, ProjectOption } from '@/lib/apiClient';
+import { apiClient, LightLevelDto, ProjectOption } from '@/lib/apiClient';
 import { FlattenedLevel } from '@/lib/levelService';
 import {
   Select,
@@ -32,7 +33,7 @@ export const LevelSelector = ({
   debouncedSearchTerm,
   levels
 }: LevelSelectorProps) => {
-  const [projects, setProjects] = useState<ProjectOption[]>([]);
+  const [projects, setProjects] = useState<LightLevelDto[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -56,7 +57,7 @@ export const LevelSelector = ({
         setError(null);
         try {
           const data = await apiClient.projects.searchAutocomplete(debouncedSearchTerm);
-          setProjects(data as ProjectOption[]);
+          setProjects(data.content);
         } catch (err: any) {
           setError(err.message || 'Failed to fetch projects');
           setProjects([]);
@@ -109,7 +110,7 @@ export const LevelSelector = ({
     );
   }
 
-  // Regular level selector
+  // Regular level selector with non-structural levels only
   return (
     <Select value={selectedValue} onValueChange={handleSelectionChange}>
       <SelectTrigger>

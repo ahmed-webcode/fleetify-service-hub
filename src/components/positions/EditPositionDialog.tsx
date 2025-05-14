@@ -5,8 +5,8 @@ import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { apiClient, Position, UpdatePositionDto } from "@/lib/apiClient";
-import { getFlattenedLevels, FlattenedLevel } from "@/lib/levelService";
+import { apiClient, Position, UpdatePositionDto, PositionStatus } from "@/lib/apiClient";
+import { getFlattenedLevels } from "@/lib/levelService";
 import { useDebounce } from "@/hooks/useDebounce";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,6 +27,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { LevelSelector } from "@/components/positions/LevelSelector";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface EditPositionDialogProps {
   open: boolean;
@@ -42,6 +49,7 @@ const formSchema = z.object({
   vehicleEntitlement: z.boolean(),
   policyReference: z.string().min(1, { message: "Policy reference is required" }),
   levelId: z.number().min(1, { message: "Level selection is required" }),
+  status: z.nativeEnum(PositionStatus),
 });
 
 export const EditPositionDialog = ({ 
@@ -64,11 +72,12 @@ export const EditPositionDialog = ({
       vehicleEntitlement: position.vehicleEntitlement,
       policyReference: position.policyReference,
       levelId: 0, // We'll need to find the correct levelId
+      status: position.status as PositionStatus || PositionStatus.ACTIVE,
     },
   });
 
-  // Get flattened levels from localStorage
-  const flattenedLevels = getFlattenedLevels();
+  // Get flattened levels from localStorage - exclude structural levels
+  const flattenedLevels = getFlattenedLevels(false);
 
   // Update form when position changes
   useEffect(() => {
@@ -81,6 +90,7 @@ export const EditPositionDialog = ({
         vehicleEntitlement: position.vehicleEntitlement,
         policyReference: position.policyReference,
         levelId: findLevelIdByName(position.levelName, flattenedLevels) || 0,
+        status: position.status as PositionStatus || PositionStatus.ACTIVE,
       });
     }
   }, [position, open, form, flattenedLevels]);
@@ -202,37 +212,68 @@ export const EditPositionDialog = ({
               />
             </div>
 
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <FormLabel>Level</FormLabel>
-                <div className="flex items-center space-x-2">
-                  <FormLabel htmlFor="project-toggle-edit" className="text-sm cursor-pointer">
-                    Use Projects
-                  </FormLabel>
-                  <Switch
-                    id="project-toggle-edit"
-                    checked={useProjects}
-                    onCheckedChange={setUseProjects}
-                  />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <FormLabel>Level</FormLabel>
+                  <div className="flex items-center space-x-2">
+                    <FormLabel htmlFor="project-toggle-edit" className="text-sm cursor-pointer">
+                      Use Projects
+                    </FormLabel>
+                    <Switch
+                      id="project-toggle-edit"
+                      checked={useProjects}
+                      onCheckedChange={setUseProjects}
+                    />
+                  </div>
                 </div>
+
+                <FormField
+                  control={form.control}
+                  name="levelId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <LevelSelector
+                          useProjects={useProjects}
+                          levelId={field.value}
+                          onChange={field.onChange}
+                          onSearchChange={setSearchTerm}
+                          searchTerm={searchTerm}
+                          debouncedSearchTerm={debouncedSearchTerm}
+                          levels={flattenedLevels}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
 
               <FormField
                 control={form.control}
-                name="levelId"
+                name="status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormControl>
-                      <LevelSelector
-                        useProjects={useProjects}
-                        levelId={field.value}
-                        onChange={field.onChange}
-                        onSearchChange={setSearchTerm}
-                        searchTerm={searchTerm}
-                        debouncedSearchTerm={debouncedSearchTerm}
-                        levels={flattenedLevels}
-                      />
-                    </FormControl>
+                    <FormLabel>Status</FormLabel>
+                    <Select 
+                      onValueChange={(value) => field.onChange(value as PositionStatus)}
+                      defaultValue={field.value}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {Object.values(PositionStatus).map((status) => (
+                          <SelectItem key={status} value={status}>
+                            {status}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

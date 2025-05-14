@@ -8,7 +8,8 @@ export interface FlattenedLevel {
   name: string;
   path: string;
   depth: number;
-  parentNames?: string; // Add this property
+  parentNames?: string;
+  isStructural: boolean;
 }
 
 // Key used for localStorage
@@ -51,7 +52,7 @@ export const getLevelsFromStorage = (): Level[] | null => {
  * Flattens the hierarchical level structure for use in UI components
  * like dropdowns, with paths showing the hierarchy
  */
-export const getFlattenedLevels = (): FlattenedLevel[] => {
+export const getFlattenedLevels = (includeStructural = false): FlattenedLevel[] => {
   const levels = getLevelsFromStorage();
   if (!levels || levels.length === 0) return [];
   
@@ -77,14 +78,22 @@ export const getFlattenedLevels = (): FlattenedLevel[] => {
   
   // Process each level
   levels.forEach(level => {
+    // Skip structural levels if includeStructural is false
+    if (!includeStructural && level.isStructural) {
+      return;
+    }
+    
     const path = getLevelPath(level);
     const depth = path.split(" > ").length - 1;
+    const parentPath = path.split(" > ").slice(0, -1).join(" > ");
     
     result.push({
       id: level.id,
       name: level.name,
       path,
-      depth
+      depth,
+      parentNames: parentPath,
+      isStructural: !!level.isStructural
     });
   });
   
@@ -104,6 +113,7 @@ const getMockLevels = (): Level[] => {
         "id": 1,
         "name": "University",
         "children": [2, 24, 32],
+        "isStructural": true,
         "createdAt": null,
         "updatedAt": null
     },
@@ -112,6 +122,7 @@ const getMockLevels = (): Level[] => {
         "id": 2,
         "name": "Colleges",
         "children": [3, 6],
+        "isStructural": true,
         "createdAt": null,
         "updatedAt": null
     },
@@ -120,6 +131,7 @@ const getMockLevels = (): Level[] => {
         "id": 3,
         "name": "College of Technology & Built Environment",
         "children": [],
+        "isStructural": false,
         "createdAt": null,
         "updatedAt": null
     },
@@ -128,6 +140,7 @@ const getMockLevels = (): Level[] => {
         "id": 6,
         "name": "College of Business and Economics",
         "children": [],
+        "isStructural": false,
         "createdAt": null,
         "updatedAt": null
     }

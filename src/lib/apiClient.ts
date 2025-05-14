@@ -1,4 +1,3 @@
-
 import { toast } from "sonner";
 
 // Base URL configuration
@@ -216,14 +215,14 @@ export const apiClient = {
   // Levels endpoints
   levels: {
     getAll: () => {
-      return fetchWithErrorHandling("/levels");
+      return fetchWithErrorHandling<Level[]>("/levels");
     },
   },
 
   // Projects endpoints
   projects: {
     searchAutocomplete: (search: string, limit: number = 10) => {
-      return fetchWithErrorHandling(`/projects/autocomplete?search=${encodeURIComponent(search)}&limit=${limit}`);
+      return fetchWithErrorHandling<PageResponse<LightLevelDto>>(`/projects/search?name=${encodeURIComponent(search)}&limit=${limit}`);
     },
   }
 };
@@ -242,6 +241,12 @@ export interface Position {
   updatedAt: string;
 }
 
+export enum PositionStatus {
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+  ON_HOLD = 'ON_HOLD'
+}
+
 export interface CreatePositionDto {
   name: string;
   description: string;
@@ -249,6 +254,7 @@ export interface CreatePositionDto {
   vehicleEntitlement: boolean;
   policyReference: string;
   levelId: number;
+  status: PositionStatus;
 }
 
 export interface UpdatePositionDto {
@@ -259,6 +265,7 @@ export interface UpdatePositionDto {
   vehicleEntitlement?: boolean;
   policyReference?: string;
   levelId?: number;
+  status?: PositionStatus;
 }
 
 export interface Level {
@@ -266,11 +273,12 @@ export interface Level {
   parentId: number | null;
   name: string;
   children: number[];
+  isStructural: boolean;
   createdAt: string | null;
   updatedAt: string | null;
 }
 
-export interface ProjectOption {
+export interface LightLevelDto {
   id: number;
   name: string;
 }
