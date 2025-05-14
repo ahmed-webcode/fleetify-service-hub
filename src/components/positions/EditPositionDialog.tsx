@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
@@ -52,15 +51,29 @@ const formSchema = z.object({
   status: z.nativeEnum(PositionStatus),
 });
 
-export const EditPositionDialog = ({ 
-  open, 
+// Helper function (can be defined outside or memoized with useCallback if necessary)
+// For this use case, defining it inside is fine as long as its dependencies are stable if it were used in a hook's dep array.
+const findLevelIdByName = (name: string | undefined, levels: Array<{ id: number; name: string }>): number | undefined => {
+  if (!name) return undefined;
+  const level = levels.find(l => l.name === name);
+  return level?.id;
+};
+
+export const EditPositionDialog = ({
+  open,
   onClose,
-  position 
+  position
 }: EditPositionDialogProps) => {
   const [useProjects, setUseProjects] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
   const queryClient = useQueryClient();
+
+  // Step 1: Memoize flattenedLevels
+  // Assuming getFlattenedLevels() doesn't depend on props/state that change frequently
+  // while the dialog is open. If it only relies on localStorage and that's static
+  // during the dialog's lifecycle, an empty dependency array for useMemo is fine.
+  const flattenedLevels = useMemo(() => getFlattenedLevels(false), []);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -71,17 +84,18 @@ export const EditPositionDialog = ({
       fuelQuota: position.fuelQuota,
       vehicleEntitlement: position.vehicleEntitlement,
       policyReference: position.policyReference,
-      levelId: 0, // We'll need to find the correct levelId
+      // Initialize levelId using the (now memoized) flattenedLevels
+      // This ensures the form has the correct levelId from the start if possible
+      levelId: findLevelIdByName(position.levelName, flattenedLevels) || 0,
       status: position.status as PositionStatus || PositionStatus.ACTIVE,
     },
   });
 
-  // Get flattened levels from localStorage - exclude structural levels
-  const flattenedLevels = getFlattenedLevels(false);
-
-  // Update form when position changes
+  // Update form when position prop changes (e.g. if parent component passes a different position)
+  // This useEffect will now run less frequently due to memoized flattenedLevels
+  // and using form.reset in dependencies.
   useEffect(() => {
-    if (position && open) {
+    if (position && open) { // Ensure position exists and dialog is open
       form.reset({
         id: position.id,
         name: position.name,
@@ -93,15 +107,9 @@ export const EditPositionDialog = ({
         status: position.status as PositionStatus || PositionStatus.ACTIVE,
       });
     }
-  }, [position, open, form, flattenedLevels]);
+  }, [position, open, form.reset, flattenedLevels]); // Step 2: Use form.reset in dependencies
 
-  // Find level ID by name (helper function)
-  const findLevelIdByName = (name: string, levels: FlattenedLevel[]): number | undefined => {
-    const level = levels.find(l => l.name === name);
-    return level?.id;
-  };
 
-  // Update mutation
   const updateMutation = useMutation({
     mutationFn: (data: UpdatePositionDto) => apiClient.positions.update(data),
     onSuccess: () => {
@@ -114,13 +122,12 @@ export const EditPositionDialog = ({
     }
   });
 
-  // Handle form submission
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     updateMutation.mutate(values as UpdatePositionDto);
   };
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+    <Dialog open={open} onOpenChange={(isOpenState) => !isOpenState && onClose()}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Edit Position</DialogTitle>
@@ -128,6 +135,7 @@ export const EditPositionDialog = ({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
+            {/* Name Field */}
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -143,6 +151,7 @@ export const EditPositionDialog = ({
                 )}
               />
 
+              {/* Fuel Quota Field */}
               <FormField
                 control={form.control}
                 name="fuelQuota"
@@ -150,12 +159,21 @@ export const EditPositionDialog = ({
                   <FormItem>
                     <FormLabel>Weekly Fuel Quota (Liters)</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
-                        min="0" 
-                        placeholder="Fuel quota in liters" 
+                      <Input
+                        type="number"
+                        min="0"
+                        placeholder="Fuel quota in liters"
                         {...field}
-                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                        onChange={(e) => {
+                            const value = e.target.value;
+                            // Allow empty string for user to clear input, otherwise parse
+                            if (value === "") {
+                                field.onChange(""); // Or handle as needed, e.g., field.onChange(undefined) or specific logic
+                            } else {
+                                field.onChange(parseInt(value, 10) || 0);
+                            }
+                        }}
+                        value={field.value === 0 && form.getFieldState("fuelQuota").isDirty ? "0" : (field.value || "")} // Better handling for 0 and empty
                       />
                     </FormControl>
                     <FormMessage />
@@ -164,6 +182,7 @@ export const EditPositionDialog = ({
               />
             </div>
 
+            {/* Description Field */}
             <FormField
               control={form.control}
               name="description"
@@ -178,6 +197,7 @@ export const EditPositionDialog = ({
               )}
             />
 
+            {/* Vehicle Entitlement & Policy Reference */}
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -212,6 +232,7 @@ export const EditPositionDialog = ({
               />
             </div>
 
+            {/* Level Selector & Status */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
@@ -227,7 +248,6 @@ export const EditPositionDialog = ({
                     />
                   </div>
                 </div>
-
                 <FormField
                   control={form.control}
                   name="levelId"
@@ -241,7 +261,7 @@ export const EditPositionDialog = ({
                           onSearchChange={setSearchTerm}
                           searchTerm={searchTerm}
                           debouncedSearchTerm={debouncedSearchTerm}
-                          levels={flattenedLevels}
+                          levels={flattenedLevels} // Pass memoized levels
                         />
                       </FormControl>
                       <FormMessage />
@@ -256,10 +276,9 @@ export const EditPositionDialog = ({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Status</FormLabel>
-                    <Select 
+                    <Select
                       onValueChange={(value) => field.onChange(value as PositionStatus)}
-                      defaultValue={field.value}
-                      value={field.value}
+                      value={field.value} // Step 3: Use only value for controlled component
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -281,16 +300,16 @@ export const EditPositionDialog = ({
             </div>
 
             <DialogFooter>
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 onClick={onClose}
                 disabled={updateMutation.isPending}
               >
                 Cancel
               </Button>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={updateMutation.isPending}
               >
                 {updateMutation.isPending ? "Updating..." : "Update Position"}
