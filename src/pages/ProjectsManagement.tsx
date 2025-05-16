@@ -1,8 +1,7 @@
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Search, Plus, ArrowUpDown, Filter } from "lucide-react";
 
-import { PageLayout } from "@/components/layout/PageLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -159,18 +158,18 @@ const ProjectsManagement = () => {
   if (error) {
     toast.error("Failed to load projects");
     return (
-      <PageLayout title="Projects Management">
+      <>
         <div className="p-6">
           <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
             <p className="text-red-700">Error loading projects. Please try again later.</p>
           </div>
         </div>
-      </PageLayout>
+      </>
     );
   }
 
   return (
-    <PageLayout title="Projects Management">
+    <>
       <div className="p-6">
         <h1 className="text-2xl font-bold tracking-tight mb-6">Projects Management</h1>
         
@@ -368,7 +367,7 @@ const ProjectsManagement = () => {
           isSubmitting={updateProjectMutation.isPending}
         />
       </div>
-    </PageLayout>
+    </>
   );
 };
 
