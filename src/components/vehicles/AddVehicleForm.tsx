@@ -22,12 +22,46 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { apiClient } from "@/lib/apiClient";
+import { apiClient, VehicleStatus, VehicleType } from "@/lib/apiClient";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Loader } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 
-// Define interface for user data
+// Define the schema for vehicle data
+const vehicleSchema = z.object({
+  plateNumber: z.string().min(2, "License plate is required."),
+  vehicleType: z.nativeEnum(VehicleType, { required_error: "Vehicle type is required" }),
+  model: z.string().min(2, "Model must be at least 2 characters."),
+  fuelTypeId: z.coerce.number().min(1, "Fuel type is required."),
+  status: z.nativeEnum(VehicleStatus, { required_error: "Status is required" }),
+  isPrivate: z.boolean().default(false),
+  chassisNumber: z.string().min(2, "Chassis number is required."),
+  motorNumber: z.string().min(2, "Motor number is required."),
+  color: z.string().min(1, "Color is required."),
+  madeYear: z.coerce.number().min(1900).max(new Date().getFullYear() + 1),
+  responsibleStaffId: z.coerce.number().min(1, "Responsible staff is required."),
+  madeIn: z.string().min(1, "Country of origin is required."),
+  horsePower: z.coerce.number().min(0),
+  singleWeight: z.coerce.number().min(0),
+  totalWeight: z.coerce.number().min(0),
+  cylinderCount: z.coerce.number().min(0),
+  axleCount: z.coerce.number().min(0).optional(),
+  seatsCount: z.coerce.number().min(0),
+  kmReading: z.coerce.number().min(0),
+  workEnvironment: z.string().min(1, "Work environment is required."),
+  fuelConsumptionRate: z.coerce.number().min(0),
+  driverId: z.coerce.number().optional(),
+  insuranceCompany: z.string().optional(),
+  insuranceEndDate: z.string().optional(),
+  boloEndDate: z.string().optional(),
+  // Files are handled separately
+});
+
+interface FuelType {
+  id: number;
+  name: string;
+}
+
 interface User {
   id: number;
   username: string;
@@ -36,38 +70,18 @@ interface User {
   canDrive: boolean;
 }
 
-// Define the schema for vehicle data
-const vehicleSchema = z.object({
-  type: z.string().min(2, "Type must be at least 2 characters."),
-  model: z.string().min(2, "Model must be at least 2 characters."),
-  made_year: z.coerce.number().min(1900).max(new Date().getFullYear() + 1),
-  plate_number: z.string().min(2, "License plate is required."),
-  chassis_number: z.string().min(2, "Chassis number is required."),
-  motor_number: z.string().min(2, "Motor number is required."),
-  fuel_type_id: z.coerce.number().min(1, "Fuel type is required."),
-  fuel_consumption: z.coerce.number().min(0).optional(),
-  color: z.string().min(1, "Color is required."),
-  status: z.string().min(1, "Status is required."),
-  km_reading: z.coerce.number().min(0),
-  horse_power: z.coerce.number().min(0),
-  single_weight: z.coerce.number().min(0),
-  total_weight: z.coerce.number().min(0),
-  cylinder_count: z.coerce.number().min(0),
-  axle_count: z.coerce.number().min(0),
-  seats_count: z.coerce.number().min(0),
-  made_in: z.string().min(1, "Country of origin is required."),
-  is_private: z.boolean().default(false),
-  responsible_staff_id: z.coerce.number().min(1, "Responsible staff is required."),
-  driver_id: z.coerce.number().optional(),
-  insurance_company: z.string().optional(),
-  insurance_end_date: z.string().optional(),
-});
-
 export function AddVehicleForm({ onSubmit }) {
   const [imageFile, setImageFile] = useState(null);
   const [libreFile, setLibreFile] = useState(null);
   const [uploading, setUploading] = useState(false);
-  const [isProjectVehicle, setIsProjectVehicle] = useState(false);
+
+  // Mock fuel types until we have an API endpoint
+  const fuelTypes = [
+    { id: 1, name: "Diesel" },
+    { id: 2, name: "Petrol" },
+    { id: 3, name: "Electric" },
+    { id: 4, name: "Hybrid" },
+  ];
 
   // Fetch users for responsible staff and driver selection
   const { data: users = [], isLoading: isLoadingUsers } = useQuery({
@@ -75,7 +89,6 @@ export function AddVehicleForm({ onSubmit }) {
     queryFn: async () => {
       try {
         const u = await apiClient.users.getAll() as any;
-        console.log(u);
         return u;
       } catch (error) {
         console.error("Failed to fetch users:", error);
@@ -88,34 +101,36 @@ export function AddVehicleForm({ onSubmit }) {
   const form = useForm({
     resolver: zodResolver(vehicleSchema),
     defaultValues: {
-      type: "",
+      plateNumber: "",
+      vehicleType: undefined,
       model: "",
-      made_year: new Date().getFullYear(),
-      plate_number: "",
-      chassis_number: "",
-      motor_number: "",
-      fuel_type_id: 1,
-      fuel_consumption: 0,
+      fuelTypeId: 1,
+      status: VehicleStatus.AVAILABLE,
+      isPrivate: false,
+      chassisNumber: "",
+      motorNumber: "",
       color: "",
-      status: "available",
-      km_reading: 0,
-      horse_power: 0,
-      single_weight: 0,
-      total_weight: 0,
-      cylinder_count: 0,
-      axle_count: 0,
-      seats_count: 0,
-      made_in: "",
-      is_private: false,
-      responsible_staff_id: undefined,
-      driver_id: undefined,
-      insurance_company: "",
-      insurance_end_date: "",
+      madeYear: new Date().getFullYear(),
+      responsibleStaffId: undefined,
+      madeIn: "",
+      horsePower: 0,
+      singleWeight: 0,
+      totalWeight: 0,
+      cylinderCount: 0,
+      axleCount: 0,
+      seatsCount: 0,
+      kmReading: 0,
+      workEnvironment: "",
+      fuelConsumptionRate: 0,
+      driverId: undefined,
+      insuranceCompany: "",
+      insuranceEndDate: "",
+      boloEndDate: "",
     },
   });
 
-  // Watch for responsible_staff_id changes to conditionally show driver field
-  const responsibleStaffId = form.watch("responsible_staff_id");
+  // Watch for responsibleStaffId changes to conditionally show driver field
+  const responsibleStaffId = form.watch("responsibleStaffId");
   const selectedStaff = users.find(user => user.id === Number(responsibleStaffId));
   const showDriverField = selectedStaff && !selectedStaff.canDrive;
   
@@ -134,35 +149,6 @@ export function AddVehicleForm({ onSubmit }) {
     }
   };
 
-  const uploadImage = async (vehicleId, file, type) => {
-    if (!file) return null;
-    
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${vehicleId}_${type}.${fileExt}`;
-    
-    try {
-      const { data, error } = await supabase.storage
-        .from('vehicles')
-        .upload(`images/${fileName}`, file, {
-          upsert: true,
-          contentType: file.type,
-        });
-        
-      if (error) {
-        throw error;
-      }
-      
-      const { data: urlData } = supabase.storage
-        .from('vehicles')
-        .getPublicUrl(`images/${fileName}`);
-        
-      return urlData.publicUrl;
-    } catch (error) {
-      toast.error(`Error uploading ${type} image: ` + error.message);
-      return null;
-    }
-  };
-
   const handleSubmit = async (values) => {
     try {
       if (!libreFile) {
@@ -172,45 +158,33 @@ export function AddVehicleForm({ onSubmit }) {
       
       setUploading(true);
       
-      // First, submit the base vehicle data
-      const result = await onSubmit(values);
+      // Create FormData for multipart/form-data submission
+      const formData = new FormData();
       
-      if (result.success) {
-        // If vehicle was added successfully, upload images
-        const vehicleId = result.data?.id;
-        if (vehicleId) {
-          // Upload vehicle image if present
-          let imgSrc = null;
-          if (imageFile) {
-            imgSrc = await uploadImage(vehicleId, imageFile, 'vehicle');
-          }
-          
-          // Upload libre document (required)
-          const libreSrc = await uploadImage(vehicleId, libreFile, 'libre');
-          
-          // Update the vehicle with image URLs
-          if (imgSrc || libreSrc) {
-            const updateData = {};
-            if (imgSrc) updateData["img_src"] = imgSrc;
-            if (libreSrc) updateData["libre_src"] = libreSrc;
-            
-            const { error: updateError } = await supabase
-              .from('vehicles')
-              .update(updateData)
-              .eq('id', vehicleId);
-              
-            if (updateError) {
-              throw updateError;
-            }
-          }
-          
-          toast.success('Vehicle added successfully!');
+      // Add all form values to FormData
+      Object.entries(values).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          formData.append(key, value.toString());
         }
+      });
+      
+      // Add the files
+      if (imageFile) {
+        formData.append('vehicleImg', imageFile);
       }
       
-      form.reset();
-      setImageFile(null);
-      setLibreFile(null);
+      if (libreFile) {
+        formData.append('libreImg', libreFile);
+      }
+      
+      // Submit the form
+      const result = await onSubmit(formData);
+      
+      if (result.success) {
+        form.reset();
+        setImageFile(null);
+        setLibreFile(null);
+      }
     } catch (error) {
       toast.error('Error: ' + error.message);
     } finally {
@@ -225,7 +199,7 @@ export function AddVehicleForm({ onSubmit }) {
           {/* Basic Vehicle Information */}
           <FormField
             control={form.control}
-            name="type"
+            name="vehicleType"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Vehicle Type</FormLabel>
@@ -236,13 +210,9 @@ export function AddVehicleForm({ onSubmit }) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="SUV">SUV</SelectItem>
-                    <SelectItem value="Sedan">Sedan</SelectItem>
-                    <SelectItem value="Pickup">Pickup</SelectItem>
-                    <SelectItem value="Van">Van</SelectItem>
-                    <SelectItem value="Bus">Bus</SelectItem>
-                    <SelectItem value="Truck">Truck</SelectItem>
-                    <SelectItem value="Minibus">Minibus</SelectItem>
+                    {Object.values(VehicleType).map(type => (
+                      <SelectItem key={type} value={type}>{type}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -266,7 +236,7 @@ export function AddVehicleForm({ onSubmit }) {
 
           <FormField
             control={form.control}
-            name="made_year"
+            name="madeYear"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Year</FormLabel>
@@ -280,7 +250,7 @@ export function AddVehicleForm({ onSubmit }) {
 
           <FormField
             control={form.control}
-            name="plate_number"
+            name="plateNumber"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>License Plate</FormLabel>
@@ -294,7 +264,7 @@ export function AddVehicleForm({ onSubmit }) {
 
           <FormField
             control={form.control}
-            name="chassis_number"
+            name="chassisNumber"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Chassis Number</FormLabel>
@@ -308,7 +278,7 @@ export function AddVehicleForm({ onSubmit }) {
 
           <FormField
             control={form.control}
-            name="motor_number"
+            name="motorNumber"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Motor Number</FormLabel>
@@ -322,21 +292,22 @@ export function AddVehicleForm({ onSubmit }) {
 
           <FormField
             control={form.control}
-            name="fuel_type_id"
+            name="fuelTypeId"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Fuel Type</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value.toString()}>
+                <Select onValueChange={field.onChange} defaultValue={field.value?.toString()}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select fuel type" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="1">Diesel</SelectItem>
-                    <SelectItem value="2">Petrol</SelectItem>
-                    <SelectItem value="3">Electric</SelectItem>
-                    <SelectItem value="4">Hybrid</SelectItem>
+                    {fuelTypes.map(fuelType => (
+                      <SelectItem key={fuelType.id} value={fuelType.id.toString()}>
+                        {fuelType.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -371,9 +342,11 @@ export function AddVehicleForm({ onSubmit }) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="available">Available</SelectItem>
-                    <SelectItem value="maintenance">Maintenance</SelectItem>
-                    <SelectItem value="out_of_service">Out of Service</SelectItem>
+                    {Object.values(VehicleStatus).map(status => (
+                      <SelectItem key={status} value={status}>
+                        {status.replace(/_/g, ' ')}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -383,7 +356,7 @@ export function AddVehicleForm({ onSubmit }) {
           
           <FormField
             control={form.control}
-            name="km_reading"
+            name="kmReading"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Odometer Reading (km)</FormLabel>
@@ -397,7 +370,7 @@ export function AddVehicleForm({ onSubmit }) {
 
           <FormField
             control={form.control}
-            name="made_in"
+            name="madeIn"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Country of Origin</FormLabel>
@@ -411,7 +384,7 @@ export function AddVehicleForm({ onSubmit }) {
 
           <FormField
             control={form.control}
-            name="seats_count"
+            name="seatsCount"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Number of Seats</FormLabel>
@@ -426,7 +399,7 @@ export function AddVehicleForm({ onSubmit }) {
           {/* Technical Details */}
           <FormField
             control={form.control}
-            name="horse_power"
+            name="horsePower"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Horse Power</FormLabel>
@@ -440,7 +413,7 @@ export function AddVehicleForm({ onSubmit }) {
 
           <FormField
             control={form.control}
-            name="single_weight"
+            name="singleWeight"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Single Weight (kg)</FormLabel>
@@ -454,7 +427,7 @@ export function AddVehicleForm({ onSubmit }) {
 
           <FormField
             control={form.control}
-            name="total_weight"
+            name="totalWeight"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Total Weight (kg)</FormLabel>
@@ -468,7 +441,7 @@ export function AddVehicleForm({ onSubmit }) {
 
           <FormField
             control={form.control}
-            name="cylinder_count"
+            name="cylinderCount"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Number of Cylinders</FormLabel>
@@ -482,7 +455,7 @@ export function AddVehicleForm({ onSubmit }) {
 
           <FormField
             control={form.control}
-            name="axle_count"
+            name="axleCount"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Number of Axles</FormLabel>
@@ -494,10 +467,42 @@ export function AddVehicleForm({ onSubmit }) {
             )}
           />
 
+          <FormField
+            control={form.control}
+            name="fuelConsumptionRate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Fuel Consumption Rate (L/100km)</FormLabel>
+                <FormControl>
+                  <Input type="number" step="0.1" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="workEnvironment"
+            render={({ field }) => (
+              <FormItem className="col-span-full">
+                <FormLabel>Work Environment</FormLabel>
+                <FormControl>
+                  <Textarea 
+                    placeholder="Where will this vehicle be used?" 
+                    className="resize-none"
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           {/* Insurance Information */}
           <FormField
             control={form.control}
-            name="insurance_company"
+            name="insuranceCompany"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Insurance Company</FormLabel>
@@ -511,7 +516,7 @@ export function AddVehicleForm({ onSubmit }) {
 
           <FormField
             control={form.control}
-            name="insurance_end_date"
+            name="insuranceEndDate"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Insurance End Date</FormLabel>
@@ -523,10 +528,24 @@ export function AddVehicleForm({ onSubmit }) {
             )}
           />
 
+          <FormField
+            control={form.control}
+            name="boloEndDate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Bolo End Date</FormLabel>
+                <FormControl>
+                  <Input type="date" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           {/* Ownership Information */}
           <FormField
             control={form.control}
-            name="is_private"
+            name="isPrivate"
             render={({ field }) => (
               <FormItem className="flex flex-row items-center space-x-3 space-y-0 p-4 rounded-md border">
                 <FormControl>
@@ -550,7 +569,7 @@ export function AddVehicleForm({ onSubmit }) {
 
           <FormField
             control={form.control}
-            name="responsible_staff_id"
+            name="responsibleStaffId"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Responsible Staff</FormLabel>
@@ -587,7 +606,7 @@ export function AddVehicleForm({ onSubmit }) {
           {showDriverField && (
             <FormField
               control={form.control}
-              name="driver_id"
+              name="driverId"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Driver</FormLabel>

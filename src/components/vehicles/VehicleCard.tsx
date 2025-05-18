@@ -56,13 +56,13 @@ export function VehicleCard({
   const getStatusColor = (status: string) => {
     switch (status) {
       case "active":
-        return "bg-green-100 text-green-800 border-green-300";
+        return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400";
       case "maintenance":
-        return "bg-amber-100 text-amber-800 border-amber-300";
+        return "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400";
       case "outOfService":
-        return "bg-red-100 text-red-800 border-red-300";
+        return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400";
       default:
-        return "bg-gray-100 text-gray-800 border-gray-300";
+        return "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400";
     }
   };
 
@@ -118,9 +118,9 @@ export function VehicleCard({
           </DropdownMenu>
         </div>
         <div className="absolute -bottom-4 left-4">
-          <Badge className={`${getStatusColor(status)} border`}>
+          <span className={`status-badge ${getStatusColor(status)}`}>
             {getStatusText(status)}
-          </Badge>
+          </span>
         </div>
       </div>
       

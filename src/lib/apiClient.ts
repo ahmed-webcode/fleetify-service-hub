@@ -1,3 +1,4 @@
+
 import { toast } from "sonner";
 
 // Base URL configuration
@@ -105,26 +106,44 @@ export const apiClient = {
 
   // Vehicle endpoints
   vehicles: {
-    getAll: () => {
-      return fetchWithErrorHandling("/vehicles");
+    getAll: (params?: VehicleQueryParams) => {
+      const queryString = params ? 
+        `?${new URLSearchParams(
+          Object.entries(params)
+            .filter(([_, value]) => value !== undefined && value !== null)
+            .map(([key, value]) => [key, value.toString()])
+        ).toString()}` : '';
+      
+      return fetchWithErrorHandling<PageResponse<VehicleDto>>(`/vehicles${queryString}`);
     },
-    getById: (id: string) => {
-      return fetchWithErrorHandling(`/vehicles/${id}`);
+    getById: (id: number) => {
+      return fetchWithErrorHandling<VehicleDto>(`/vehicles/${id}`);
     },
-    create: (vehicleData: any) => {
-      return fetchWithErrorHandling("/vehicles", {
+    getDetails: (id: number) => {
+      return fetchWithErrorHandling<VehicleDetail>(`/vehicles/${id}/details`);
+    },
+    create: (vehicleData: FormData) => {
+      return fetchWithErrorHandling<VehicleDto>("/vehicles", {
         method: "POST",
-        body: JSON.stringify(vehicleData),
+        headers: {
+          // Remove Content-Type header so that browser can set it with the correct boundary for FormData
+          "Content-Type": undefined as any,
+        },
+        body: vehicleData,
       });
     },
-    update: (id: string, vehicleData: any) => {
-      return fetchWithErrorHandling(`/vehicles/${id}`, {
-        method: "PUT",
-        body: JSON.stringify(vehicleData),
+    update: (id: number, vehicleData: FormData) => {
+      return fetchWithErrorHandling<VehicleDto>(`/vehicles/${id}`, {
+        method: "PATCH",
+        headers: {
+          // Remove Content-Type header so that browser can set it with the correct boundary for FormData
+          "Content-Type": undefined as any,
+        },
+        body: vehicleData,
       });
     },
-    delete: (id: string) => {
-      return fetchWithErrorHandling(`/vehicles/${id}`, {
+    delete: (id: number) => {
+      return fetchWithErrorHandling<void>(`/vehicles/${id}`, {
         method: "DELETE",
       });
     },
@@ -332,6 +351,126 @@ export interface UpdateProjectDto {
   endDate?: string;
 }
 
+// Types for Vehicle Management
+export interface VehicleDto {
+  id: number;
+  plateNumber: string;
+  isPrivate: boolean;
+  vehicleType: VehicleType;
+  status: VehicleStatus;
+  model: string;
+  fuelTypeName: string;
+  madeYear: number;
+  workEnvironment: string;
+  kmReading: number;
+  color: string;
+  imgSrc: string | null;
+  libreSrc: string | null;
+  madeIn: string;
+  chassisNumber: string;
+  motorNumber: string;
+  horsePower: number;
+  singleWeight: number;
+  totalWeight: number;
+  axleCount: number | null;
+  cylinderCount: number;
+  seatsCount: number;
+  fuelConsumptionRate: number;
+  insuranceCompany: string | null;
+  lastQuotaRefuel: string | null;
+  insuranceEndDate: string | null;
+  boloEndDate: string | null;
+  responsibleStaffName: string;
+  driverName: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface VehicleDetail {
+  general: VehicleDto;
+  maintenances: PageResponse<any>;
+  incidents: PageResponse<any>;
+  insurances: PageResponse<any>;
+}
+
+export enum VehicleType {
+  Coaster = 'Coaster',
+  Bus = 'Bus',
+  Truck = 'Truck',
+  Car = 'Car',
+  Van = 'Van',
+  Motorcycle = 'Motorcycle'
+}
+
+export enum VehicleStatus {
+  AVAILABLE = 'AVAILABLE',
+  IN_USE = 'IN_USE',
+  UNDER_MAINTENANCE = 'UNDER_MAINTENANCE',
+  OUT_OF_SERVICE = 'OUT_OF_SERVICE'
+}
+
+export interface CreateVehicleDto {
+  plateNumber: string;
+  vehicleType: VehicleType;
+  model: string;
+  fuelTypeId: number;
+  status: VehicleStatus;
+  isPrivate: boolean;
+  chassisNumber: string;
+  motorNumber: string;
+  color: string;
+  madeYear: number;
+  responsibleStaffId: number;
+  madeIn: string;
+  horsePower: number;
+  singleWeight: number;
+  totalWeight: number;
+  axleCount?: number;
+  cylinderCount: number;
+  seatsCount: number;
+  kmReading: number;
+  workEnvironment: string;
+  fuelConsumptionRate: number;
+  driverId?: number;
+  insuranceCompany?: string;
+  insuranceEndDate?: string;
+  boloEndDate?: string;
+  lastQuotaRefuel?: string;
+  vehicleImg?: File;
+  libreImg?: File;
+}
+
+export interface UpdateVehicleDto {
+  plateNumber?: string;
+  vehicleType?: VehicleType;
+  model?: string;
+  fuelTypeId?: number;
+  status?: VehicleStatus;
+  isPrivate?: boolean;
+  chassisNumber?: string;
+  motorNumber?: string;
+  color?: string;
+  madeYear?: number;
+  responsibleStaffId?: number;
+  madeIn?: string;
+  horsePower?: number;
+  singleWeight?: number;
+  totalWeight?: number;
+  axleCount?: number;
+  cylinderCount?: number;
+  seatsCount?: number;
+  kmReading?: number;
+  workEnvironment?: string;
+  fuelConsumptionRate?: number;
+  driverId?: number;
+  insuranceCompany?: string;
+  insuranceEndDate?: string;
+  boloEndDate?: string;
+  lastQuotaRefuel?: string;
+  vehicleImg?: File;
+  libreImg?: File;
+}
+
 export interface Level {
   id: number;
   parentId: number | null;
@@ -385,6 +524,13 @@ export interface PositionQueryParams {
 }
 
 export interface ProjectQueryParams {
+  page?: number;
+  size?: number;
+  sortBy?: string;
+  direction?: 'ASC' | 'DESC';
+}
+
+export interface VehicleQueryParams {
   page?: number;
   size?: number;
   sortBy?: string;
