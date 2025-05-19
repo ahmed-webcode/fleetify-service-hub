@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { FuelRequestDto, RequestStatus } from "@/lib/apiClient";
 import { format } from "date-fns";
 import { FuelRequestActionDialog } from "./FuelRequestActionDialog";
+import { FuelRequestDetailsDialog } from "./FuelRequestDetailsDialog";
 
 interface FuelRequestsListProps {
   requests: FuelRequestDto[];
@@ -15,10 +16,16 @@ interface FuelRequestsListProps {
 export function FuelRequestsList({ requests, onRefresh }: FuelRequestsListProps) {
   const [selectedRequest, setSelectedRequest] = useState<FuelRequestDto | null>(null);
   const [actionDialogOpen, setActionDialogOpen] = useState(false);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
 
   const handleAction = (request: FuelRequestDto) => {
     setSelectedRequest(request);
     setActionDialogOpen(true);
+  };
+
+  const handleViewDetails = (request: FuelRequestDto) => {
+    setSelectedRequest(request);
+    setDetailsDialogOpen(true);
   };
 
   const formatDate = (dateString?: string) => {
@@ -101,7 +108,7 @@ export function FuelRequestsList({ requests, onRefresh }: FuelRequestsListProps)
                     </Button>
                   )}
                   {request.status !== RequestStatus.PENDING && (
-                    <Button variant="ghost" size="sm">
+                    <Button variant="ghost" size="sm" onClick={() => handleViewDetails(request)}>
                       Details
                     </Button>
                   )}
@@ -120,6 +127,12 @@ export function FuelRequestsList({ requests, onRefresh }: FuelRequestsListProps)
           setActionDialogOpen(false);
           onRefresh();
         }}
+      />
+      
+      <FuelRequestDetailsDialog 
+        isOpen={detailsDialogOpen} 
+        onClose={() => setDetailsDialogOpen(false)}
+        request={selectedRequest}
       />
     </>
   );
