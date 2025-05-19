@@ -26,6 +26,7 @@ import {
     UserCog,
     Menu,
     Briefcase,
+    School,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -128,6 +129,7 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
             ],
         },
         { name: 'Reports', icon: <BarChart size={20} />, path: '/reports', permission: 'view_reports' },
+        { name: 'Projects Management', icon: <School size={20} />, path: '/projects-management', permission: null, exactMatch: true },
         {
             name: 'Administration', icon: <UserCog size={20} />, path: '#admin', permission: 'view_admin_section',
             children: [

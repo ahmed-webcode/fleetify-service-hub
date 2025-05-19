@@ -223,7 +223,7 @@ export function FuelRequestActionDialog({
           <Button variant="outline" onClick={handleClose} disabled={loading}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit} disabled={!actionType || loading}>
+          <Button onClick={handleSubmit} disabled={!!actionType || loading}>
             {loading ? "Processing..." : "Submit"}
           </Button>
         </div>
