@@ -1,4 +1,3 @@
-
 import { toast } from "sonner";
 
 // Base URL configuration
@@ -178,6 +177,35 @@ export const apiClient = {
         method: "POST",
         body: JSON.stringify(fuelData),
       });
+    },
+    
+    // New fuel request endpoints
+    requests: {
+      getAll: (params?: FuelRequestQueryParams) => {
+        const queryString = params ? 
+          `?${new URLSearchParams(
+            Object.entries(params)
+              .filter(([_, value]) => value !== undefined && value !== null)
+              .map(([key, value]) => [key, value.toString()])
+          ).toString()}` : '';
+        
+        return fetchWithErrorHandling<PageResponse<FuelRequestDto>>(`/fuel/requests${queryString}`);
+      },
+      getById: (id: number) => {
+        return fetchWithErrorHandling<FuelRequestDto>(`/fuel/requests/${id}`);
+      },
+      create: (requestData: CreateFuelRequestDto) => {
+        return fetchWithErrorHandling<FuelRequestDto>("/fuel/requests", {
+          method: "POST",
+          body: JSON.stringify(requestData),
+        });
+      },
+      act: (id: number, actionData: FuelRequestActionDto) => {
+        return fetchWithErrorHandling<FuelRequestDto>(`/fuel/requests/${id}`, {
+          method: "PATCH",
+          body: JSON.stringify(actionData),
+        });
+      }
     }
   },
 
@@ -484,6 +512,65 @@ export interface Level {
 export interface LightLevelDto {
   id: number;
   name: string;
+}
+
+// Types for Fuel Request Management
+export interface CreateFuelRequestDto {
+  targetType: TargetType;
+  vehicleId?: number;
+  fuelTypeId: number;
+  requestNote?: string;
+  requestedAmount: number;
+}
+
+export interface FuelRequestActionDto {
+  action: ActionType;
+  actedAmount?: number;
+  actionReason?: string;
+}
+
+export interface FuelRequestDto {
+  id: number;
+  targetType: TargetType;
+  vehiclePlateNumber?: string;
+  levelName: string;
+  fuelTypeName: string;
+  status: RequestStatus;
+  requestedBy: string;
+  requestedAmount: number;
+  requestNote?: string;
+  requestedAt: string;
+  actedByName?: string;
+  actedAt?: string;
+  actedAmount?: number;
+  actionReason?: string;
+  createdAt?: string;
+  updatedAt: string;
+}
+
+export enum TargetType {
+  GENERATOR = 'GENERATOR',
+  VEHICLE = 'VEHICLE'
+}
+
+export enum ActionType {
+  APPROVE = 'APPROVE',
+  REJECT = 'REJECT',
+  APPROVE_WITH_MODIFICATION = 'APPROVE_WITH_MODIFICATION'
+}
+
+export enum RequestStatus {
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+  CANCELLED = 'CANCELLED'
+}
+
+export interface FuelRequestQueryParams {
+  page?: number;
+  size?: number;
+  sortBy?: string;
+  direction?: 'ASC' | 'DESC';
 }
 
 // Pagination types

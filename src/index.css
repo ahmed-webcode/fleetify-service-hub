@@ -117,3 +117,20 @@
     opacity: 1;
   }
 }
+
+/* Badge colors for request statuses */
+.status-badge-pending {
+  @apply bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400;
+}
+
+.status-badge-approved {
+  @apply bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400;
+}
+
+.status-badge-rejected {
+  @apply bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400;
+}
+
+.status-badge-cancelled {
+  @apply bg-gray-50 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400;
+}
