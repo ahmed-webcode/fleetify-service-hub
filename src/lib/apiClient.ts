@@ -184,7 +184,7 @@ export const apiClient = {
     
     // New fuel request endpoints
     requests: {
-      getAll: (params?: FuelRequestQueryParams) => {
+      getAll: (params?: RequestQueryParams) => {
         const queryString = params ? 
           `?${new URLSearchParams(
             Object.entries(params)
@@ -210,6 +210,49 @@ export const apiClient = {
         });
       }
     }
+  },
+
+  trips: {
+    requests: {
+      getAll: (params?: RequestQueryParams) => {
+        const queryString = params
+          ? `?${new URLSearchParams(
+              Object.entries(params)
+                .filter(([_, value]) => value !== undefined && value !== null)
+                .map(([key, value]) => [key, String(value)])
+            ).toString()}`
+          : "";
+        return fetchWithErrorHandling<PageResponse<TripRequestDto>>(
+          `/trips/requests${queryString}`
+        );
+      },
+      getById: (id: number) => {
+        return fetchWithErrorHandling<TripRequestDto>(
+          `/trips/requests/${id}`
+        );
+      },
+      create: (requestData: CreateTripRequestDto) => {
+        return fetchWithErrorHandling<TripRequestDto>("/trips/requests", {
+          method: "POST",
+          body: JSON.stringify(requestData),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+      },
+      act: (id: number, actionData: TripRequestActionDto) => {
+        return fetchWithErrorHandling<TripRequestDto>(
+          `/trips/requests/${id}`,
+          {
+            method: "PATCH",
+            body: JSON.stringify(actionData),
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+      },
+    },
   },
 
   // Incident endpoints
@@ -551,6 +594,42 @@ export interface FuelRequestDto {
   updatedAt: string;
 }
 
+export interface CreateTripRequestDto {
+  purpose: string;
+  description?: string;
+  startTime: string;
+  endTime: string;
+  startLocation: string;
+  endLocation: string;
+  isRoundTrip: boolean;
+  passengerCount: number;
+}
+
+export interface TripRequestActionDto {
+  action: ActionType;
+  actionReason?: string;
+}
+
+export interface TripRequestDto {
+  id: number;
+  purpose: string;
+  description?: string;
+  startTime: string;
+  endTime: string;
+  startLocation: string;
+  endLocation: string;
+  isRoundTrip: boolean;
+  status: RequestStatus;
+  passengerCount: number;
+  requestedBy: string;
+  requestedAt: string;
+  actedBy?: string;
+  actedAt?: string;
+  actionReason?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export enum TargetType {
   GENERATOR = 'GENERATOR',
   VEHICLE = 'VEHICLE'
@@ -569,7 +648,7 @@ export enum RequestStatus {
   CANCELLED = 'CANCELLED'
 }
 
-export interface FuelRequestQueryParams {
+export interface RequestQueryParams {
   page?: number;
   size?: number;
   sortBy?: string;

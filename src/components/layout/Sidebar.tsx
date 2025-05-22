@@ -105,6 +105,7 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
                 { name: 'Vehicles', icon: <Car size={18} />, path: '/vehicles', permission: null },
                 { name: 'GPS Tracking', icon: <MapPin size={18} />, path: '/gps-tracking', permission: 'track_vehicles' },
                 { name: 'Trip Requests', icon: <PlaneTakeoff size={18} />, path: '/trip-requests', permission: 'request_fleet' },
+                { name: 'Trip Management', icon: <Car size={18} />, path: '/trip-management', permission: null },
                 { name: 'Fuel Management', icon: <Fuel size={18} />, path: '/fuel-management', permission: null },
             ],
         },
