@@ -126,7 +126,7 @@ export const apiClient = {
         method: "POST",
         headers: {
           // Remove Content-Type header so that browser can set it with the correct boundary for FormData
-          "Content-Type": undefined as any,
+          "Content-Type": "multipart/form-data",
         },
         body: vehicleData,
       });
@@ -136,7 +136,7 @@ export const apiClient = {
         method: "PATCH",
         headers: {
           // Remove Content-Type header so that browser can set it with the correct boundary for FormData
-          "Content-Type": undefined as any,
+          "Content-Type": "multipart/form-data",
         },
         body: vehicleData,
       });
@@ -177,6 +177,9 @@ export const apiClient = {
         method: "POST",
         body: JSON.stringify(fuelData),
       });
+    },
+    getFuelTypes: () => {
+      return fetchWithErrorHandling("/fuel/types");
     },
     
     // New fuel request endpoints

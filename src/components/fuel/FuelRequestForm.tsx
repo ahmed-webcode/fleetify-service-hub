@@ -65,11 +65,18 @@ export function FuelRequestForm({ onSuccess, onCancel }: FuelRequestFormProps) {
   });
 
   // Mock fuel types (replace with actual API call if endpoint exists)
-  const fuelTypes = [
-    { id: 1, name: "Petrol" },
-    { id: 2, name: "Diesel" },
-    { id: 3, name: "Electric" },
-  ];
+  // const fuelTypes = [
+  //   { id: 1, name: "Petrol" },
+  //   { id: 2, name: "Diesel" },
+  //   { id: 3, name: "Electric" },
+  // ];
+
+  const { data: fuelTypes, isLoading: isLoadingFuelTypes } = useQuery({
+    queryKey: ["fuelTypes"],
+    queryFn: async () => {
+      return apiClient.fuel.getFuelTypes() as any;
+    },
+  });
 
   // Watch target type to show/hide vehicle field
   const targetType = form.watch("targetType");
@@ -177,7 +184,7 @@ export function FuelRequestForm({ onSuccess, onCancel }: FuelRequestFormProps) {
               </SelectTrigger>
             </FormControl>
             <SelectContent>
-              {fuelTypes.map((fuelType) => (
+              {fuelTypes?.map((fuelType) => (
                 <SelectItem key={fuelType.id} value={fuelType.id.toString()}>
                   {fuelType.name}
                 </SelectItem>

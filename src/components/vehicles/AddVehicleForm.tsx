@@ -76,12 +76,19 @@ export function AddVehicleForm({ onSubmit }) {
   const [uploading, setUploading] = useState(false);
 
   // Mock fuel types until we have an API endpoint
-  const fuelTypes = [
-    { id: 1, name: "Diesel" },
-    { id: 2, name: "Petrol" },
-    { id: 3, name: "Electric" },
-    { id: 4, name: "Hybrid" },
-  ];
+  // const fuelTypes = [
+  //   { id: 1, name: "Diesel" },
+  //   { id: 2, name: "Petrol" },
+  //   { id: 3, name: "Electric" },
+  //   { id: 4, name: "Hybrid" },
+  // ];
+
+  const { data: fuelTypes, isLoading: isLoadingFuelTypes } = useQuery({
+    queryKey: ["fuelTypes"],
+    queryFn: async () => {
+      return apiClient.fuel.getFuelTypes() as any;
+    },
+  });
 
   // Fetch users for responsible staff and driver selection
   const { data: users = [], isLoading: isLoadingUsers } = useQuery({
@@ -303,7 +310,7 @@ export function AddVehicleForm({ onSubmit }) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {fuelTypes.map(fuelType => (
+                    {fuelTypes?.map(fuelType => (
                       <SelectItem key={fuelType.id} value={fuelType.id.toString()}>
                         {fuelType.name}
                       </SelectItem>
