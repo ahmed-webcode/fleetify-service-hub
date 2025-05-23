@@ -19,21 +19,21 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { apiClient, TripRequestDto, ActionType, TripRequestActionDto } from "@/lib/apiClient";
+import { apiClient, MaintenanceRequestDto, ActionType, MaintenanceRequestActionDto } from "@/lib/apiClient";
 
-interface TripRequestActionDialogProps {
+interface MaintenanceRequestActionDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  request: TripRequestDto | null;
+  request: MaintenanceRequestDto | null;
   onActionComplete: () => void;
 }
 
-export function TripRequestActionDialog({
+export function MaintenanceRequestActionDialog({
   isOpen,
   onClose,
   request,
   onActionComplete,
-}: TripRequestActionDialogProps) {
+}: MaintenanceRequestActionDialogProps) {
   const [action, setAction] = useState<ActionType | undefined>(undefined);
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
@@ -50,12 +50,12 @@ export function TripRequestActionDialog({
 
     setLoading(true);
     try {
-      const actionData: TripRequestActionDto = {
+      const actionData: MaintenanceRequestActionDto = {
         action: action,
         actionReason: reason || undefined,
       };
-      await apiClient.trips.requests.act(request.id, actionData);
-      toast.success(`Trip request ${action.toLowerCase()}ed successfully.`);
+      await apiClient.maintenance.requests.act(request.id, actionData);
+      toast.success(`Maintenance request ${action.toLowerCase()}ed successfully.`);
       onActionComplete();
       handleClose();
     } catch (error: any) {
@@ -77,9 +77,9 @@ export function TripRequestActionDialog({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Review Trip Request #{request.id}</DialogTitle>
+          <DialogTitle>Review Maintenance Request #{request.id}</DialogTitle>
           <DialogDescription>
-            Approve or reject the trip request for: {request.purpose}
+            Approve or reject the maintenance request: "{request.title}" for vehicle {request.plateNumber}.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
@@ -98,16 +98,29 @@ export function TripRequestActionDialog({
               </SelectContent>
             </Select>
           </div>
-          {(action === ActionType.REJECT || action === ActionType.APPROVE_WITH_MODIFICATION) && ( // Future: APPROVE_WITH_MODIFICATION
+          {action === ActionType.REJECT && (
             <div>
               <Label htmlFor="reason">
-                Reason {action === ActionType.REJECT ? "(Required)" : "(Optional)"}
+                Reason (Required for Rejection)
               </Label>
               <Textarea
                 id="reason"
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="Provide a reason for your action"
+              />
+            </div>
+          )}
+           {action === ActionType.APPROVE && ( // Optional reason for approval
+            <div>
+              <Label htmlFor="reason">
+                Note / Reason (Optional)
+              </Label>
+              <Textarea
+                id="reason"
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                placeholder="Add an optional note for approval"
               />
             </div>
           )}

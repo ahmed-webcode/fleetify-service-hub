@@ -10,12 +10,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, PlusCircle, AlertTriangle, Route, Clock, CalendarDays, UserCheck } from "lucide-react";
+import { Plus, PlusCircle, AlertTriangle, Wrench, ListChecks, FileText } from "lucide-react";
 import { HasPermission } from "@/components/auth/HasPermission";
-import { TripRequestForm } from "@/components/trips/TripRequestForm";
-import { TripRequestsList } from "@/components/trips/TripRequestsList";
+import { MaintenanceRequestForm } from "@/components/maintenance/MaintenanceRequestForm";
+import { MaintenanceRequestsList } from "@/components/maintenance/MaintenanceRequestsList";
 import { useQuery } from "@tanstack/react-query";
-import { apiClient, TripRequestDto, RequestStatus } from "@/lib/apiClient";
+import { apiClient, MaintenanceRequestDto, RequestStatus, MaintenanceRequestQueryParams } from "@/lib/apiClient";
 import {
   Pagination,
   PaginationContent,
@@ -34,47 +34,44 @@ import {
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 
-export default function TripManagement() {
+export default function MaintenanceManagement() {
   const { hasPermission } = useAuth();
 
-  const [requestTripOpen, setRequestTripOpen] = useState(false);
+  const [requestMaintenanceOpen, setRequestMaintenanceOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
-  const itemsPerPage = 10; // Or your preferred default
+  const itemsPerPage = 10;
 
-  // Fetch trip requests with pagination
   const {
-    data: tripRequestsData,
+    data: maintenanceRequestsData,
     isLoading,
     isError,
     refetch,
   } = useQuery({
-    queryKey: ["tripRequests", currentPage, itemsPerPage, searchQuery], // Added searchQuery to refetch on search change
+    queryKey: ["maintenanceRequests", currentPage, itemsPerPage, searchQuery],
     queryFn: async () => {
-      // Note: The backend doesn't support search directly in the provided controller.
-      // Client-side filtering will be applied after fetching all data for the current page.
-      // If server-side search is implemented, pass searchQuery to apiClient.trips.requests.getAll
-      return apiClient.trips.requests.getAll({
+      const params: MaintenanceRequestQueryParams = {
         page: currentPage,
         size: itemsPerPage,
-        sortBy: "createdAt", // Or "requestedAt" if more appropriate
+        sortBy: "createdAt",
         direction: "DESC",
-      });
+      };
+      // If backend supports search, pass searchQuery as a param
+      // e.g. if (searchQuery) params.search = searchQuery;
+      return apiClient.maintenance.requests.getAll(params);
     },
-    // keepPreviousData: true, // Consider for smoother pagination
+    // keepPreviousData: true, // Optional: for smoother pagination transitions
   });
 
-  // Filter requests by search query (client-side filtering)
   const filteredRequests =
-    tripRequestsData?.content.filter((request) => {
+    maintenanceRequestsData?.content.filter((request) => {
       if (!searchQuery) return true;
       const searchLower = searchQuery.toLowerCase();
       return (
-        request.purpose.toLowerCase().includes(searchLower) ||
-        (request.description && request.description.toLowerCase().includes(searchLower)) ||
+        request.title.toLowerCase().includes(searchLower) ||
+        request.description.toLowerCase().includes(searchLower) ||
+        request.plateNumber.toLowerCase().includes(searchLower) ||
         request.requestedBy.toLowerCase().includes(searchLower) ||
-        request.startLocation.toLowerCase().includes(searchLower) ||
-        request.endLocation.toLowerCase().includes(searchLower) ||
         request.status.toLowerCase().includes(searchLower)
       );
     }) || [];
@@ -86,15 +83,15 @@ export default function TripManagement() {
       </div>
       <h3 className="text-lg font-medium mb-2">Access Restricted</h3>
       <p className="text-muted-foreground text-center max-w-md">
-        You don't have permission to access the Trip Management page. Please
-        contact your administrator for assistance.
+        You don't have permission to access Maintenance Management.
+        Please contact your administrator.
       </p>
     </div>
   );
 
   const renderPaginationItems = () => {
     const items = [];
-    const totalPages = tripRequestsData?.totalPages || 1;
+    const totalPages = maintenanceRequestsData?.totalPages || 1;
 
     if (totalPages <= 7) {
       for (let i = 0; i < totalPages; i++) {
@@ -117,12 +114,10 @@ export default function TripManagement() {
             href="#"
             isActive={0 === currentPage}
             onClick={(e) => { e.preventDefault(); setCurrentPage(0); }}
-          >
-            1
-          </PaginationLink>
+          >1</PaginationLink>
         </PaginationItem>
       );
-      if (currentPage > 2) { // Adjusted for 0-indexed pages
+      if (currentPage > 2) {
         items.push(<PaginationItem key="ellipsis1"><PaginationEllipsis /></PaginationItem>);
       }
       const startPage = Math.max(1, currentPage - 1);
@@ -134,13 +129,11 @@ export default function TripManagement() {
               href="#"
               isActive={i === currentPage}
               onClick={(e) => { e.preventDefault(); setCurrentPage(i); }}
-            >
-              {i + 1}
-            </PaginationLink>
+            >{i + 1}</PaginationLink>
           </PaginationItem>
         );
       }
-      if (currentPage < totalPages - 3) { // Adjusted for 0-indexed pages
+      if (currentPage < totalPages - 3) {
         items.push(<PaginationItem key="ellipsis2"><PaginationEllipsis /></PaginationItem>);
       }
       items.push(
@@ -149,64 +142,61 @@ export default function TripManagement() {
             href="#"
             isActive={totalPages - 1 === currentPage}
             onClick={(e) => { e.preventDefault(); setCurrentPage(totalPages - 1); }}
-          >
-            {totalPages}
-          </PaginationLink>
+          >{totalPages}</PaginationLink>
         </PaginationItem>
       );
     }
     return items;
   };
 
-  // Reset page to 0 when search query changes
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
-    setCurrentPage(0); // Reset to first page on new search
+    setCurrentPage(0); 
   };
-
-  const pendingRequestsCount = tripRequestsData?.content.filter(r => r.status === RequestStatus.PENDING).length || 0;
-
+  
+  const pendingRequestsCount = maintenanceRequestsData?.content.filter(r => r.status === RequestStatus.PENDING).length || 0;
+  // const underMaintenanceCount = 0; // This would require fetching vehicle statuses or a different API
 
   return (
     <div className="space-y-6 p-4 md:p-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            Trip Management
+            Maintenance Management
           </h1>
           <p className="text-muted-foreground">
-            Plan, track, and manage all organizational trips.
+            Track and manage vehicle maintenance requests and schedules.
           </p>
         </div>
 
-        <HasPermission permission="create_trip_request" fallback={null}>
+        <HasPermission permission="create_maintenance_request" fallback={null}>
           <Button
             className="gap-1.5"
-            onClick={() => setRequestTripOpen(true)}
+            onClick={() => setRequestMaintenanceOpen(true)}
           >
             <Plus className="h-4 w-4" />
-            <span>Request Trip</span>
+            <span>Request Maintenance</span>
           </Button>
         </HasPermission>
       </div>
 
-      {!hasPermission("view_trip_management") ? ( // Assuming this permission
+      {!hasPermission("view_maintenance_management") ? (
         <AccessRestricted />
       ) : (
         <>
-          {/* Stats Cards - Adapt as needed */}
+          {/* Stats Cards */}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Total Trips (Current View)
+                  Total Requests
                 </CardTitle>
-                <Route className="h-4 w-4 text-muted-foreground" />
+                <Wrench className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{tripRequestsData?.totalElements || 0}</div>
+                <div className="text-2xl font-bold">{maintenanceRequestsData?.totalElements || 0}</div>
                 <p className="text-xs text-muted-foreground">
-                  Overall trips in the system
+                  All recorded maintenance requests
                 </p>
               </CardContent>
             </Card>
@@ -216,12 +206,12 @@ export default function TripManagement() {
                 <CardTitle className="text-sm font-medium">
                   Pending Requests
                 </CardTitle>
-                <Clock className="h-4 w-4 text-muted-foreground" />
+                <ListChecks className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{pendingRequestsCount}</div>
                 <p className="text-xs text-muted-foreground">
-                  Awaiting approval
+                  Awaiting review or action
                 </p>
               </CardContent>
             </Card>
@@ -229,14 +219,14 @@ export default function TripManagement() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Approved Trips (Month)
+                  Vehicles Under Maintenance
                 </CardTitle>
-                <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                <Wrench className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">N/A</div>
+                <div className="text-2xl font-bold">N/A</div> {/* Placeholder */}
                 <p className="text-xs text-muted-foreground">
-                  Placeholder for monthly approved
+                  Requires vehicle status integration
                 </p>
               </CardContent>
             </Card>
@@ -244,14 +234,14 @@ export default function TripManagement() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Active / Upcoming Trips
+                  Overdue Maintenance
                 </CardTitle>
-                <UserCheck className="h-4 w-4 text-muted-foreground" />
+                <AlertTriangle className="h-4 w-4 text-red-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">N/A</div>
+                <div className="text-2xl font-bold">N/A</div> {/* Placeholder */}
                 <p className="text-xs text-muted-foreground">
-                  Placeholder for active trips
+                  Scheduled vs. actual (future feature)
                 </p>
               </CardContent>
             </Card>
@@ -259,8 +249,8 @@ export default function TripManagement() {
 
           <Tabs defaultValue="requests" className="space-y-4">
             <TabsList>
-              <TabsTrigger value="requests">Trip Requests</TabsTrigger>
-              <TabsTrigger value="history">Trip History</TabsTrigger>
+              <TabsTrigger value="requests">Maintenance Requests</TabsTrigger>
+              <TabsTrigger value="schedule">Maintenance Schedule</TabsTrigger>
               <TabsTrigger value="reports">Reports</TabsTrigger>
             </TabsList>
 
@@ -269,15 +259,15 @@ export default function TripManagement() {
                 <CardHeader className="pb-3">
                   <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                     <div>
-                      <CardTitle>All Trip Requests</CardTitle>
+                      <CardTitle>All Maintenance Requests</CardTitle>
                       <CardDescription>
-                        Manage and track all trip requests.
+                        View, manage, and track all vehicle maintenance requests.
                       </CardDescription>
                     </div>
                     <div className="relative w-full sm:w-64">
                       <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                       <Input
-                        placeholder="Search by purpose, user, location..."
+                        placeholder="Search by title, plate, user..."
                         className="pl-8"
                         value={searchQuery}
                         onChange={handleSearchChange}
@@ -287,46 +277,38 @@ export default function TripManagement() {
                 </CardHeader>
                 <CardContent>
                   {isLoading ? (
-                    <div className="flex justify-center p-8">
-                      <p>Loading trip requests...</p>
-                    </div>
+                    <div className="flex justify-center p-8"><p>Loading maintenance requests...</p></div>
                   ) : isError ? (
                     <div className="bg-red-50 border-l-4 border-red-500 p-4">
-                      <p className="text-red-700">
-                        Error loading trip requests. Please try again.
-                      </p>
+                      <p className="text-red-700">Error loading requests. Please try again.</p>
                     </div>
-                  ) : filteredRequests.length === 0 && !searchQuery && tripRequestsData?.totalElements === 0 ? (
+                  ) : filteredRequests.length === 0 && !searchQuery && maintenanceRequestsData?.totalElements === 0 ? (
                     <div className="rounded-md border border-dashed p-8">
                       <div className="flex flex-col items-center justify-center text-center">
                         <PlusCircle className="h-12 w-12 text-muted-foreground opacity-50 mb-2" />
-                        <h3 className="text-lg font-medium mb-1">
-                          No trip requests yet
-                        </h3>
+                        <h3 className="text-lg font-medium mb-1">No maintenance requests</h3>
                         <p className="text-sm text-muted-foreground mb-4">
-                          There are no trip requests at the moment.
+                          Get started by creating a new maintenance request.
                         </p>
-                        <HasPermission permission="create_trip_request" fallback={null}>
-                            <Button onClick={() => setRequestTripOpen(true)}>
+                        <HasPermission permission="create_maintenance_request" fallback={null}>
+                            <Button onClick={() => setRequestMaintenanceOpen(true)}>
                                 <Plus className="mr-2 h-4 w-4" />
-                                New Trip Request
+                                New Maintenance Request
                             </Button>
                         </HasPermission>
                       </div>
                     </div>
                   ) : filteredRequests.length === 0 && searchQuery ? (
                      <div className="rounded-md border border-dashed p-8 text-center">
-                      <p className="text-muted-foreground">No matching trip requests found for "{searchQuery}"</p>
+                      <p className="text-muted-foreground">No matching requests found for "{searchQuery}"</p>
                     </div>
                   ) : (
                     <>
-                      <TripRequestsList
+                      <MaintenanceRequestsList
                         requests={filteredRequests}
                         onRefresh={refetch}
                       />
-
-                      {tripRequestsData &&
-                        tripRequestsData.totalPages > 1 && ( // Show pagination if more than one page
+                      {maintenanceRequestsData && maintenanceRequestsData.totalPages > 1 && (
                           <div className="mt-6">
                             <Pagination>
                               <PaginationContent>
@@ -342,9 +324,9 @@ export default function TripManagement() {
                                 <PaginationItem>
                                   <PaginationNext
                                     href="#"
-                                    onClick={(e) => { e.preventDefault(); setCurrentPage( Math.min( tripRequestsData.totalPages - 1, currentPage + 1 )); }}
-                                    aria-disabled={ currentPage === tripRequestsData.totalPages - 1 }
-                                    className={ currentPage === tripRequestsData.totalPages - 1 ? "pointer-events-none opacity-50" : ""}
+                                    onClick={(e) => { e.preventDefault(); setCurrentPage( Math.min( maintenanceRequestsData.totalPages - 1, currentPage + 1 )); }}
+                                    aria-disabled={ currentPage === maintenanceRequestsData.totalPages - 1 }
+                                    className={ currentPage === maintenanceRequestsData.totalPages - 1 ? "pointer-events-none opacity-50" : ""}
                                   />
                                 </PaginationItem>
                               </PaginationContent>
@@ -356,26 +338,26 @@ export default function TripManagement() {
                 </CardContent>
                 <CardFooter className="border-t py-3 px-6">
                   <p className="text-xs text-muted-foreground">
-                    {tripRequestsData && (
-                      `Showing ${filteredRequests.length} of ${tripRequestsData.totalElements} requests`
+                    {maintenanceRequestsData && (
+                      `Showing ${filteredRequests.length} of ${maintenanceRequestsData.totalElements} requests`
                     )}
                   </p>
                 </CardFooter>
               </Card>
             </TabsContent>
 
-            <TabsContent value="history" className="space-y-4">
+            <TabsContent value="schedule" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Trip History</CardTitle>
+                  <CardTitle>Maintenance Schedule</CardTitle>
                   <CardDescription>
-                    View completed and past trips. (Placeholder)
+                    View upcoming and scheduled maintenance. (Placeholder)
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="pl-2">
                   <div className="h-[300px] w-full rounded-md border border-dashed flex items-center justify-center">
                     <p className="text-center text-muted-foreground">
-                      Trip history & analytics will be displayed here.
+                      Maintenance calendar/schedule view will be here.
                     </p>
                   </div>
                 </CardContent>
@@ -385,19 +367,19 @@ export default function TripManagement() {
             <TabsContent value="reports" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Trip Reports</CardTitle>
+                  <CardTitle>Maintenance Reports</CardTitle>
                   <CardDescription>
-                    Generate and download trip reports. (Placeholder)
+                    Generate and download reports. (Placeholder)
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     <div className="rounded-md border p-4">
-                      <h3 className="font-medium mb-2">Monthly Trip Summary</h3>
+                      <h3 className="font-medium mb-2">Vehicle Maintenance History</h3>
                       <p className="text-sm text-muted-foreground mb-4">
-                        Detailed breakdown of all trips for the current month.
+                        Detailed report of all maintenance done on a specific vehicle.
                       </p>
-                      <Button variant="outline" disabled>Download Report</Button>
+                      <Button variant="outline" disabled>Generate Report</Button>
                     </div>
                   </div>
                 </CardContent>
@@ -407,18 +389,18 @@ export default function TripManagement() {
         </>
       )}
 
-      {/* Trip Request Dialog */}
-      <Dialog open={requestTripOpen} onOpenChange={setRequestTripOpen}>
+      {/* Maintenance Request Dialog */}
+      <Dialog open={requestMaintenanceOpen} onOpenChange={setRequestMaintenanceOpen}>
         <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>New Trip Request</DialogTitle>
+            <DialogTitle>New Maintenance Request</DialogTitle>
           </DialogHeader>
-          <TripRequestForm
+          <MaintenanceRequestForm
             onSuccess={() => {
-              setRequestTripOpen(false);
-              refetch(); // Refetch data after successful creation
+              setRequestMaintenanceOpen(false);
+              refetch();
             }}
-            onCancel={() => setRequestTripOpen(false)}
+            onCancel={() => setRequestMaintenanceOpen(false)}
           />
         </DialogContent>
       </Dialog>

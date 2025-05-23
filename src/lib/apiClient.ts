@@ -161,7 +161,49 @@ export const apiClient = {
         method: "POST",
         body: JSON.stringify(maintenanceData),
       });
-    }
+    },
+
+    // New maintenance request endpoints
+    requests: {
+      getAll: (params?: MaintenanceRequestQueryParams) => { // Or use RequestQueryParams
+        const queryString = params
+          ? `?${new URLSearchParams(
+              Object.entries(params)
+                .filter(([_, value]) => value !== undefined && value !== null)
+                .map(([key, value]) => [key, String(value)])
+            ).toString()}`
+          : "";
+        return fetchWithErrorHandling<PageResponse<MaintenanceRequestDto>>(
+          `/maintenance/requests${queryString}` // Ensure prefix /api is handled by API_BASE_URL
+        );
+      },
+      getById: (id: number) => {
+        return fetchWithErrorHandling<MaintenanceRequestDto>(
+          `/maintenance/requests/${id}`
+        );
+      },
+      create: (requestData: CreateMaintenanceRequestDto) => {
+        return fetchWithErrorHandling<MaintenanceRequestDto>("/maintenance/requests", {
+          method: "POST",
+          body: JSON.stringify(requestData),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+      },
+      act: (id: number, actionData: MaintenanceRequestActionDto) => { // Or use TripRequestActionDto
+        return fetchWithErrorHandling<MaintenanceRequestDto>(
+          `/maintenance/requests/${id}`,
+          {
+            method: "PATCH",
+            body: JSON.stringify(actionData),
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+      },
+    },
   },
 
   // Fuel endpoints
@@ -646,6 +688,47 @@ export enum RequestStatus {
   APPROVED = 'APPROVED',
   REJECTED = 'REJECTED',
   CANCELLED = 'CANCELLED'
+}
+
+
+// DTO for creating a maintenance request
+export interface CreateMaintenanceRequestDto {
+  vehicleId: number;
+  title: string;
+  description: string;
+}
+
+// DTO for maintenance request action (structurally same as TripRequestActionDto, but named for clarity)
+// You can reuse TripRequestActionDto if you prefer, or define this:
+export interface MaintenanceRequestActionDto {
+  action: ActionType; // Reuses existing ActionType enum
+  actionReason?: string;
+}
+
+// DTO for displaying a maintenance request
+export interface MaintenanceRequestDto {
+  id: number;
+  plateNumber: string; // Vehicle's plate number
+  title: string;
+  description: string;
+  status: RequestStatus; // Reuses existing RequestStatus enum
+  requestedBy: string;
+  requestedAt: string;
+  actedBy?: string;
+  actedAt?: string;
+  actionReason?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Query Params for maintenance requests (can reuse existing RequestQueryParams if identical)
+// For clarity, or if specific params are needed later:
+export interface MaintenanceRequestQueryParams {
+  page?: number;
+  size?: number;
+  sortBy?: string;
+  direction?: 'ASC' | 'DESC';
+  // Add any specific maintenance search/filter params here if backend supports them
 }
 
 export interface RequestQueryParams {

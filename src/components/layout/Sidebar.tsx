@@ -107,6 +107,7 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
                 { name: 'Trip Requests', icon: <PlaneTakeoff size={18} />, path: '/trip-requests', permission: 'request_fleet' },
                 { name: 'Trip Management', icon: <Car size={18} />, path: '/trip-management', permission: null },
                 { name: 'Fuel Management', icon: <Fuel size={18} />, path: '/fuel-management', permission: null },
+                { name: 'Maintenance Management', icon: <Wrench size={18} />, path: '/maintenance-management', permission: null },
             ],
         },
         {
