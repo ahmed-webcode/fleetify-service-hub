@@ -1,77 +1,98 @@
+import axios, { AxiosError, AxiosRequestConfig, AxiosRequestHeaders, Method } from "axios";
 import { toast } from "sonner";
 
 // Base URL configuration
 const API_BASE_URL = "http://localhost:8080/api";
 
-// Response type for login
+// Response type for login (remains the same)
 interface LoginResponse {
   roles: string[];
   token: string;
 }
 
-// Utility function to handle HTTP errors
+// Utility function to handle HTTP errors (adapted for Axios)
 const handleHttpError = (error: any): never => {
-  const message = error.message || "An unknown error occurred";
+  let message = "An unknown error occurred";
+
+  if (axios.isAxiosError(error)) {
+    const axiosError = error as AxiosError<any>;
+    if (axiosError.response) {
+      if (axiosError.response.data) {
+        if (typeof axiosError.response.data === 'string') {
+          message = axiosError.response.data;
+        } else if (axiosError.response.data.message && typeof axiosError.response.data.message === 'string') {
+          message = axiosError.response.data.message;
+        } else if (axiosError.response.statusText) {
+          message = axiosError.response.statusText;
+        } else {
+          message = `Server error: ${axiosError.response.status}`;
+        }
+      } else {
+        message = `Server error: ${axiosError.response.status}`;
+      }
+    } else if (axiosError.request) {
+      message = "No response received from server. Check network connection.";
+    } else {
+      message = axiosError.message;
+    }
+  } else if (error instanceof Error) {
+    // Non-Axios error
+    message = error.message;
+  }
+
   console.error("API Error:", error);
   toast.error(`API Error: ${message}`);
   throw error;
 };
 
-// Default headers for all requests
-const getDefaultHeaders = () => {
-  const headers: Record<string, string> = {
+// Create an Axios instance
+const axiosClient = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
     "Content-Type": "application/json",
-  };
+  },
+});
 
-  // Add auth token if available
-  const token = localStorage.getItem("auth_token");
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
+// Add a request interceptor to include the auth token
+axiosClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("auth_token");
+    if (token && config.headers) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
   }
+);
 
-  return headers;
-};
-
-// Generic fetch wrapper with error handling
 async function fetchWithErrorHandling<T>(
   url: string,
   options: RequestInit = {}
 ): Promise<T> {
   try {
-    // Merge default headers with any provided headers
-    const mergedHeaders = {
-      ...getDefaultHeaders(),
-      ...options.headers,
+    const axiosConfig: AxiosRequestConfig = {
+      url: url,
+      method: (options.method as Method) || 'GET',
+      headers: options.headers as AxiosRequestHeaders,
     };
 
-    const response = await fetch(`${API_BASE_URL}${url}`, {
-      ...options,
-      headers: mergedHeaders,
-    });
-
-    // Handle non-200 responses
-    if (!response.ok) {
-      const errorData = await response.text();
-      try {
-        const jsonError = JSON.parse(errorData);
-        throw new Error(jsonError.message || `Server error: ${response.status}`);
-      } catch (e) {
-        // If parsing fails, use the raw text
-        throw new Error(errorData || `Server error: ${response.status}`);
+    if (options.body) {
+      if (typeof options.body === 'string' || options.body instanceof FormData || options.body instanceof URLSearchParams || options.body instanceof Blob) {
+        axiosConfig.data = options.body;
+      } else {
+        try {
+            axiosConfig.data = options.body;
+        } catch (e) {
+            axiosConfig.data = options.body;
+        }
       }
     }
 
-    // Check content type to determine how to parse the response
-    const contentType = response.headers.get("content-type");
-    
-    if (contentType && contentType.includes("application/json")) {
-      return await response.json() as T;
-    } else {
-      // For text responses
-      const textResult = await response.text();
-      // Attempt to cast as T - this works for primitive types like string
-      return textResult as unknown as T;
-    }
+    const response = await axiosClient.request<T>(axiosConfig);
+
+    return response.data;
   } catch (error) {
     return handleHttpError(error);
   }
@@ -125,7 +146,6 @@ export const apiClient = {
       return fetchWithErrorHandling<VehicleDto>("/vehicles", {
         method: "POST",
         headers: {
-          // Remove Content-Type header so that browser can set it with the correct boundary for FormData
           "Content-Type": "multipart/form-data",
         },
         body: vehicleData,
@@ -135,7 +155,6 @@ export const apiClient = {
       return fetchWithErrorHandling<VehicleDto>(`/vehicles/${id}`, {
         method: "PATCH",
         headers: {
-          // Remove Content-Type header so that browser can set it with the correct boundary for FormData
           "Content-Type": "multipart/form-data",
         },
         body: vehicleData,
