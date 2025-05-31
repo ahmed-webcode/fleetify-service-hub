@@ -1,719 +1,786 @@
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback, memo } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+    DialogClose,
 } from "@/components/ui/dialog";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth, User, UserRole, AVAILABLE_ROLES, MOCK_COLLEGES, MOCK_INSTITUTES, MOCK_CAMPUSES } from "@/contexts/AuthContext";
+import { Checkbox } from "@/components/ui/checkbox";
+import { apiClient, Level, Position } from "@/lib/apiClient";
+import { UserDto, CreateUserDto, UpdateUserDto, Gender } from "@/types/user";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Search, Plus, Edit2, Trash2, User as UserIcon, Mail, Building, MapPin, UserCheck } from "lucide-react";
+import { Search, Plus, Edit2, UserCircle, CheckSquare, XSquare } from "lucide-react";
+
+const ITEMS_PER_PAGE = 10;
+
+// Define Props for the new UserFormFields component
+interface UserFormFieldsProps {
+    isEdit?: boolean;
+    formState: Partial<CreateUserDto> | Partial<UpdateUserDto>;
+    handleInputChange: (e: React.ChangeEvent<HTMLInputElement>, formType: "new" | "edit") => void;
+    handleCheckboxChange: (name: string, checked: boolean, formType: "new" | "edit") => void;
+    handleSelectChange: (name: string, value: string, formType: "new" | "edit") => void;
+    levels: Level[];
+    positions: Position[];
+}
+
+// Define UserFormFields as a standalone, memoized component
+const UserFormFields: React.FC<UserFormFieldsProps> = memo(
+    ({
+        isEdit = false,
+        formState,
+        handleInputChange: parentHandleInputChange,
+        handleCheckboxChange: parentHandleCheckboxChange,
+        handleSelectChange: parentHandleSelectChange,
+        levels,
+        positions,
+    }) => {
+        const formType = isEdit ? "edit" : "new";
+
+        // Internal handlers call the memoized parent handlers with the correct formType
+        const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+            parentHandleInputChange(e, formType);
+        const handleSelectFieldChange = (name: string, value: string) =>
+            parentHandleSelectChange(name, value, formType);
+        const handleCheckBoxFieldChange = (name: string, checked: boolean) =>
+            parentHandleCheckboxChange(name, checked, formType);
+
+        return (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
+                <div className="space-y-2">
+                    <Label htmlFor="username">Username</Label>
+                    <Input
+                        id="username"
+                        name="username"
+                        value={formState.username || ""}
+                        onChange={handleFieldChange}
+                        placeholder="e.g. john.doe"
+                        disabled={isEdit}
+                    />
+                </div>
+                {!isEdit && (
+                    <div className="space-y-2">
+                        <Label htmlFor="password">Password</Label>
+                        <Input
+                            id="password"
+                            name="password"
+                            type="password"
+                            value={(formState as CreateUserDto).password || ""}
+                            onChange={handleFieldChange}
+                            placeholder="Min. 8 characters"
+                        />
+                    </div>
+                )}
+                <div className="space-y-2">
+                    <Label htmlFor="firstName">First Name</Label>
+                    <Input
+                        id="firstName"
+                        name="firstName"
+                        value={formState.firstName || ""}
+                        onChange={handleFieldChange}
+                        placeholder="John"
+                    />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="lastName">Last Name</Label>
+                    <Input
+                        id="lastName"
+                        name="lastName"
+                        value={formState.lastName || ""}
+                        onChange={handleFieldChange}
+                        placeholder="Doe"
+                    />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                        id="email"
+                        name="email"
+                        type="email"
+                        value={formState.email || ""}
+                        onChange={handleFieldChange}
+                        placeholder="john.doe@example.com"
+                    />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="universityId">University ID</Label>
+                    <Input
+                        id="universityId"
+                        name="universityId"
+                        value={formState.universityId || ""}
+                        onChange={handleFieldChange}
+                        placeholder="Ets0123/10"
+                    />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="phoneNumber">Phone Number</Label>
+                    <Input
+                        id="phoneNumber"
+                        name="phoneNumber"
+                        value={formState.phoneNumber || ""}
+                        onChange={handleFieldChange}
+                        placeholder="0912345678"
+                    />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="gender">Gender</Label>
+                    <Select
+                        name="gender"
+                        value={formState.gender}
+                        onValueChange={(value) => handleSelectFieldChange("gender", value)}
+                    >
+                        <SelectTrigger id="gender">
+                            <SelectValue placeholder="Select gender" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value={Gender.Male}>Male</SelectItem>
+                            <SelectItem value={Gender.Female}>Female</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="levelId">Organizational Level</Label>
+                    <Select
+                        name="levelId"
+                        value={formState.levelId?.toString()}
+                        onValueChange={(value) => handleSelectFieldChange("levelId", value)}
+                    >
+                        <SelectTrigger id="levelId">
+                            <SelectValue placeholder="Select level" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {levels.map((level) => (
+                                <SelectItem key={level.id} value={level.id.toString()}>
+                                    {level.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="positionId">Position</Label>
+                    <Select
+                        name="positionId"
+                        value={formState.positionId?.toString()}
+                        onValueChange={(value) => handleSelectFieldChange("positionId", value)}
+                    >
+                        <SelectTrigger id="positionId">
+                            <SelectValue placeholder="Select position" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {positions.map((pos) => (
+                                <SelectItem key={pos.id} value={pos.id.toString()}>
+                                    {pos.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div className="flex items-center space-x-2 col-span-1 md:col-span-2 pt-2">
+                    <Checkbox
+                        id="canDrive"
+                        name="canDrive"
+                        checked={formState.canDrive}
+                        onCheckedChange={(checked) => {
+                            if (typeof checked === "boolean") {
+                                handleCheckBoxFieldChange("canDrive", checked);
+                            }
+                        }}
+                    />
+                    <Label
+                        htmlFor="canDrive"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                        Can Drive
+                    </Label>
+                </div>
+            </div>
+        );
+    }
+);
+UserFormFields.displayName = "UserFormFields"; // Adding display name for better debugging
 
 export default function ManageUsers() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [isAddUserOpen, setIsAddUserOpen] = useState(false);
-  const [isEditUserOpen, setIsEditUserOpen] = useState(false);
-  const [isDeleteUserOpen, setIsDeleteUserOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [collegeId, setCollegeId] = useState<string>("");
-  const [instituteId, setInstituteId] = useState<string>("");
-  const [currentTab, setCurrentTab] = useState<string>("active");
+    const [users, setUsers] = useState<UserDto[]>([]);
+    const [levels, setLevels] = useState<Level[]>([]);
+    const [positions, setPositions] = useState<Position[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-  const { hasPermission } = useAuth();
+    const [isAddUserOpen, setIsAddUserOpen] = useState(false);
+    const [isEditUserOpen, setIsEditUserOpen] = useState(false);
+    const [isDeleteUserOpen, setIsDeleteUserOpen] = useState(false);
 
-  // New user form state
-  const [newUser, setNewUser] = useState({
-    username: "",
-    fullName: "",
-    password: "",
-    confirmPassword: "",
-    role: "" as UserRole,
-    email: "",
-    college: "",
-    institute: "",
-    campus: ""
-  });
+    const [searchTerm, setSearchTerm] = useState("");
+    const [selectedUser, setSelectedUser] = useState<UserDto | null>(null);
 
-  // Load users on component mount
-  useEffect(() => {
-    // This would be an API call in a real app
-    // Mock data for now
-    const mockUsers: User[] = [
-      {
-        id: "1",
-        username: "transport_director",
-        fullName: "Transport Director",
-        role: "transport_director",
-        email: "transport.director@aau.edu.et",
-        college: "College of Natural and Social Sciences",
-        institute: "Institute of Technology",
-        campus: "Main Campus"
-      },
-      {
-        id: "2",
-        username: "operational_director",
-        fullName: "Operational Director",
-        role: "operational_director",
-        email: "operational.director@aau.edu.et",
-        college: "College of Natural and Social Sciences",
-        institute: "Institute of Technology",
-        campus: "Main Campus"
-      },
-      {
-        id: "3",
-        username: "fotl_user",
-        fullName: "FOTL User",
-        role: "fotl",
-        email: "fotl@aau.edu.et",
-        college: "College of Business and Economics",
-        institute: "Institute of Management",
-        campus: "Commerce Campus"
-      },
-      {
-        id: "4",
-        username: "ftl_user",
-        fullName: "FTL User",
-        role: "ftl",
-        email: "ftl@aau.edu.et",
-        college: "College of Health Sciences",
-        institute: "Institute of Medicine",
-        campus: "Black Lion Campus"
-      }
-    ];
-    setUsers(mockUsers);
-  }, []);
+    const [newUser, setNewUser] = useState<Partial<CreateUserDto>>({
+        username: "",
+        password: "",
+        firstName: "",
+        lastName: "",
+        universityId: "",
+        email: "",
+        gender: Gender.Male,
+        phoneNumber: "",
+        canDrive: false,
+    });
 
-  // Handle form input changes
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setNewUser({ ...newUser, [name]: value });
-  };
+    const [editUser, setEditUser] = useState<Partial<UpdateUserDto>>({});
 
-  // Handle select changes
-  const handleSelectChange = (name: string, value: string) => {
-    setNewUser({ ...newUser, [name]: value });
+    const [currentPage, setCurrentPage] = useState(1);
 
-    // Reset dependent fields when parent field changes
-    if (name === "college") {
-      setCollegeId(value);
-      setNewUser({ ...newUser, college: value, institute: "", campus: "" });
-      setInstituteId("");
-    } else if (name === "institute") {
-      setInstituteId(value);
-      setNewUser({ ...newUser, institute: value, campus: "" });
-    }
-  };
+    const { hasPermission } = useAuth();
 
-  // Filter users based on search term and current tab
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = 
-      user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.role.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    if (currentTab === "active") {
-      return matchesSearch;
-    } else if (currentTab === "transport_director") {
-      return matchesSearch && user.role === "transport_director";
-    } else if (currentTab === "operational_director") {
-      return matchesSearch && user.role === "operational_director";
-    } else if (currentTab === "fotl") {
-      return matchesSearch && user.role === "fotl";
-    } else if (currentTab === "ftl") {
-      return matchesSearch && user.role === "ftl";
-    }
-    return matchesSearch;
-  });
+    useEffect(() => {
+        fetchUsers();
+        fetchLevels();
+        fetchPositions();
+    }, []);
 
-  // Add new user
-  const handleAddUser = () => {
-    // Validate form
-    if (!newUser.username || !newUser.fullName || !newUser.role || !newUser.password) {
-      toast.error("Please fill all required fields");
-      return;
-    }
-    
-    if (newUser.password !== newUser.confirmPassword) {
-      toast.error("Passwords do not match");
-      return;
-    }
-
-    // In a real application, this would be an API call
-    const newUserObj: User = {
-      id: `${users.length + 1}`,
-      username: newUser.username,
-      fullName: newUser.fullName,
-      role: newUser.role,
-      email: newUser.email,
-      college: newUser.college,
-      institute: newUser.institute,
-      campus: newUser.campus
+    const fetchUsers = async () => {
+        setIsLoading(true);
+        try {
+            const fetchedUsers = await apiClient.users.getAll();
+            setUsers(fetchedUsers);
+        } catch (error) {
+            toast.error("Failed to fetch users.");
+            console.error("Fetch users error:", error);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
-    setUsers([...users, newUserObj]);
-    toast.success("User added successfully");
-    setIsAddUserOpen(false);
-    
-    // Reset form
-    setNewUser({
-      username: "",
-      fullName: "",
-      password: "",
-      confirmPassword: "",
-      role: "" as UserRole,
-      email: "",
-      college: "",
-      institute: "",
-      campus: ""
-    });
-    setCollegeId("");
-    setInstituteId("");
-  };
+    const fetchLevels = async () => {
+        try {
+            const fetchedLevels = await apiClient.levels.getAll();
+            setLevels(fetchedLevels || []);
+        } catch (error) {
+            toast.error("Failed to fetch organizational levels.");
+            console.error("Fetch levels error:", error);
+        }
+    };
 
-  // Edit user
-  const handleEditUser = () => {
-    if (!selectedUser) return;
-    
-    // In a real application, this would be an API call
-    const updatedUsers = users.map(user => 
-      user.id === selectedUser.id ? selectedUser : user
+    const fetchPositions = async () => {
+        try {
+            const fetchedPositionsResponse = await apiClient.positions.getAll({
+                page: 0,
+                size: 1000,
+            });
+            setPositions(fetchedPositionsResponse?.content || []);
+        } catch (error) {
+            toast.error("Failed to fetch positions.");
+            console.error("Fetch positions error:", error);
+        }
+    };
+
+    // Memoize handler functions
+    const handleInputChange = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>, formType: "new" | "edit") => {
+            const { name, value } = e.target;
+            if (formType === "new") {
+                setNewUser((prev) => ({ ...prev, [name]: value }));
+            } else {
+                setEditUser((prev) => ({ ...prev, [name]: value }));
+            }
+        },
+        [setNewUser, setEditUser] // Dependencies for useCallback
     );
-    
-    setUsers(updatedUsers);
-    toast.success("User updated successfully");
-    setIsEditUserOpen(false);
-    setSelectedUser(null);
-  };
 
-  // Delete user
-  const handleDeleteUser = () => {
-    if (!selectedUser) return;
-    
-    // In a real application, this would be an API call
-    const updatedUsers = users.filter(user => user.id !== selectedUser.id);
-    
-    setUsers(updatedUsers);
-    toast.success("User deleted successfully");
-    setIsDeleteUserOpen(false);
-    setSelectedUser(null);
-  };
+    const handleCheckboxChange = useCallback(
+        (name: string, checked: boolean, formType: "new" | "edit") => {
+            if (formType === "new") {
+                setNewUser((prev) => ({ ...prev, [name]: checked }));
+            } else {
+                setEditUser((prev) => ({ ...prev, [name]: checked }));
+            }
+        },
+        [setNewUser, setEditUser] // Dependencies for useCallback
+    );
 
-  // Open edit dialog
-  const openEditDialog = (user: User) => {
-    setSelectedUser(user);
-    
-    // Set dependent field IDs for select components
-    const college = MOCK_COLLEGES.find(c => c.name === user.college);
-    if (college) {
-      setCollegeId(college.id);
+    const handleSelectChange = useCallback(
+        (name: string, value: string, formType: "new" | "edit") => {
+            const numValue =
+                name === "levelId" || name === "positionId" ? parseInt(value, 10) : value;
+            if (formType === "new") {
+                setNewUser((prev) => ({ ...prev, [name]: numValue }));
+            } else {
+                setEditUser((prev) => ({ ...prev, [name]: numValue }));
+            }
+        },
+        [setNewUser, setEditUser] // Dependencies for useCallback
+    );
+
+    const filteredUsers = useMemo(() => {
+        return users.filter(
+            (user) =>
+                (user.username?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+                (user.firstName?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+                (user.lastName?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+                (user.email?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+                (user.universityId?.toLowerCase() || "").includes(searchTerm.toLowerCase())
+        );
+    }, [users, searchTerm]);
+
+    const paginatedUsers = useMemo(() => {
+        const start = (currentPage - 1) * ITEMS_PER_PAGE;
+        return filteredUsers.slice(start, start + ITEMS_PER_PAGE);
+    }, [filteredUsers, currentPage]);
+
+    const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
+
+    const handleAddUser = async () => {
+        if (
+            !newUser.username ||
+            !newUser.password ||
+            !newUser.firstName ||
+            !newUser.lastName ||
+            !newUser.email ||
+            !newUser.universityId
+        ) {
+            toast.error(
+                "Please fill all required fields: Username, Password, First Name, Last Name, Email, University ID."
+            );
+            return;
+        }
+
+        try {
+            const createdUser = await apiClient.users.create(newUser as CreateUserDto);
+            setUsers((prev) =>
+                [createdUser, ...prev].sort((a, b) => a.username.localeCompare(b.username))
+            );
+            toast.success("User added successfully!");
+            setIsAddUserOpen(false);
+            setNewUser({
+                username: "",
+                password: "",
+                firstName: "",
+                lastName: "",
+                universityId: "",
+                email: "",
+                gender: Gender.Male,
+                phoneNumber: "",
+                canDrive: false,
+                levelId: undefined,
+                positionId: undefined,
+            });
+        } catch (error: any) {
+            toast.error(`Failed to add user: ${error.message || "Unknown error"}`);
+            console.error("Add user error:", error);
+        }
+    };
+
+    const openEditDialog = (user: UserDto) => {
+        setSelectedUser(user);
+        setEditUser({
+            id: user.id,
+            username: user.username,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            universityId: user.universityId,
+            email: user.email,
+            phoneNumber: user.phoneNumber,
+            canDrive: user.canDrive,
+            gender: user.gender,
+            levelId: levels.find((l) => l.name === user.levelName)?.id,
+            positionId: positions.find((p) => p.name === user.positionName)?.id,
+        });
+        setIsEditUserOpen(true);
+    };
+
+    const handleUpdateUser = async () => {
+        if (!selectedUser || !editUser.id) {
+            toast.error("No user selected for update.");
+            return;
+        }
+        if (!editUser.email || !editUser.universityId) {
+            toast.error("Email and University ID are required for update.");
+            return;
+        }
+
+        try {
+            const changedFields: Partial<UpdateUserDto> = {};
+            const formValues = editUser;
+            const originalUser = selectedUser;
+
+            const editableProperties: (keyof Omit<UpdateUserDto, "id" | "username">)[] = [
+                "firstName",
+                "lastName",
+                "universityId",
+                "email",
+                "phoneNumber",
+                "canDrive",
+                "gender",
+                "levelId",
+                "positionId",
+            ];
+
+            for (const key of editableProperties) {
+                const currentValue: UpdateUserDto[typeof key] = formValues[key];
+                let originalComparableValue: any;
+
+                switch (key) {
+                    case "levelId":
+                        originalComparableValue = levels.find(
+                            (l) => l.name === originalUser.levelName
+                        )?.id;
+                        break;
+                    case "positionId":
+                        originalComparableValue = positions.find(
+                            (p) => p.name === originalUser.positionName
+                        )?.id;
+                        break;
+                    case "phoneNumber":
+                        originalComparableValue = originalUser.phoneNumber;
+                        break;
+                    default:
+                        originalComparableValue = originalUser[key as keyof UserDto];
+                        break;
+                }
+
+                if (currentValue !== originalComparableValue) {
+                    (changedFields as any)[key] = currentValue;
+                }
+            }
+
+            if (Object.keys(changedFields).length === 0) {
+                toast.info("No changes detected.");
+                setIsEditUserOpen(false);
+                setSelectedUser(null);
+                return;
+            }
+
+            const payload: Partial<UpdateUserDto> = {
+                id: originalUser.id,
+                ...changedFields,
+            };
+
+            Object.keys(payload).forEach((k) => {
+                const key = k as keyof Partial<UpdateUserDto>;
+                if (payload[key] === undefined) {
+                    delete payload[key];
+                }
+            });
+
+            if (Object.keys(payload).length <= 1 && "id" in payload) {
+                toast.info("No effective changes to update.");
+                setIsEditUserOpen(false);
+                setSelectedUser(null);
+                return;
+            }
+
+            const updatedUser = await apiClient.users.update(payload as UpdateUserDto);
+            setUsers((prevUsers) =>
+                prevUsers
+                    .map((u) => (u.id === updatedUser.id ? updatedUser : u))
+                    .sort((a, b) => a.username.localeCompare(b.username))
+            );
+            toast.success("User updated successfully!");
+            setIsEditUserOpen(false);
+            setSelectedUser(null);
+        } catch (error: any) {
+            toast.error(`Failed to update user: ${error.message || "Unknown error"}`);
+            console.error("Update user error:", error);
+        }
+    };
+
+    const openDeleteDialog = (user: UserDto) => {
+        setSelectedUser(user);
+        setIsDeleteUserOpen(true);
+    };
+
+    const handleDeleteUser = async () => {
+        if (!selectedUser) return;
+        try {
+            await apiClient.users.delete(selectedUser.id);
+            setUsers((prevUsers) => prevUsers.filter((u) => u.id !== selectedUser.id));
+            toast.success("User deleted successfully!");
+            setIsDeleteUserOpen(false);
+            setSelectedUser(null);
+            if (paginatedUsers.length === 1 && currentPage > 1 && filteredUsers.length - 1 > 0) {
+                setCurrentPage(currentPage - 1);
+            } else if (
+                paginatedUsers.length === 1 &&
+                currentPage === 1 &&
+                filteredUsers.length - 1 === 0
+            ) {
+                setCurrentPage(1);
+            }
+        } catch (error: any) {
+            toast.error(`Failed to delete user: ${error.message || "Unknown error"}`);
+            console.error("Delete user error:", error);
+        }
+    };
+
+    if (isLoading && users.length === 0) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+            </div>
+        );
     }
-    
-    const institute = MOCK_INSTITUTES.find(i => i.name === user.institute);
-    if (institute) {
-      setInstituteId(institute.id);
+
+    if (!hasPermission("add_users")) {
+        return (
+            <div className="py-12 text-center">
+                <UserCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <h2 className="text-2xl font-bold mb-2">Access Restricted</h2>
+                <p className="text-muted-foreground">You don't have permission to manage users</p>
+            </div>
+        );
     }
-    
-    setIsEditUserOpen(true);
-  };
 
-  // Open delete dialog
-  const openDeleteDialog = (user: User) => {
-    setSelectedUser(user);
-    setIsDeleteUserOpen(true);
-  };
-
-  // Format role for display
-  const formatRole = (role: UserRole) => {
-    return role.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-  };
-
-  if (!hasPermission("add_users")) {
     return (
-      <div className="py-12 text-center">
-        <UserIcon className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-        <h2 className="text-2xl font-bold mb-2">Access Restricted</h2>
-        <p className="text-muted-foreground">You don't have permission to manage users</p>
-      </div>
+        <div className="space-y-6">
+            <div>
+                <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
+                <p className="text-muted-foreground">Manage user accounts</p>
+            </div>
+
+            <Card>
+                <CardHeader className="pb-3">
+                    <CardTitle>Users</CardTitle>
+                    <CardDescription>Manage user accounts and permissions</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex flex-col sm:flex-row gap-4 mb-6 justify-between">
+                        <div className="relative w-full sm:w-1/3">
+                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                placeholder="Search users..."
+                                className="pl-8"
+                                value={searchTerm}
+                                onChange={(e) => {
+                                    setSearchTerm(e.target.value);
+                                    setCurrentPage(1);
+                                }}
+                            />
+                        </div>
+                        <Button
+                            onClick={() => setIsAddUserOpen(true)}
+                            className="w-full sm:w-auto gap-1.5"
+                        >
+                            <Plus className="h-4 w-4" />
+                            Add User
+                        </Button>
+                    </div>
+
+                    {isLoading && users.length > 0 && (
+                        <div className="flex items-center justify-center py-4">
+                            <p className="text-sm text-muted-foreground">Loading users...</p>
+                        </div>
+                    )}
+                    {!isLoading && paginatedUsers.length === 0 && (
+                        <div className="text-center text-muted-foreground py-8">
+                            {searchTerm ? "No users match your search." : "No users found."}
+                        </div>
+                    )}
+                    {paginatedUsers.length > 0 && (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Username</TableHead>
+                                    <TableHead>Full Name</TableHead>
+                                    <TableHead>Email</TableHead>
+                                    <TableHead>University ID</TableHead>
+                                    <TableHead>Level</TableHead>
+                                    <TableHead>Position</TableHead>
+                                    <TableHead className="text-center">Enabled</TableHead>
+                                    <TableHead className="text-center">Can Drive</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {paginatedUsers.map((user) => (
+                                    <TableRow key={user.id}>
+                                        <TableCell className="font-medium">
+                                            <div className="flex items-center gap-2">
+                                                <UserCircle
+                                                    size={18}
+                                                    className="text-muted-foreground"
+                                                />{" "}
+                                                {user.username}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            {user.firstName} {user.lastName}
+                                        </TableCell>
+                                        <TableCell>{user.email}</TableCell>
+                                        <TableCell>{user.universityId}</TableCell>
+                                        <TableCell>{user.levelName || "N/A"}</TableCell>
+                                        <TableCell>{user.positionName || "N/A"}</TableCell>
+                                        <TableCell className="text-center">
+                                            {user.enabled ? (
+                                                <CheckSquare
+                                                    size={18}
+                                                    className="text-green-500 mx-auto"
+                                                />
+                                            ) : (
+                                                <XSquare
+                                                    size={18}
+                                                    className="text-red-500 mx-auto"
+                                                />
+                                            )}
+                                        </TableCell>
+                                        <TableCell className="text-center">
+                                            {user.canDrive ? (
+                                                <CheckSquare
+                                                    size={18}
+                                                    className="text-green-500 mx-auto"
+                                                />
+                                            ) : (
+                                                <XSquare
+                                                    size={18}
+                                                    className="text-red-500 mx-auto"
+                                                />
+                                            )}
+                                        </TableCell>
+                                        <TableCell className="text-right space-x-2">
+                                            <Button
+                                                variant="outline"
+                                                size="icon"
+                                                onClick={() => openEditDialog(user)}
+                                                disabled={isLoading}
+                                            >
+                                                <Edit2 className="h-4 w-4" />
+                                                <span className="sr-only">Edit User</span>
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    )}
+                    {totalPages > 1 && (
+                        <div className="flex items-center justify-end space-x-2 py-4">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                                disabled={currentPage === 1 || isLoading}
+                            >
+                                Previous
+                            </Button>
+                            <span className="text-sm text-muted-foreground">
+                                Page {currentPage} of {totalPages}
+                            </span>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                    setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                                }
+                                disabled={currentPage === totalPages || isLoading}
+                            >
+                                Next
+                            </Button>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+
+            <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
+                <DialogContent className="sm:max-w-[625px]">
+                    <DialogHeader>
+                        <DialogTitle>Add New User</DialogTitle>
+                        <DialogDescription>
+                            Fill in the details below to create a new user account.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <UserFormFields
+                        isEdit={false}
+                        formState={newUser}
+                        handleInputChange={handleInputChange}
+                        handleCheckboxChange={handleCheckboxChange}
+                        handleSelectChange={handleSelectChange}
+                        levels={levels}
+                        positions={positions}
+                    />
+                    <DialogFooter>
+                        <DialogClose asChild>
+                            <Button type="button" variant="outline">
+                                Cancel
+                            </Button>
+                        </DialogClose>
+                        <Button type="submit" onClick={handleAddUser}>
+                            Add User
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={isEditUserOpen} onOpenChange={setIsEditUserOpen}>
+                <DialogContent className="sm:max-w-[625px]">
+                    <DialogHeader>
+                        <DialogTitle>Edit User: {selectedUser?.username}</DialogTitle>
+                        <DialogDescription>
+                            Update the details for this user account.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <UserFormFields
+                        isEdit={true}
+                        formState={editUser}
+                        handleInputChange={handleInputChange}
+                        handleCheckboxChange={handleCheckboxChange}
+                        handleSelectChange={handleSelectChange}
+                        levels={levels}
+                        positions={positions}
+                    />
+                    <DialogFooter>
+                        <DialogClose asChild>
+                            <Button type="button" variant="outline">
+                                Cancel
+                            </Button>
+                        </DialogClose>
+                        <Button type="submit" onClick={handleUpdateUser}>
+                            Save Changes
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={isDeleteUserOpen} onOpenChange={setIsDeleteUserOpen}>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>Delete User: {selectedUser?.username}</DialogTitle>
+                        <DialogDescription>
+                            Are you sure you want to delete this user? This action cannot be undone.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <DialogClose asChild>
+                            <Button type="button" variant="outline">
+                                Cancel
+                            </Button>
+                        </DialogClose>
+                        <Button type="button" variant="destructive" onClick={handleDeleteUser}>
+                            Delete User
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </div>
     );
-  }
-
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
-        <p className="text-muted-foreground">Manage user accounts</p>
-      </div>
-
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle>Users</CardTitle>
-          <CardDescription>
-            Manage user accounts and permissions
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4 mb-6 justify-between">
-            <div className="relative w-full sm:w-1/3">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search users..."
-                className="pl-8"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <Button 
-              onClick={() => setIsAddUserOpen(true)} 
-              className="w-full sm:w-auto gap-1.5"
-            >
-              <Plus className="h-4 w-4" />
-              Add User
-            </Button>
-          </div>
-
-          <Tabs onValueChange={setCurrentTab} defaultValue="active">
-            <TabsList className="mb-4 w-full max-w-md">
-              <TabsTrigger value="active" className="flex-1">All Users</TabsTrigger>
-              <TabsTrigger value="transport_director" className="flex-1">Directors</TabsTrigger>
-              <TabsTrigger value="fotl" className="flex-1">FOTL</TabsTrigger>
-              <TabsTrigger value="ftl" className="flex-1">FTL</TabsTrigger>
-            </TabsList>
-
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead className="hidden md:table-cell">Username</TableHead>
-                    <TableHead className="hidden lg:table-cell">Email</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead className="hidden lg:table-cell">College</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredUsers.length > 0 ? (
-                    filteredUsers.map((user) => (
-                      <TableRow key={user.id}>
-                        <TableCell className="font-medium">{user.fullName}</TableCell>
-                        <TableCell className="hidden md:table-cell">{user.username}</TableCell>
-                        <TableCell className="hidden lg:table-cell">{user.email}</TableCell>
-                        <TableCell>
-                          <span className="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium bg-primary/10 text-primary">
-                            {formatRole(user.role)}
-                          </span>
-                        </TableCell>
-                        <TableCell className="hidden lg:table-cell">{user.college}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={() => openEditDialog(user)}
-                            >
-                              <Edit2 className="h-4 w-4" />
-                              <span className="sr-only">Edit</span>
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => openDeleteDialog(user)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                              <span className="sr-only">Delete</span>
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={6} className="h-24 text-center">
-                        No users found.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </Tabs>
-        </CardContent>
-      </Card>
-
-      {/* Add User Dialog */}
-      <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
-        <DialogContent className="sm:max-w-md md:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Add New User</DialogTitle>
-            <DialogDescription>
-              Create a new user account. All fields marked with * are required.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="fullName">
-                  Full Name <span className="text-destructive">*</span>
-                </Label>
-                <div className="relative">
-                  <UserIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="fullName"
-                    name="fullName"
-                    placeholder="John Doe"
-                    value={newUser.fullName}
-                    onChange={handleInputChange}
-                    className="pl-8"
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="username">
-                  Username <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="username"
-                  name="username"
-                  placeholder="john.doe"
-                  value={newUser.username}
-                  onChange={handleInputChange}
-                />
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="email">Email Address</Label>
-              <div className="relative">
-                <Mail className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="john.doe@aau.edu.et"
-                  value={newUser.email}
-                  onChange={handleInputChange}
-                  className="pl-8"
-                />
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="password">
-                  Password <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  value={newUser.password}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">
-                  Confirm Password <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  value={newUser.confirmPassword}
-                  onChange={handleInputChange}
-                />
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="role">
-                User Role <span className="text-destructive">*</span>
-              </Label>
-              <div className="relative">
-                <UserCheck className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Select 
-                  value={newUser.role} 
-                  onValueChange={(value) => handleSelectChange("role", value)}
-                >
-                  <SelectTrigger className="pl-8">
-                    <SelectValue placeholder="Select a role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {AVAILABLE_ROLES.map((role) => (
-                      <SelectItem key={role} value={role}>
-                        {formatRole(role)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="college">College/Faculty</Label>
-              <div className="relative">
-                <Building className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Select 
-                  value={collegeId} 
-                  onValueChange={(value) => handleSelectChange("college", value)}
-                >
-                  <SelectTrigger className="pl-8">
-                    <SelectValue placeholder="Select a college" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {MOCK_COLLEGES.map((college) => (
-                      <SelectItem key={college.id} value={college.id}>
-                        {college.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="institute">Institute</Label>
-                <Select 
-                  value={instituteId} 
-                  onValueChange={(value) => handleSelectChange("institute", value)}
-                  disabled={!collegeId}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select an institute" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {MOCK_INSTITUTES
-                      .filter(institute => institute.collegeId === collegeId)
-                      .map((institute) => (
-                        <SelectItem key={institute.id} value={institute.id}>
-                          {institute.name}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="campus">Campus</Label>
-                <div className="relative">
-                  <MapPin className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Select 
-                    value={newUser.campus} 
-                    onValueChange={(value) => handleSelectChange("campus", value)}
-                    disabled={!instituteId}
-                  >
-                    <SelectTrigger className="pl-8">
-                      <SelectValue placeholder="Select a campus" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {MOCK_CAMPUSES
-                        .filter(campus => campus.instituteId === instituteId)
-                        .map((campus) => (
-                          <SelectItem key={campus.id} value={campus.id}>
-                            {campus.name}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAddUserOpen(false)}>Cancel</Button>
-            <Button onClick={handleAddUser}>Create User</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit User Dialog */}
-      <Dialog open={isEditUserOpen} onOpenChange={setIsEditUserOpen}>
-        <DialogContent className="sm:max-w-md md:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Edit User</DialogTitle>
-            <DialogDescription>
-              Update user information for {selectedUser?.fullName}
-            </DialogDescription>
-          </DialogHeader>
-          {selectedUser && (
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="edit-fullName">Full Name</Label>
-                  <Input
-                    id="edit-fullName"
-                    value={selectedUser.fullName}
-                    onChange={(e) => setSelectedUser({...selectedUser, fullName: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit-username">Username</Label>
-                  <Input
-                    id="edit-username"
-                    value={selectedUser.username}
-                    onChange={(e) => setSelectedUser({...selectedUser, username: e.target.value})}
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="edit-email">Email Address</Label>
-                <Input
-                  id="edit-email"
-                  type="email"
-                  value={selectedUser.email || ""}
-                  onChange={(e) => setSelectedUser({...selectedUser, email: e.target.value})}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="edit-role">User Role</Label>
-                <Select 
-                  value={selectedUser.role} 
-                  onValueChange={(value: UserRole) => setSelectedUser({...selectedUser, role: value})}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {AVAILABLE_ROLES.map((role) => (
-                      <SelectItem key={role} value={role}>
-                        {formatRole(role)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="edit-college">College/Faculty</Label>
-                <Select 
-                  value={collegeId}
-                  onValueChange={(value) => {
-                    setCollegeId(value);
-                    const college = MOCK_COLLEGES.find(c => c.id === value);
-                    setSelectedUser({...selectedUser, college: college ? college.name : ""});
-                    setInstituteId("");
-                    setSelectedUser(prev => ({...prev!, institute: "", campus: ""}));
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a college" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {MOCK_COLLEGES.map((college) => (
-                      <SelectItem key={college.id} value={college.id}>
-                        {college.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="edit-institute">Institute</Label>
-                  <Select 
-                    value={instituteId}
-                    onValueChange={(value) => {
-                      setInstituteId(value);
-                      const institute = MOCK_INSTITUTES.find(i => i.id === value);
-                      setSelectedUser({...selectedUser, institute: institute ? institute.name : ""});
-                      setSelectedUser(prev => ({...prev!, campus: ""}));
-                    }}
-                    disabled={!collegeId}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select an institute" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {MOCK_INSTITUTES
-                        .filter(institute => institute.collegeId === collegeId)
-                        .map((institute) => (
-                          <SelectItem key={institute.id} value={institute.id}>
-                            {institute.name}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit-campus">Campus</Label>
-                  <Select 
-                    value={selectedUser.campus || ""}
-                    onValueChange={(value) => setSelectedUser({...selectedUser, campus: value})}
-                    disabled={!instituteId}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a campus" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {MOCK_CAMPUSES
-                        .filter(campus => campus.instituteId === instituteId)
-                        .map((campus) => (
-                          <SelectItem key={campus.id} value={campus.id}>
-                            {campus.name}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditUserOpen(false)}>Cancel</Button>
-            <Button onClick={handleEditUser}>Save Changes</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete User Dialog */}
-      <Dialog open={isDeleteUserOpen} onOpenChange={setIsDeleteUserOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Delete User</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete the user account for {selectedUser?.fullName}?
-              This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteUserOpen(false)}>Cancel</Button>
-            <Button variant="destructive" onClick={handleDeleteUser}>Delete User</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
 }
