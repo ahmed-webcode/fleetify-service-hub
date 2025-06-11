@@ -12,7 +12,8 @@ import { VehiclesList } from "@/components/vehicles/VehiclesList";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiClient, VehicleDto, VehicleStatus, VehicleQueryParams } from "@/lib/apiClient";
+import { apiClient } from "@/lib/apiClient";
+import { VehicleDto, VehicleStatus, VehicleQueryParams } from "@/types/vehicle";
 import {
     Pagination,
     PaginationContent,

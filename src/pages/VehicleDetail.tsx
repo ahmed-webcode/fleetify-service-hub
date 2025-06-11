@@ -30,7 +30,8 @@ import {
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { apiClient, VehicleStatus, VehicleDetail as VehicleDetailType } from "@/lib/apiClient";
+import { apiClient } from "@/lib/apiClient";
+import { VehicleStatus, VehicleDetail as VehicleDetailType } from "@/types/vehicle";
 import { useQuery } from "@tanstack/react-query";
 import { format, parseISO } from "date-fns";
 

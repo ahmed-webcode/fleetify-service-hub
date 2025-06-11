@@ -28,7 +28,9 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { apiClient, Level, Position } from "@/lib/apiClient";
+import { apiClient } from "@/lib/apiClient";
+import { Level } from "@/types/level";
+import { Position } from "@/types/position";
 import { UserDto, CreateUserDto, UpdateUserDto, Gender } from "@/types/user";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";

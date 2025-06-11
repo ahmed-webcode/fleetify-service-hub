@@ -12,7 +12,8 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea"; // Assuming you might need it
 import { EditVehicleFormProps, UpdateVehicleDto } from "@/types/vehicle"; // Import new types
-import { VehicleDto, VehicleStatus, VehicleType } from "@/lib/apiClient"; // Assuming these enums are in apiClient
+import { VehicleDto } from "@/types/vehicle";
+import { VehicleStatus, VehicleType } from "@/types/vehicle";
 
 // This is a placeholder. You will need to replace this with your actual form structure,
 // similar to AddVehicleForm.tsx, but for editing.
