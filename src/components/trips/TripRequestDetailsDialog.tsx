@@ -132,11 +132,11 @@ export function TripRequestDetailsDialog({
                             <>
                                 <DetailItem label="Action By" value={request.actedBy} />
                                 <DetailItem label="Action At" value={formatDate(request.actedAt)} />
-                                <DetailItem label="Action Reason" value={request.actionReason} />
+                                <DetailItem label="Action Note" value={request.actionNote} />
                             </>
                         )}
-                        <DetailItem label="Created At" value={formatDate(request.createdAt)} />
-                        <DetailItem label="Last Updated" value={formatDate(request.updatedAt)} />
+                        {/* <DetailItem label="Created At" value={formatDate(request.createdAt)} />
+                        <DetailItem label="Last Updated" value={formatDate(request.updatedAt)} /> */}
                     </dl>
                 </div>
                 <div className="pt-4 flex justify-end">

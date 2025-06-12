@@ -8,6 +8,7 @@ import {
     CommandGroup,
     CommandInput,
     CommandItem,
+    CommandList, // for performance with long lists
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
@@ -18,7 +19,7 @@ export interface ComboboxOption {
 
 interface ComboboxProps {
     options: ComboboxOption[];
-    value?: string;
+    value?: string | null; // Allow null
     onChange: (value: string | null) => void;
     placeholder?: string;
     notFoundText?: string;
@@ -37,6 +38,9 @@ export function Combobox({
 }: ComboboxProps) {
     const [open, setOpen] = React.useState(false);
 
+    // Find the full option object for the currently selected value
+    const selectedOption = options.find((option) => option.value === value);
+
     return (
         <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
@@ -49,36 +53,44 @@ export function Combobox({
                 >
                     {isLoading
                         ? "Loading..."
-                        : value
-                        ? options.find((option) => option.value === value)?.label
+                        : selectedOption
+                        ? selectedOption.label
                         : placeholder}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-full p-0">
+            {/* Set width to match the trigger button for better aesthetics */}
+            <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
                 <Command>
-                    <CommandInput placeholder={placeholder} />
+                    <CommandInput placeholder="Search..." />
                     <CommandEmpty>{notFoundText}</CommandEmpty>
-                    <CommandGroup>
-                        {options.map((option) => (
-                            <CommandItem
-                                key={option.value}
-                                value={option.value}
-                                onSelect={(currentValue) => {
-                                    onChange(currentValue === value ? null : currentValue);
-                                    setOpen(false);
-                                }}
-                            >
-                                <Check
-                                    className={cn(
-                                        "mr-2 h-4 w-4",
-                                        value === option.value ? "opacity-100" : "opacity-0"
-                                    )}
-                                />
-                                {option.label}
-                            </CommandItem>
-                        ))}
-                    </CommandGroup>
+                    {/* Using CommandList is good practice for scrollable content */}
+                    <CommandList> 
+                        <CommandGroup>
+                            {options.map((option) => (
+                                <CommandItem
+                                    key={option.value}
+                                    // Use the LABEL for the value so search works as expected.
+                                    value={option.label}
+                                    onSelect={() => {
+                                        // On select, report the ID (option.value) back.
+                                        // This ignores the argument from onSelect and uses the `option` from the map closure.
+                                        onChange(option.value === value ? null : option.value);
+                                        setOpen(false);
+                                    }}
+                                >
+                                    <Check
+                                        className={cn(
+                                            "mr-2 h-4 w-4",
+                                            // Compare against the true value from props
+                                            value === option.value ? "opacity-100" : "opacity-0"
+                                        )}
+                                    />
+                                    {option.label}
+                                </CommandItem>
+                            ))}
+                        </CommandGroup>
+                    </CommandList>
                 </Command>
             </PopoverContent>
         </Popover>

@@ -55,7 +55,7 @@ export function TripRequestActionDialog({
         queryKey: ["usersForTrip"],
         queryFn: () => apiClient.users.getAll(), // Fetch all users
         enabled: isOpen && action === ActionType.APPROVE,
-        select: (data) => data.filter((user) => user.roles.includes("DRIVER")), // Filter for drivers
+        select: (data) => data.filter((user) => user.roles.map((role)=>role.id).includes(7)), // Filter for drivers
     });
 
     const handleSubmit = async () => {
@@ -77,7 +77,7 @@ export function TripRequestActionDialog({
         try {
             const actionData: TripRequestActionDto = {
                 action: action,
-                actionReason: reason || undefined,
+                actionNote: reason || undefined,
                 vehicleId: vehicleId,
                 driverId: driverId,
             };
@@ -165,7 +165,7 @@ export function TripRequestActionDialog({
                                     <SelectContent>
                                         {usersData?.map((user: UserDto) => (
                                             <SelectItem key={user.id} value={user.id.toString()}>
-                                                {user.fullName}
+                                                {user.firstName} {user.lastName}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>

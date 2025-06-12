@@ -2,7 +2,7 @@ import { ActionType, RequestStatus, TargetType } from "./common";
 
 // Types for Fuel Request Management
 export interface CreateFuelRequestDto {
-    targetType: TargetType;
+    requestType: TargetType;
     vehicleId?: number;
     levelId?: number;
     projectId?: number;
@@ -14,12 +14,12 @@ export interface CreateFuelRequestDto {
 export interface FuelRequestActionDto {
     action: ActionType;
     actedAmount?: number;
-    actionReason?: string;
+    actionNote?: string;
 }
 
 export interface FuelRequestDto {
     id: number;
-    targetType: TargetType;
+    requestType: TargetType;
     vehiclePlateNumber?: string;
     levelName: string;
     projectName?: string;
@@ -32,7 +32,7 @@ export interface FuelRequestDto {
     actedByName?: string;
     actedAt?: string;
     actedAmount?: number;
-    actionReason?: string;
+    actionNote?: string;
     createdAt?: string;
     updatedAt: string;
 }

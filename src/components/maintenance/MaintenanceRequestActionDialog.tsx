@@ -56,7 +56,7 @@ export function MaintenanceRequestActionDialog({
         try {
             const actionData: MaintenanceRequestActionDto = {
                 action: action,
-                actionReason: reason || undefined,
+                actionNote: reason || undefined,
                 estimatedCost: estimatedCost,
             };
             await apiClient.maintenance.requests.act(request.id, actionData);

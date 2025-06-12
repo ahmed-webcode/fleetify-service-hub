@@ -62,7 +62,7 @@ export default function TripManagement() {
             return apiClient.trips.requests.getAll({
                 page: currentPage,
                 size: itemsPerPage,
-                sortBy: "createdAt", // Or "requestedAt" if more appropriate
+                sortBy: "requestedAt", // Or "requestedAt" if more appropriate
                 direction: "DESC",
             });
         },
@@ -217,7 +217,7 @@ export default function TripManagement() {
             ) : (
                 <>
                     {/* Stats Cards - Adapt as needed */}
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    {/* <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                         <Card>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                 <CardTitle className="text-sm font-medium">
@@ -277,7 +277,7 @@ export default function TripManagement() {
                                 </p>
                             </CardContent>
                         </Card>
-                    </div>
+                    </div> */}
 
                     <Tabs defaultValue="requests" className="space-y-4">
                         <TabsList>

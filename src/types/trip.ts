@@ -13,7 +13,7 @@ export interface CreateTripRequestDto {
 
 export interface TripRequestActionDto {
     action: ActionType;
-    actionReason?: string;
+    actionNote?: string;
     vehicleId?: number;
     driverId?: number;
 }
@@ -33,7 +33,7 @@ export interface TripRequestDto {
     requestedAt: string;
     actedBy?: string;
     actedAt?: string;
-    actionReason?: string;
+    actionNote?: string;
     vehiclePlateNumber?: string;
     driverName?: string;
     createdAt: string;

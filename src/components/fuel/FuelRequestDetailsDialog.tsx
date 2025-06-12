@@ -111,7 +111,7 @@ export function FuelRequestDetailsDialog({
                         <div className="space-y-1">
                             <div className="text-sm font-medium text-muted-foreground">Target</div>
                             <div className="flex items-center gap-2">
-                                {request.targetType === TargetType.VEHICLE ? (
+                                {request.requestType === TargetType.VEHICLE ? (
                                     <>
                                         <Car className="h-4 w-4 text-muted-foreground" />
                                         <span>Vehicle: {request.vehiclePlateNumber}</span>
@@ -184,14 +184,14 @@ export function FuelRequestDetailsDialog({
                                 )}
                             </div>
 
-                            {request.actionReason && (
+                            {request.actionNote && (
                                 <div className="space-y-1 mt-2">
                                     <div className="text-xs flex items-center gap-1 text-muted-foreground">
                                         <Info className="h-3 w-3" />
                                         <span>Reason</span>
                                     </div>
                                     <div className="p-3 bg-muted/50 rounded-md text-sm">
-                                        {request.actionReason}
+                                        {request.actionNote}
                                     </div>
                                 </div>
                             )}

@@ -126,7 +126,7 @@ export function FuelRequestsList({ requests, onRefresh }: FuelRequestsListProps)
                                     </div>
                                 </TableCell>
                                 <TableCell>
-                                    {request.targetType === "VEHICLE" ? (
+                                    {request.requestType === "VEHICLE" ? (
                                         <div>
                                             <p>Vehicle</p>
                                             <p className="text-xs text-muted-foreground">

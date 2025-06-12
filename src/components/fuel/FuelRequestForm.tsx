@@ -1,15 +1,15 @@
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 import {
     FormItem,
     FormLabel,
@@ -18,27 +18,27 @@ import {
     FormMessage,
     Form,
     FormField,
-} from "@/components/ui/form";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { toast } from "sonner";
-import { apiClient } from "@/lib/apiClient";
-import { CreateFuelRequestDto } from "@/types/fuel";
-import { TargetType } from "@/types/common";
-import { useQuery } from "@tanstack/react-query";
-import { Combobox } from "../ui/combobox";
+} from '@/components/ui/form';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { toast } from 'sonner';
+import { apiClient } from '@/lib/apiClient';
+import { CreateFuelRequestDto } from '@/types/fuel';
+import { TargetType } from '@/types/common';
+import { useQuery } from '@tanstack/react-query';
+import { Combobox } from '../ui/combobox';
 
 const formSchema = z.object({
     targetType: z.nativeEnum(TargetType),
     vehicleId: z.number().optional().nullable(),
     levelId: z.number().optional().nullable(),
     projectId: z.number().optional().nullable(),
-    fuelTypeId: z.number({ required_error: "Fuel type is required." }),
+    fuelTypeId: z.number({ required_error: 'Fuel type is required.' }),
     requestNote: z.string().optional(),
     requestedAmount: z
-        .number({ required_error: "Amount is required." })
-        .positive("Amount must be greater than 0"),
+        .number({ required_error: 'Amount is required.' })
+        .positive('Amount must be greater than 0'),
 });
 
 type FuelFormValues = z.infer<typeof formSchema>;
@@ -61,32 +61,32 @@ export function FuelRequestForm({ onSuccess, onCancel }: FuelRequestFormProps) {
 
     // Fetch data for dropdowns
     const { data: vehiclesData, isLoading: isLoadingVehicles } = useQuery({
-        queryKey: ["vehicles", "all"],
+        queryKey: ['vehicles', 'all'],
         queryFn: () => apiClient.vehicles.getAll({ size: 1000 }),
-        enabled: targetType === "VEHICLE",
+        enabled: targetType === 'VEHICLE',
     });
 
     const { data: levelsData, isLoading: isLoadingLevels } = useQuery({
-        queryKey: ["levels", "all"],
+        queryKey: ['levels', 'all'],
         queryFn: () => apiClient.levels.getAll(),
-        enabled: targetType === "GENERATOR", // Or other non-vehicle types
+        enabled: targetType === 'GENERATOR', // Or other non-vehicle types
     });
 
     const { data: projectsData, isLoading: isLoadingProjects } = useQuery({
-        queryKey: ["projects", "all"],
+        queryKey: ['projects', 'all'],
         queryFn: () => apiClient.projects.getAll({ size: 1000 }),
     });
 
     const { data: fuelTypes, isLoading: isLoadingFuelTypes } = useQuery({
-        queryKey: ["fuelTypes"],
+        queryKey: ['fuelTypes'],
         queryFn: () => apiClient.fuel.getFuelTypes() as any,
     });
 
-    const watchedTargetType = form.watch("targetType");
+    const watchedTargetType = form.watch('targetType');
     useEffect(() => {
         setTargetType(watchedTargetType as TargetType);
-        form.setValue("vehicleId", null);
-        form.setValue("levelId", null);
+        form.setValue('vehicleId', null);
+        form.setValue('levelId', null);
     }, [watchedTargetType, form]);
 
     const onSubmit = async (data: FuelFormValues) => {
@@ -94,23 +94,23 @@ export function FuelRequestForm({ onSuccess, onCancel }: FuelRequestFormProps) {
             setLoading(true);
 
             const requestData: CreateFuelRequestDto = {
-                targetType: data.targetType,
+                requestType: data.targetType,
                 fuelTypeId: data.fuelTypeId,
                 requestedAmount: data.requestedAmount,
                 projectId: data.projectId,
                 requestNote: data.requestNote,
             };
 
-            if (data.targetType === "VEHICLE") {
+            if (data.targetType === TargetType.VEHICLE) {
                 if (!data.vehicleId) {
-                    toast.error("Vehicle is required.");
+                    toast.error('Vehicle is required.');
                     setLoading(false);
                     return;
                 }
                 requestData.vehicleId = data.vehicleId;
             } else {
                 if (!data.levelId) {
-                    toast.error("Level/Office is required for non-vehicle targets.");
+                    toast.error('Level/Office is required for non-vehicle targets.');
                     setLoading(false);
                     return;
                 }
@@ -118,11 +118,11 @@ export function FuelRequestForm({ onSuccess, onCancel }: FuelRequestFormProps) {
             }
 
             await apiClient.fuel.requests.create(requestData);
-            toast.success("Fuel request submitted successfully");
+            toast.success('Fuel request submitted successfully');
             form.reset();
             if (onSuccess) onSuccess();
         } catch (error: any) {
-            toast.error("Failed to submit request: " + error.message);
+            toast.error('Failed to submit request: ' + error.message);
         } finally {
             setLoading(false);
         }
@@ -156,7 +156,7 @@ export function FuelRequestForm({ onSuccess, onCancel }: FuelRequestFormProps) {
                     )}
                 />
 
-                {targetType === "VEHICLE" ? (
+                {targetType === 'VEHICLE' ? (
                     <FormField
                         control={form.control}
                         name="vehicleId"
@@ -234,7 +234,7 @@ export function FuelRequestForm({ onSuccess, onCancel }: FuelRequestFormProps) {
                                         label: project.name,
                                     })) ?? []
                                 }
-                                value={field.value?.toString()}
+                                value={field.value ? field.value.toString() : null}
                                 onChange={(value) => field.onChange(value ? parseInt(value) : null)}
                                 placeholder="Search for a project..."
                                 notFoundText="No project found."
@@ -320,7 +320,7 @@ export function FuelRequestForm({ onSuccess, onCancel }: FuelRequestFormProps) {
                         Cancel
                     </Button>
                     <Button type="submit" disabled={loading}>
-                        {loading ? "Submitting..." : "Submit Request"}
+                        {loading ? 'Submitting...' : 'Submit Request'}
                     </Button>
                 </div>
             </form>

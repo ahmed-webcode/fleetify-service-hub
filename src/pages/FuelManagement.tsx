@@ -43,7 +43,7 @@ export default function FuelManagement() {
       return apiClient.fuel.requests.getAll({
         page: currentPage,
         size: itemsPerPage,
-        sortBy: "createdAt",
+        sortBy: "requestedAt",
         direction: "DESC"
       });
     }
@@ -184,7 +184,7 @@ export default function FuelManagement() {
       ) : (
         <>
           {/* Stats Cards */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {/* <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
@@ -279,7 +279,7 @@ export default function FuelManagement() {
                 </p>
               </CardContent>
             </Card>
-          </div>
+          </div> */}
 
           {/* Fuel Management Tabs */}
           <Tabs defaultValue="requests" className="space-y-4">

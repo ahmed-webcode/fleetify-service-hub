@@ -12,7 +12,7 @@ export interface CreateMaintenanceRequestDto {
 // You can reuse TripRequestActionDto if you prefer, or define this:
 export interface MaintenanceRequestActionDto {
     action: ActionType; // Reuses existing ActionType enum
-    actionReason?: string;
+    actionNote?: string;
     estimatedCost?: number;
 }
 
@@ -29,7 +29,7 @@ export interface MaintenanceRequestDto {
     requestedAt: string;
     actedBy?: string;
     actedAt?: string;
-    actionReason?: string;
+    actionNote?: string;
     createdAt: string;
     updatedAt: string;
 }

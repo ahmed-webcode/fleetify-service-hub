@@ -129,7 +129,7 @@ export function MaintenanceRequestDetailsDialog({
                             <>
                                 <DetailItem label="Action By" value={request.actedBy} />
                                 <DetailItem label="Action At" value={formatDate(request.actedAt)} />
-                                <DetailItem label="Action Reason" value={request.actionReason} />
+                                <DetailItem label="Action Note" value={request.actionNote} />
                             </>
                         )}
                         <DetailItem label="Created At" value={formatDate(request.createdAt)} />
