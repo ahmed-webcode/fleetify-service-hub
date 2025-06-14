@@ -216,6 +216,29 @@ const UserFormFields: React.FC<UserFormFieldsProps> = memo(
 );
 UserFormFields.displayName = "UserFormFields";
 
+// Add this function back for badge styling by role name
+const getRoleBadgeVariant = (role: string) => {
+  switch (role.toLowerCase()) {
+    case "transport director":
+    case "it staff":
+      return "default";
+    case "driver":
+      return "secondary";
+    case "staff":
+      return "outline";
+    case "fuel manager":
+      return "success";
+    case "maintenance manager":
+      return "success";
+    case "college admin":
+    case "student":
+    case "dean":
+      return "outline";
+    default:
+      return "outline";
+  }
+};
+
 // Dynamically generate role options from ROLE_DETAILS
 const allRoles = Object.values(ROLE_DETAILS).map((role) => ({
   value: role.name,
