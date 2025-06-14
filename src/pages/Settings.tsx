@@ -24,17 +24,21 @@ export default function Settings() {
 
     // Form state for Profile fields
     const [profileForm, setProfileForm] = useState<Partial<UserFull>>({});
+    // Track initial loaded state to compare for changes
+    const [initialProfile, setInitialProfile] = useState<Partial<UserFull>>({});
 
     useEffect(() => {
         if (user) {
-            setProfileForm({
+            const userProfile = {
                 firstName: user.firstName,
                 lastName: user.lastName,
                 username: user.username,
                 email: user.email,
                 phoneNumber: user.phoneNumber,
                 universityId: user.universityId,
-            });
+            };
+            setProfileForm(userProfile);
+            setInitialProfile(userProfile);
         }
     }, [user]);
 
@@ -54,16 +58,32 @@ export default function Settings() {
         setProfileForm((prev) => ({ ...prev, [id]: value }));
     };
 
+    // Util to get changed fields only
+    const getChangedFields = () => {
+        const changed: Partial<UpdateUserDto> = {};
+        Object.entries(profileForm).forEach(([key, value]) => {
+            // compare with initialProfile, only add if changed and not undefined
+            if (
+                value !== undefined &&
+                value !== (initialProfile as any)[key]
+            ) {
+                (changed as any)[key] = value;
+            }
+        });
+        return changed;
+    };
+
     const handleSaveProfile = () => {
         if (!user) return;
+        const changes = getChangedFields();
+        if (Object.keys(changes).length === 0) {
+            toast.info("No changes to save.");
+            return;
+        }
         updateMutation.mutate({
             id: user.id,
-            firstName: profileForm.firstName ?? "",
-            lastName: profileForm.lastName ?? "",
-            email: profileForm.email ?? "",
-            phoneNumber: profileForm.phoneNumber ?? "",
-            universityId: profileForm.universityId ?? "",
-        } as UpdateUserDto);
+            ...changes,
+        });
     };
 
     const [notifications, setNotifications] = useState({
