@@ -172,6 +172,9 @@ export const apiClient = {
                 method: "DELETE",
             });
         },
+        getMe: () => {
+            return fetchWithErrorHandling<import('@/types/user').UserFull>("/users/me");
+        },
     },
 
     // Vehicle endpoints

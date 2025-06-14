@@ -1,4 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiClient } from "@/lib/apiClient";
+import type { UserFull, UpdateUserDto } from "@/types/user";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,7 +15,57 @@ import { toast } from "sonner";
 import ManageUsersPage from "./ManageUsers";
 
 export default function Settings() {
-    const { user, hasPermission } = useAuth();
+    const { hasPermission } = useAuth();
+
+    const { data: user, isLoading, error, refetch } = useQuery({
+        queryKey: ["user", "me"],
+        queryFn: () => apiClient.users.getMe(),
+    });
+
+    // Form state for Profile fields
+    const [profileForm, setProfileForm] = useState<Partial<UserFull>>({});
+
+    useEffect(() => {
+        if (user) {
+            setProfileForm({
+                firstName: user.firstName,
+                lastName: user.lastName,
+                username: user.username,
+                email: user.email,
+                phoneNumber: user.phoneNumber,
+                universityId: user.universityId,
+            });
+        }
+    }, [user]);
+
+    const updateMutation = useMutation({
+        mutationFn: (data: UpdateUserDto) => apiClient.users.update(data),
+        onSuccess: () => {
+            toast.success("Settings saved successfully");
+            refetch();
+        },
+        onError: (e) => {
+            toast.error("Failed to update profile");
+        }
+    });
+
+    const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { id, value } = e.target;
+        setProfileForm((prev) => ({ ...prev, [id]: value }));
+    };
+
+    const handleSaveProfile = () => {
+        if (!user) return;
+        updateMutation.mutate({
+            id: user.id,
+            firstName: profileForm.firstName ?? "",
+            lastName: profileForm.lastName ?? "",
+            email: profileForm.email ?? "",
+            phoneNumber: profileForm.phoneNumber ?? "",
+            universityId: profileForm.universityId ?? "",
+        } as UpdateUserDto);
+    };
+
     const [notifications, setNotifications] = useState({
         email: true,
         browser: true,
@@ -57,37 +110,79 @@ export default function Settings() {
                             <CardDescription>Update your personal information</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="fullName">Full Name</Label>
-                                    <Input id="fullName" defaultValue={user?.fullName} />
-                                </div>
+                            {isLoading ? (
+                                <div>Loading...</div>
+                            ) : error ? (
+                                <div>Error loading profile.</div>
+                            ) : (
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="firstName">First Name</Label>
+                                            <Input
+                                                id="firstName"
+                                                value={profileForm.firstName ?? ""}
+                                                onChange={handleProfileChange}
+                                            />
+                                        </div>
 
-                                <div className="space-y-2">
-                                    <Label htmlFor="username">Username</Label>
-                                    <Input id="username" defaultValue={user?.username} disabled />
-                                </div>
-                            </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="lastName">Last Name</Label>
+                                            <Input
+                                                id="lastName"
+                                                value={profileForm.lastName ?? ""}
+                                                onChange={handleProfileChange}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="username">Username</Label>
+                                            <Input
+                                                id="username"
+                                                value={profileForm.username ?? ""}
+                                                disabled
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="universityId">University ID</Label>
+                                            <Input
+                                                id="universityId"
+                                                value={profileForm.universityId ?? ""}
+                                                onChange={handleProfileChange}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="email">Email Address</Label>
+                                            <Input
+                                                id="email"
+                                                type="email"
+                                                value={profileForm.email ?? ""}
+                                                onChange={handleProfileChange}
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="phoneNumber">Phone Number</Label>
+                                            <Input
+                                                id="phoneNumber"
+                                                value={profileForm.phoneNumber ?? ""}
+                                                onChange={handleProfileChange}
+                                            />
+                                        </div>
+                                    </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="email">Email Address</Label>
-                                    <Input
-                                        id="email"
-                                        type="email"
-                                        placeholder="your.email@aau.edu.et"
-                                    />
+                                    <div className="flex justify-end">
+                                        <Button
+                                            onClick={handleSaveProfile}
+                                            disabled={updateMutation.isPending}
+                                        >
+                                            {updateMutation.isPending ? "Saving..." : "Save Changes"}
+                                        </Button>
+                                    </div>
                                 </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="phone">Phone Number</Label>
-                                    <Input id="phone" placeholder="e.g. 0911-123456" />
-                                </div>
-                            </div>
-
-                            <div className="flex justify-end">
-                                <Button onClick={handleSave}>Save Changes</Button>
-                            </div>
+                            )}
                         </CardContent>
                     </Card>
 

@@ -60,3 +60,53 @@ export interface UserDto {
     updatedAt: string;
     lastLogin?: string | null;
 }
+
+// For mapping the /me endpoint
+
+export interface LevelRef {
+    id: number;
+    name: string;
+}
+
+export interface PositionRef {
+    id: number;
+    name: string;
+    level?: LevelRef | null;
+}
+
+export interface RoleRef {
+    id: number;
+    name: string;
+}
+
+export interface UserRef {
+    id: number;
+    email: string;
+    firstName: string;
+    lastName: string;
+}
+
+// This matches the UserFull DTO from backend
+export interface UserFull {
+    id: number;
+    username: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    universityId: string;
+    gender: Gender;
+    phoneNumber: string;
+    canDrive: boolean;
+    drivingLicense?: string | null;
+    enabled: boolean;
+    levelName?: string | null;
+    level?: LevelRef | null;
+    position?: PositionRef | null;
+    positionName?: string | null;
+    roles: RoleRef[];
+    createdAt: string;
+    updatedAt: string;
+    createdBy?: UserRef | null;
+    updatedBy?: UserRef | null;
+    lastLogin?: string | null;
+}
