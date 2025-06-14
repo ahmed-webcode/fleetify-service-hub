@@ -38,6 +38,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 export default function TripManagement() {
     const { hasPermission } = useAuth();
@@ -195,22 +196,18 @@ export default function TripManagement() {
         tripRequestsData?.content.filter((r) => r.status === RequestStatus.PENDING).length || 0;
 
     return (
-        <div className="space-y-6 p-4 md:p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Trip Management</h1>
-                    <p className="text-muted-foreground">
-                        Plan, track, and manage all organizational trips.
-                    </p>
-                </div>
-
+        <div className="space-y-6">
+            <PageHeader
+                title="Trip Management"
+                description="Plan, track, and manage all organizational trips."
+            >
                 <HasPermission permission="create_trip_request" fallback={null}>
                     <Button className="gap-1.5" onClick={() => setRequestTripOpen(true)}>
                         <Plus className="h-4 w-4" />
                         <span>Request Trip</span>
                     </Button>
                 </HasPermission>
-            </div>
+            </PageHeader>
 
             {!hasPermission("view_trip_management") ? ( // Assuming this permission
                 <AccessRestricted />
