@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +9,8 @@ import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { apiClient } from "@/lib/apiClient";
+import { toast } from "@/hooks/use-toast";
 
 export interface TripRequestFormProps {
   onSuccess: () => void;
@@ -26,20 +29,44 @@ export const TripRequestForm = ({ onSuccess, onCancel }: TripRequestFormProps) =
     passengerCount: 1,
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Convert date+time to ISO strings if present
+
     const payload = {
-      ...formData,
+      purpose: formData.purpose,
+      description: formData.description,
       startTime: formData.startDateTime ? formData.startDateTime.toISOString() : "",
       endTime: formData.endDateTime ? formData.endDateTime.toISOString() : "",
+      startLocation: formData.startLocation,
+      endLocation: formData.endLocation,
+      isRoundTrip: formData.isRoundTrip,
+      passengerCount: formData.passengerCount,
     };
-    console.log('Trip request submitted:', payload);
-    onSuccess();
+
+    setSubmitting(true);
+    try {
+      await apiClient.trips.requests.create(payload);
+      toast({
+        title: "Trip request submitted",
+        description: "Your trip request has been submitted successfully.",
+        variant: "success"
+      });
+      onSuccess();
+    } catch (error: any) {
+      toast({
+        title: "Error submitting trip request",
+        description: typeof error?.message === "string" ? error.message : "An error occurred while submitting your trip request.",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   // Input style tweaks
-  const inputClass = "min-h-11 md:min-h-12 text-base px-4 py-3";
+  const inputClass = "min-h-12 md:min-h-[52px] text-base px-4 py-3";
   const labelClass = "block text-sm font-medium mb-2";
   const textareaClass = "resize-none min-h-[80px] text-base px-4 py-3 rounded-md";
 
@@ -95,7 +122,7 @@ export const TripRequestForm = ({ onSuccess, onCancel }: TripRequestFormProps) =
                 <Button
                   variant="outline"
                   className={cn(
-                    "w-full justify-start text-left font-normal min-h-11 md:min-h-12 px-4 py-3",
+                    "w-full justify-start text-left font-normal min-h-12 md:min-h-[52px] px-4 py-3",
                     !formData.startDateTime && "text-muted-foreground"
                   )}
                 >
@@ -111,7 +138,6 @@ export const TripRequestForm = ({ onSuccess, onCancel }: TripRequestFormProps) =
                   showOutsideDays
                   initialFocus
                   className={cn("p-3 pointer-events-auto")}
-                  // @ts-ignore: react-day-picker allows time with plugins—but here only date, so user sets the time via browser
                 />
                 <div className="mt-2 flex justify-between items-center px-3">
                   <input
@@ -140,7 +166,7 @@ export const TripRequestForm = ({ onSuccess, onCancel }: TripRequestFormProps) =
                 <Button
                   variant="outline"
                   className={cn(
-                    "w-full justify-start text-left font-normal min-h-11 md:min-h-12 px-4 py-3",
+                    "w-full justify-start text-left font-normal min-h-12 md:min-h-[52px] px-4 py-3",
                     !formData.endDateTime && "text-muted-foreground"
                   )}
                 >
@@ -156,7 +182,6 @@ export const TripRequestForm = ({ onSuccess, onCancel }: TripRequestFormProps) =
                   showOutsideDays
                   initialFocus
                   className={cn("p-3 pointer-events-auto")}
-                  // @ts-ignore: allow time selection
                 />
                 <div className="mt-2 flex justify-between items-center px-3">
                   <input
@@ -197,11 +222,14 @@ export const TripRequestForm = ({ onSuccess, onCancel }: TripRequestFormProps) =
         </div>
         <div className="flex justify-end gap-2">
           {onCancel && (
-            <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
+            <Button type="button" variant="outline" onClick={onCancel} disabled={submitting}>Cancel</Button>
           )}
-          <Button type="submit">Submit Request</Button>
+          <Button type="submit" disabled={submitting}>
+            {submitting ? "Submitting..." : "Submit Request"}
+          </Button>
         </div>
       </form>
     </div>
   );
 };
+
