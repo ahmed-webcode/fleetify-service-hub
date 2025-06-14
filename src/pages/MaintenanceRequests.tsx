@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -172,7 +171,7 @@ const MaintenanceRequests = () => {
             
             {!isDirector && (
               <TabsContent value="new" className="animate-fade-in">
-                <MaintenanceRequestForm onSubmitSuccess={handleRequestSubmit} />
+                <MaintenanceRequestForm onSuccess={handleRequestSubmit} />
               </TabsContent>
             )}
             

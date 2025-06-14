@@ -1,200 +1,495 @@
-
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Plus, Filter, Clock, Car } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TripRequestForm } from "@/components/trips/TripRequestForm";
 import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+    Plus,
+    PlusCircle,
+    AlertTriangle,
+    Route,
+    Clock,
+    CalendarDays,
+    UserCheck,
+} from "lucide-react";
+import { HasPermission } from "@/components/auth/HasPermission";
+import { TripRequestForm } from "@/components/trips/TripRequestForm";
+import { TripRequestsList } from "@/components/trips/TripRequestsList";
+import { useQuery } from "@tanstack/react-query";
+import { apiClient } from "@/lib/apiClient";
+import { TripRequestDto } from "@/types/trip";
+import { RequestStatus } from "@/types/common";
+import {
+    Pagination,
+    PaginationContent,
+    PaginationEllipsis,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from "@/components/ui/pagination";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
 
-export default function TripRequests() {
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [view, setView] = useState("pending");
-  const { hasPermission } = useAuth();
-  
-  // Mock trip request data
-  const tripRequests = [
-    {
-      id: "TR-2404",
-      purpose: "Meeting at Ministry of Education",
-      startLocation: "AAU Main Campus",
-      destination: "Ministry of Education HQ",
-      startDate: "2025-03-15",
-      startTime: "09:00",
-      endDate: "2025-03-15", 
-      endTime: "14:00",
-      passengers: 2,
-      status: "pending"
-    },
-    {
-      id: "TR-2403",
-      purpose: "Field research at agricultural site",
-      startLocation: "College of Agriculture",
-      destination: "Debre Zeit Research Center",
-      startDate: "2025-03-14",
-      startTime: "08:30",
-      endDate: "2025-03-14", 
-      endTime: "17:00",
-      passengers: 5,
-      status: "approved"
-    },
-    {
-      id: "TR-2402",
-      purpose: "Student transport for conference",
-      startLocation: "Technology Campus",
-      destination: "Hilton Hotel Conference Center",
-      startDate: "2025-03-12",
-      startTime: "08:00",
-      endDate: "2025-03-12", 
-      endTime: "18:00",
-      passengers: 12,
-      status: "completed"
-    },
-    {
-      id: "TR-2401",
-      purpose: "Equipment transport",
-      startLocation: "Main Campus",
-      destination: "Science Faculty",
-      startDate: "2025-03-10",
-      startTime: "10:00",
-      endDate: "2025-03-10", 
-      endTime: "12:00",
-      passengers: 2,
-      status: "rejected"
-    },
-  ];
-  
-  // Filter trips based on current view
-  const filteredTrips = tripRequests.filter(trip => {
-    if (view === "all") return true;
-    return trip.status === view;
-  });
-  
-  const canRequestTrip = hasPermission("request_fleet");
-  const canApproveTrip = hasPermission("approve_fleet");
+export default function TripManagement() {
+    const { hasPermission } = useAuth();
 
-  return (
-    <>
-      <div className="page-container">
-        <div className="page-title-container">
-          <h1 className="page-title">Trip Requests</h1>
-          <p className="page-description">Request and manage vehicle trips</p>
-        </div>
-        
-        <div className="card-uniform">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-            {canRequestTrip && (
-              <Button 
-                className="gap-2 bg-blue-600 hover:bg-blue-700 text-white" 
-                onClick={() => setIsFormOpen(true)}
-              >
-                <Plus className="h-4 w-4" />
-                New Trip Request
-              </Button>
-            )}
-          </div>
-          
-          <Tabs 
-            defaultValue="pending" 
-            value={view} 
-            onValueChange={setView}
-            className="space-y-6"
-          >
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-              <TabsList className="h-auto p-1 w-full md:w-auto overflow-auto">
-                <TabsTrigger value="pending" className="text-sm">Pending</TabsTrigger>
-                <TabsTrigger value="approved" className="text-sm">Approved</TabsTrigger>
-                <TabsTrigger value="completed" className="text-sm">Completed</TabsTrigger>
-                <TabsTrigger value="rejected" className="text-sm">Rejected</TabsTrigger>
-                <TabsTrigger value="all" className="text-sm">All Requests</TabsTrigger>
-              </TabsList>
-              
-              <Button variant="outline" size="sm" className="gap-2 w-full md:w-auto">
-                <Filter className="h-4 w-4" />
-                Filter
-              </Button>
+    const [requestTripOpen, setRequestTripOpen] = useState(false);
+    const [currentPage, setCurrentPage] = useState(0);
+    const [searchQuery, setSearchQuery] = useState("");
+    const itemsPerPage = 10; // Or your preferred default
+
+    // Fetch trip requests with pagination
+    const {
+        data: tripRequestsData,
+        isLoading,
+        isError,
+        refetch,
+    } = useQuery({
+        queryKey: ["tripRequests", currentPage, itemsPerPage, searchQuery], // Added searchQuery to refetch on search change
+        queryFn: async () => {
+            // Note: The backend doesn't support search directly in the provided controller.
+            // Client-side filtering will be applied after fetching all data for the current page.
+            // If server-side search is implemented, pass searchQuery to apiClient.trips.requests.getAll
+            return apiClient.trips.requests.getAll({
+                page: currentPage,
+                size: itemsPerPage,
+                sortBy: "requestedAt", // Or "requestedAt" if more appropriate
+                direction: "DESC",
+            });
+        },
+        // keepPreviousData: true, // Consider for smoother pagination
+    });
+
+    // Filter requests by search query (client-side filtering)
+    const filteredRequests =
+        tripRequestsData?.content.filter((request) => {
+            if (!searchQuery) return true;
+            const searchLower = searchQuery.toLowerCase();
+            return (
+                request.purpose.toLowerCase().includes(searchLower) ||
+                (request.description && request.description.toLowerCase().includes(searchLower)) ||
+                request.requestedBy.toLowerCase().includes(searchLower) ||
+                request.startLocation.toLowerCase().includes(searchLower) ||
+                request.endLocation.toLowerCase().includes(searchLower) ||
+                request.status.toLowerCase().includes(searchLower)
+            );
+        }) || [];
+
+    const AccessRestricted = () => (
+        <div className="flex flex-col items-center justify-center py-12">
+            <div className="rounded-full bg-muted p-4 mb-4">
+                <AlertTriangle className="h-8 w-8 text-muted-foreground" />
             </div>
-            
-            <TabsContent value={view} className="animate-fade-in">
-              {filteredTrips.length > 0 ? (
-                <div className="rounded-lg border border-border overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="w-full responsive-table">
-                      <thead className="bg-muted/50">
-                        <tr>
-                          <th className="text-left py-3 px-4 text-sm font-medium">ID</th>
-                          <th className="text-left py-3 px-4 text-sm font-medium">Purpose</th>
-                          <th className="text-left py-3 px-4 text-sm font-medium hidden md:table-cell">Destination</th>
-                          <th className="text-left py-3 px-4 text-sm font-medium hidden lg:table-cell">Date</th>
-                          <th className="text-left py-3 px-4 text-sm font-medium">Status</th>
-                          <th className="text-right py-3 px-4 text-sm font-medium">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-border">
-                        {filteredTrips.map((trip) => (
-                          <tr key={trip.id} className="hover:bg-muted/30 transition-colors">
-                            <td className="py-3 px-4 font-medium">{trip.id}</td>
-                            <td className="py-3 px-4">{trip.purpose}</td>
-                            <td className="py-3 px-4 hidden md:table-cell">{trip.destination}</td>
-                            <td className="py-3 px-4 hidden lg:table-cell">
-                              {new Date(trip.startDate).toLocaleDateString()}
-                            </td>
-                            <td className="py-3 px-4">
-                              <span className={`status-badge ${
-                                trip.status === 'completed' 
-                                  ? 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                  : trip.status === 'approved'
-                                  ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                                  : trip.status === 'pending'
-                                  ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-                                  : 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                              }`}>
-                                {trip.status.charAt(0).toUpperCase() + trip.status.slice(1)}
-                              </span>
-                            </td>
-                            <td className="py-3 px-4 text-right">
-                              <div className="flex justify-end gap-2">
-                                <Button variant="ghost" size="sm">Details</Button>
-                                {canApproveTrip && trip.status === 'pending' && (
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm"
-                                    className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                                  >
-                                    Approve
-                                  </Button>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <div className="bg-muted rounded-full p-4 mb-4">
-                    <Car className="h-8 w-8 text-muted-foreground" />
-                  </div>
-                  <h3 className="text-lg font-medium mb-2">No trip requests found</h3>
-                  <p className="text-muted-foreground max-w-sm">
-                    There are no trip requests matching your current filter.
-                  </p>
-                  <Button 
-                    variant="outline" 
-                    className="mt-4"
-                    onClick={() => setView("all")}
-                  >
-                    View All Requests
-                  </Button>
-                </div>
-              )}
-            </TabsContent>
-          </Tabs>
+            <h3 className="text-lg font-medium mb-2">Access Restricted</h3>
+            <p className="text-muted-foreground text-center max-w-md">
+                You don't have permission to access the Trip Management page. Please contact your
+                administrator for assistance.
+            </p>
         </div>
+    );
 
-        <TripRequestForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} />
-      </div>
-    </>
-  );
+    const renderPaginationItems = () => {
+        const items = [];
+        const totalPages = tripRequestsData?.totalPages || 1;
+
+        if (totalPages <= 7) {
+            for (let i = 0; i < totalPages; i++) {
+                items.push(
+                    <PaginationItem key={i}>
+                        <PaginationLink
+                            href="#"
+                            isActive={i === currentPage}
+                            onClick={(e) => {
+                                e.preventDefault();
+                                setCurrentPage(i);
+                            }}
+                        >
+                            {i + 1}
+                        </PaginationLink>
+                    </PaginationItem>
+                );
+            }
+        } else {
+            items.push(
+                <PaginationItem key={0}>
+                    <PaginationLink
+                        href="#"
+                        isActive={0 === currentPage}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            setCurrentPage(0);
+                        }}
+                    >
+                        1
+                    </PaginationLink>
+                </PaginationItem>
+            );
+            if (currentPage > 2) {
+                // Adjusted for 0-indexed pages
+                items.push(
+                    <PaginationItem key="ellipsis1">
+                        <PaginationEllipsis />
+                    </PaginationItem>
+                );
+            }
+            const startPage = Math.max(1, currentPage - 1);
+            const endPage = Math.min(totalPages - 2, currentPage + 1);
+            for (let i = startPage; i <= endPage; i++) {
+                items.push(
+                    <PaginationItem key={i}>
+                        <PaginationLink
+                            href="#"
+                            isActive={i === currentPage}
+                            onClick={(e) => {
+                                e.preventDefault();
+                                setCurrentPage(i);
+                            }}
+                        >
+                            {i + 1}
+                        </PaginationLink>
+                    </PaginationItem>
+                );
+            }
+            if (currentPage < totalPages - 3) {
+                // Adjusted for 0-indexed pages
+                items.push(
+                    <PaginationItem key="ellipsis2">
+                        <PaginationEllipsis />
+                    </PaginationItem>
+                );
+            }
+            items.push(
+                <PaginationItem key={totalPages - 1}>
+                    <PaginationLink
+                        href="#"
+                        isActive={totalPages - 1 === currentPage}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            setCurrentPage(totalPages - 1);
+                        }}
+                    >
+                        {totalPages}
+                    </PaginationLink>
+                </PaginationItem>
+            );
+        }
+        return items;
+    };
+
+    // Reset page to 0 when search query changes
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchQuery(e.target.value);
+        setCurrentPage(0); // Reset to first page on new search
+    };
+
+    const pendingRequestsCount =
+        tripRequestsData?.content.filter((r) => r.status === RequestStatus.PENDING).length || 0;
+
+    return (
+        <div className="space-y-6 p-4 md:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight">Trip Management</h1>
+                    <p className="text-muted-foreground">
+                        Plan, track, and manage all organizational trips.
+                    </p>
+                </div>
+
+                <HasPermission permission="create_trip_request" fallback={null}>
+                    <Button className="gap-1.5" onClick={() => setRequestTripOpen(true)}>
+                        <Plus className="h-4 w-4" />
+                        <span>Request Trip</span>
+                    </Button>
+                </HasPermission>
+            </div>
+
+            {!hasPermission("view_trip_management") ? ( // Assuming this permission
+                <AccessRestricted />
+            ) : (
+                <>
+                    {/* Stats Cards - Adapt as needed */}
+                    {/* <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">
+                                    Total Trips (Current View)
+                                </CardTitle>
+                                <Route className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">
+                                    {tripRequestsData?.totalElements || 0}
+                                </div>
+                                <p className="text-xs text-muted-foreground">
+                                    Overall trips in the system
+                                </p>
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">
+                                    Pending Requests
+                                </CardTitle>
+                                <Clock className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{pendingRequestsCount}</div>
+                                <p className="text-xs text-muted-foreground">Awaiting approval</p>
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">
+                                    Approved Trips (Month)
+                                </CardTitle>
+                                <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">N/A</div>
+                                <p className="text-xs text-muted-foreground">
+                                    Placeholder for monthly approved
+                                </p>
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">
+                                    Active / Upcoming Trips
+                                </CardTitle>
+                                <UserCheck className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">N/A</div>
+                                <p className="text-xs text-muted-foreground">
+                                    Placeholder for active trips
+                                </p>
+                            </CardContent>
+                        </Card>
+                    </div> */}
+
+                    <Tabs defaultValue="requests" className="space-y-4">
+                        <TabsList>
+                            <TabsTrigger value="requests">Trip Requests</TabsTrigger>
+                            <TabsTrigger value="history">Trip History</TabsTrigger>
+                            <TabsTrigger value="reports">Reports</TabsTrigger>
+                        </TabsList>
+
+                        <TabsContent value="requests" className="space-y-4">
+                            <Card>
+                                <CardHeader className="pb-3">
+                                    <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+                                        <div>
+                                            <CardTitle>All Trip Requests</CardTitle>
+                                            <CardDescription>
+                                                Manage and track all trip requests.
+                                            </CardDescription>
+                                        </div>
+                                        <div className="relative w-full sm:w-64">
+                                            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                                            <Input
+                                                placeholder="Search by purpose, user, location..."
+                                                className="pl-8"
+                                                value={searchQuery}
+                                                onChange={handleSearchChange}
+                                            />
+                                        </div>
+                                    </div>
+                                </CardHeader>
+                                <CardContent>
+                                    {isLoading ? (
+                                        <div className="flex justify-center p-8">
+                                            <p>Loading trip requests...</p>
+                                        </div>
+                                    ) : isError ? (
+                                        <div className="bg-red-50 border-l-4 border-red-500 p-4">
+                                            <p className="text-red-700">
+                                                Error loading trip requests. Please try again.
+                                            </p>
+                                        </div>
+                                    ) : filteredRequests.length === 0 &&
+                                      !searchQuery &&
+                                      tripRequestsData?.totalElements === 0 ? (
+                                        <div className="rounded-md border border-dashed p-8">
+                                            <div className="flex flex-col items-center justify-center text-center">
+                                                <PlusCircle className="h-12 w-12 text-muted-foreground opacity-50 mb-2" />
+                                                <h3 className="text-lg font-medium mb-1">
+                                                    No trip requests yet
+                                                </h3>
+                                                <p className="text-sm text-muted-foreground mb-4">
+                                                    There are no trip requests at the moment.
+                                                </p>
+                                                <HasPermission
+                                                    permission="create_trip_request"
+                                                    fallback={null}
+                                                >
+                                                    <Button
+                                                        onClick={() => setRequestTripOpen(true)}
+                                                    >
+                                                        <Plus className="mr-2 h-4 w-4" />
+                                                        New Trip Request
+                                                    </Button>
+                                                </HasPermission>
+                                            </div>
+                                        </div>
+                                    ) : filteredRequests.length === 0 && searchQuery ? (
+                                        <div className="rounded-md border border-dashed p-8 text-center">
+                                            <p className="text-muted-foreground">
+                                                No matching trip requests found for "{searchQuery}"
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <TripRequestsList
+                                                requests={filteredRequests}
+                                                onRefresh={refetch}
+                                            />
+
+                                            {tripRequestsData &&
+                                                tripRequestsData.totalPages > 1 && ( // Show pagination if more than one page
+                                                    <div className="mt-6">
+                                                        <Pagination>
+                                                            <PaginationContent>
+                                                                <PaginationItem>
+                                                                    <PaginationPrevious
+                                                                        href="#"
+                                                                        onClick={(e) => {
+                                                                            e.preventDefault();
+                                                                            setCurrentPage(
+                                                                                Math.max(
+                                                                                    0,
+                                                                                    currentPage - 1
+                                                                                )
+                                                                            );
+                                                                        }}
+                                                                        aria-disabled={
+                                                                            currentPage === 0
+                                                                        }
+                                                                        className={
+                                                                            currentPage === 0
+                                                                                ? "pointer-events-none opacity-50"
+                                                                                : ""
+                                                                        }
+                                                                    />
+                                                                </PaginationItem>
+                                                                {renderPaginationItems()}
+                                                                <PaginationItem>
+                                                                    <PaginationNext
+                                                                        href="#"
+                                                                        onClick={(e) => {
+                                                                            e.preventDefault();
+                                                                            setCurrentPage(
+                                                                                Math.min(
+                                                                                    tripRequestsData.totalPages -
+                                                                                        1,
+                                                                                    currentPage + 1
+                                                                                )
+                                                                            );
+                                                                        }}
+                                                                        aria-disabled={
+                                                                            currentPage ===
+                                                                            tripRequestsData.totalPages -
+                                                                                1
+                                                                        }
+                                                                        className={
+                                                                            currentPage ===
+                                                                            tripRequestsData.totalPages -
+                                                                                1
+                                                                                ? "pointer-events-none opacity-50"
+                                                                                : ""
+                                                                        }
+                                                                    />
+                                                                </PaginationItem>
+                                                            </PaginationContent>
+                                                        </Pagination>
+                                                    </div>
+                                                )}
+                                        </>
+                                    )}
+                                </CardContent>
+                                <CardFooter className="border-t py-3 px-6">
+                                    <p className="text-xs text-muted-foreground">
+                                        {tripRequestsData &&
+                                            `Showing ${filteredRequests.length} of ${tripRequestsData.totalElements} requests`}
+                                    </p>
+                                </CardFooter>
+                            </Card>
+                        </TabsContent>
+
+                        <TabsContent value="history" className="space-y-4">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Trip History</CardTitle>
+                                    <CardDescription>
+                                        View completed and past trips. (Placeholder)
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent className="pl-2">
+                                    <div className="h-[300px] w-full rounded-md border border-dashed flex items-center justify-center">
+                                        <p className="text-center text-muted-foreground">
+                                            Trip history & analytics will be displayed here.
+                                        </p>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+
+                        <TabsContent value="reports" className="space-y-4">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Trip Reports</CardTitle>
+                                    <CardDescription>
+                                        Generate and download trip reports. (Placeholder)
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="space-y-4">
+                                        <div className="rounded-md border p-4">
+                                            <h3 className="font-medium mb-2">
+                                                Monthly Trip Summary
+                                            </h3>
+                                            <p className="text-sm text-muted-foreground mb-4">
+                                                Detailed breakdown of all trips for the current
+                                                month.
+                                            </p>
+                                            <Button variant="outline" disabled>
+                                                Download Report
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+                    </Tabs>
+                </>
+            )}
+
+            {/* Trip Request Dialog */}
+            <Dialog open={requestTripOpen} onOpenChange={setRequestTripOpen}>
+                <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>New Trip Request</DialogTitle>
+                    </DialogHeader>
+                    <TripRequestForm
+                        onSuccess={() => {
+                            setRequestTripOpen(false);
+                            refetch(); // Refetch data after successful creation
+                        }}
+                        onCancel={() => setRequestTripOpen(false)}
+                    />
+                </DialogContent>
+            </Dialog>
+        </div>
+    );
 }
