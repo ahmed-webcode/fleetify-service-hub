@@ -76,6 +76,7 @@ interface User {
     firstName: string;
     lastName: string;
     canDrive: boolean;
+    roles: { id: number; name: string; }[];
 }
 
 export function AddVehicleForm({ onSubmit }) {
@@ -153,6 +154,11 @@ export function AddVehicleForm({ onSubmit }) {
 
     // Get available drivers (users who can drive)
     const availableDrivers = users.filter((user) => user.canDrive);
+    
+    // Filter users to only show those with "staff" role
+    const staffUsers = users.filter((user) => 
+        user.roles && user.roles.some((role) => role.name.toLowerCase() === "staff")
+    );
 
     const handleImageUpload = (e) => {
         if (e.target.files && e.target.files[0]) {
@@ -671,7 +677,7 @@ export function AddVehicleForm({ onSubmit }) {
                                                 Loading...
                                             </div>
                                         ) : (
-                                            users.map((user) => (
+                                            staffUsers.map((user) => (
                                                 <SelectItem
                                                     key={user.id}
                                                     value={user.id.toString()}
