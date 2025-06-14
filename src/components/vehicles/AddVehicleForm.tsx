@@ -3,6 +3,8 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
 import {
     Form,
     FormControl,
@@ -20,12 +22,15 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { toast } from "sonner";
 import { apiClient } from "@/lib/apiClient";
 import { VehicleStatus, VehicleType } from "@/types/vehicle";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Loader } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 
 // Define the schema for vehicle data
 const vehicleSchema = z.object({
@@ -77,6 +82,8 @@ export function AddVehicleForm({ onSubmit }) {
     const [imageFile, setImageFile] = useState(null);
     const [libreFile, setLibreFile] = useState(null);
     const [uploading, setUploading] = useState(false);
+    const [insuranceEndDate, setInsuranceEndDate] = useState<Date | undefined>();
+    const [boloEndDate, setBoloEndDate] = useState<Date | undefined>();
 
     // Mock fuel types until we have an API endpoint
     // const fuelTypes = [
@@ -171,12 +178,20 @@ export function AddVehicleForm({ onSubmit }) {
             // Create FormData for multipart/form-data submission
             const formData = new FormData();
 
-            // Add all form values to FormData
+            // Add all form values to FormData with date formatting
             Object.entries(values).forEach(([key, value]) => {
                 if (value !== undefined && value !== null) {
                     formData.append(key, value.toString());
                 }
             });
+
+            // Add formatted dates
+            if (insuranceEndDate) {
+                formData.append("insuranceEndDate", format(insuranceEndDate, "yyyy-MM-dd"));
+            }
+            if (boloEndDate) {
+                formData.append("boloEndDate", format(boloEndDate, "yyyy-MM-dd"));
+            }
 
             // Add the files
             if (imageFile) {
@@ -194,6 +209,8 @@ export function AddVehicleForm({ onSubmit }) {
                 form.reset();
                 setImageFile(null);
                 setLibreFile(null);
+                setInsuranceEndDate(undefined);
+                setBoloEndDate(undefined);
             }
         } catch (error) {
             toast.error("Error: " + error.message);
@@ -532,33 +549,79 @@ export function AddVehicleForm({ onSubmit }) {
                         )}
                     />
 
-                    <FormField
-                        control={form.control}
-                        name="insuranceEndDate"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Insurance End Date</FormLabel>
+                    <FormItem>
+                        <FormLabel>Insurance End Date</FormLabel>
+                        <Popover>
+                            <PopoverTrigger asChild>
                                 <FormControl>
-                                    <Input type="date" {...field} />
+                                    <Button
+                                        variant={"outline"}
+                                        className={cn(
+                                            "w-full justify-start text-left font-normal",
+                                            !insuranceEndDate && "text-muted-foreground"
+                                        )}
+                                    >
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {insuranceEndDate
+                                            ? format(insuranceEndDate, "PPP")
+                                            : <span>Pick a date</span>}
+                                    </Button>
                                 </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                    mode="single"
+                                    selected={insuranceEndDate}
+                                    onSelect={(date) => {
+                                        setInsuranceEndDate(date);
+                                        form.setValue("insuranceEndDate", date ? format(date, "yyyy-MM-dd") : "");
+                                    }}
+                                    initialFocus
+                                    className={cn("p-3 pointer-events-auto")}
+                                />
+                            </PopoverContent>
+                        </Popover>
+                        <FormMessage>
+                            {form.formState.errors.insuranceEndDate?.message}
+                        </FormMessage>
+                    </FormItem>
 
-                    <FormField
-                        control={form.control}
-                        name="boloEndDate"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Bolo End Date</FormLabel>
+                    <FormItem>
+                        <FormLabel>Bolo End Date</FormLabel>
+                        <Popover>
+                            <PopoverTrigger asChild>
                                 <FormControl>
-                                    <Input type="date" {...field} />
+                                    <Button
+                                        variant={"outline"}
+                                        className={cn(
+                                            "w-full justify-start text-left font-normal",
+                                            !boloEndDate && "text-muted-foreground"
+                                        )}
+                                    >
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {boloEndDate
+                                            ? format(boloEndDate, "PPP")
+                                            : <span>Pick a date</span>}
+                                    </Button>
                                 </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                    mode="single"
+                                    selected={boloEndDate}
+                                    onSelect={(date) => {
+                                        setBoloEndDate(date);
+                                        form.setValue("boloEndDate", date ? format(date, "yyyy-MM-dd") : "");
+                                    }}
+                                    initialFocus
+                                    className={cn("p-3 pointer-events-auto")}
+                                />
+                            </PopoverContent>
+                        </Popover>
+                        <FormMessage>
+                            {form.formState.errors.boloEndDate?.message}
+                        </FormMessage>
+                    </FormItem>
 
                     {/* Ownership Information */}
                     <FormField
