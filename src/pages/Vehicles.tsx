@@ -400,8 +400,7 @@ const Vehicles = () => {
                         </TabsContent>
 
                         <div className="text-sm text-center text-muted-foreground mt-4 mb-6">
-                            Showing {filteredVehicles.length} of {apiData?.totalElements || 0}{" "}
-                            vehicles
+                            Showing {filteredVehicles.length} of {apiData?.totalElements || 0} vehicles
                         </div>
 
                         {/* Pagination */}
@@ -447,6 +446,7 @@ const Vehicles = () => {
                     </Tabs>
                 </div>
 
+                {/* Dialogs for Add/Edit Vehicle */}
                 <Dialog open={addVehicleOpen} onOpenChange={setAddVehicleOpen}>
                     <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
                         <DialogHeader>

@@ -58,13 +58,12 @@ export function VehiclesSearch({
             <SelectValue placeholder="Filter by ownership" />
           </SelectTrigger>
           <SelectContent className="z-50">
-            <SelectItem value="all">All</SelectItem>
-            <SelectItem value="private">Private</SelectItem>
-            <SelectItem value="public">Public</SelectItem>
+            <SelectItem value="all">All Ownerships</SelectItem>
+            <SelectItem value="private">Individually Owned</SelectItem>
+            <SelectItem value="public">University Owned</SelectItem>
           </SelectContent>
         </Select>
       </div>
     </div>
   );
 }
-

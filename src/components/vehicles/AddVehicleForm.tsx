@@ -14,6 +14,10 @@ import { VehicleTechnicalDetails } from "./form-sections/VehicleTechnicalDetails
 import { VehicleInsuranceInfo } from "./form-sections/VehicleInsuranceInfo";
 import { VehicleStaffAndOwnership } from "./form-sections/VehicleStaffAndOwnership";
 import { VehicleFileUploads } from "./form-sections/VehicleFileUploads";
+import { CalendarIcon } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
 
 // Define the schema for vehicle data
 const vehicleSchema = z.object({
@@ -45,6 +49,7 @@ const vehicleSchema = z.object({
     insuranceCompany: z.string().optional(),
     insuranceEndDate: z.string().optional(),
     boloEndDate: z.string().optional(),
+    lastQuotaRefuel: z.date().optional(),
     // Files are handled separately
 });
 
@@ -68,6 +73,7 @@ export function AddVehicleForm({ onSubmit }) {
     const [uploading, setUploading] = useState(false);
     const [insuranceEndDate, setInsuranceEndDate] = useState<Date | undefined>();
     const [boloEndDate, setBoloEndDate] = useState<Date | undefined>();
+    const [lastQuotaRefuel, setLastQuotaRefuel] = useState<Date | undefined>();
 
     // Mock fuel types until we have an API endpoint
     // const fuelTypes = [
@@ -79,9 +85,7 @@ export function AddVehicleForm({ onSubmit }) {
 
     const { data: fuelTypes } = useQuery({
         queryKey: ["fuelTypes"],
-        queryFn: async () => {
-            return apiClient.fuel.getFuelTypes() as any;
-        },
+        queryFn: async () => apiClient.fuel.getFuelTypes() as any,
     });
 
     // Fetch users for responsible staff and driver selection
@@ -89,10 +93,8 @@ export function AddVehicleForm({ onSubmit }) {
         queryKey: ["users"],
         queryFn: async () => {
             try {
-                const u = (await apiClient.users.getAll()) as any;
-                return u;
+                return (await apiClient.users.getAll()) as any;
             } catch (error) {
-                console.error("Failed to fetch users:", error);
                 toast.error("Failed to load users");
                 return [];
             }
@@ -127,6 +129,7 @@ export function AddVehicleForm({ onSubmit }) {
             insuranceCompany: "",
             insuranceEndDate: "",
             boloEndDate: "",
+            lastQuotaRefuel: undefined,
         },
     });
 
@@ -169,12 +172,16 @@ export function AddVehicleForm({ onSubmit }) {
 
             // Add all form values to FormData with date formatting
             Object.entries(values).forEach(([key, value]) => {
-                if (value !== undefined && value !== null) {
+                if (value !== undefined && value !== null && key !== "lastQuotaRefuel") {
                     formData.append(key, value.toString());
                 }
             });
+            // Add lastQuotaRefuel as formatted date if present
+            if (lastQuotaRefuel) {
+                formData.append("lastQuotaRefuel", format(lastQuotaRefuel, "yyyy-MM-dd"));
+            }
 
-            // Add formatted dates
+            // Add formatted insurance and bolo dates
             if (insuranceEndDate) {
                 formData.append("insuranceEndDate", format(insuranceEndDate, "yyyy-MM-dd"));
             }
@@ -200,6 +207,7 @@ export function AddVehicleForm({ onSubmit }) {
                 setLibreFile(null);
                 setInsuranceEndDate(undefined);
                 setBoloEndDate(undefined);
+                setLastQuotaRefuel(undefined);
             }
         } catch (error) {
             toast.error("Error: " + error.message);
@@ -225,6 +233,36 @@ export function AddVehicleForm({ onSubmit }) {
                     boloEndDate={boloEndDate}
                     setBoloEndDate={setBoloEndDate}
                 />
+
+                <div>
+                    <label className="block text-sm font-medium mb-1">Last Quota Refuel</label>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button
+                                variant={"outline"}
+                                className={cn(
+                                    "w-[240px] justify-start text-left font-normal",
+                                    !lastQuotaRefuel && "text-muted-foreground"
+                                )}
+                                type="button"
+                            >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {lastQuotaRefuel
+                                    ? format(lastQuotaRefuel, "PPP")
+                                    : <span>Pick a date</span>}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                                mode="single"
+                                selected={lastQuotaRefuel}
+                                onSelect={setLastQuotaRefuel}
+                                initialFocus
+                                className={cn("p-3 pointer-events-auto")}
+                            />
+                        </PopoverContent>
+                    </Popover>
+                </div>
                 
                 <h3 className="text-xl font-semibold border-b pb-2 pt-4">Ownership & Staff</h3>
                 <VehicleStaffAndOwnership

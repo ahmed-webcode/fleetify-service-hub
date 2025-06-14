@@ -13,6 +13,11 @@ import { VehicleTechnicalDetails } from "./form-sections/VehicleTechnicalDetails
 import { VehicleInsuranceInfo } from "./form-sections/VehicleInsuranceInfo";
 import { VehicleStaffAndOwnership } from "./form-sections/VehicleStaffAndOwnership";
 import { VehicleFileUploads } from "./form-sections/VehicleFileUploads";
+import { CalendarIcon } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
 
 const editVehicleSchema = z.object({
     plateNumber: z.string().min(2, "License plate is required."),
@@ -40,6 +45,7 @@ const editVehicleSchema = z.object({
     insuranceCompany: z.string().optional(),
     insuranceEndDate: z.string().optional(),
     boloEndDate: z.string().optional(),
+    lastQuotaRefuel: z.date().optional(),
 });
 
 type EditVehicleValues = z.infer<typeof editVehicleSchema>;
@@ -59,6 +65,7 @@ export function EditVehicleForm({ vehicle, onSubmit, onCancel }: EditVehicleForm
     const [uploading, setUploading] = useState(false);
     const [insuranceEndDate, setInsuranceEndDate] = useState<Date | undefined>();
     const [boloEndDate, setBoloEndDate] = useState<Date | undefined>();
+    const [lastQuotaRefuel, setLastQuotaRefuel] = useState<Date | undefined>();
 
     const { data: fuelTypes } = useQuery({
         queryKey: ["fuelTypes"],
@@ -89,9 +96,11 @@ export function EditVehicleForm({ vehicle, onSubmit, onCancel }: EditVehicleForm
                 fuelTypeId: fuelTypes.find(ft => ft.name === vehicle.fuelTypeName)?.id,
                 responsibleStaffId: users.find(u => `${u.firstName} ${u.lastName}` === vehicle.responsibleStaffName)?.id,
                 driverId: users.find(u => `${u.firstName} ${u.lastName}` === vehicle.driverName)?.id,
+                lastQuotaRefuel: vehicle.lastQuotaRefuel ? new Date(vehicle.lastQuotaRefuel) : undefined,
             });
             if (vehicle.insuranceEndDate) setInsuranceEndDate(new Date(vehicle.insuranceEndDate));
             if (vehicle.boloEndDate) setBoloEndDate(new Date(vehicle.boloEndDate));
+            if (vehicle.lastQuotaRefuel) setLastQuotaRefuel(new Date(vehicle.lastQuotaRefuel));
         }
     }, [vehicle, users, fuelTypes, form]);
 
@@ -115,11 +124,20 @@ export function EditVehicleForm({ vehicle, onSubmit, onCancel }: EditVehicleForm
         const formData = new FormData();
 
         Object.entries(values).forEach(([key, value]) => {
-            if (value !== undefined && value !== null) {
+            if (value !== undefined && value !== null && key !== "lastQuotaRefuel") {
                 formData.append(key, String(value));
             }
         });
-
+        // Add lastQuotaRefuel as formatted date if present
+        if (lastQuotaRefuel) {
+            formData.append("lastQuotaRefuel", format(lastQuotaRefuel, "yyyy-MM-dd"));
+        }
+        if (insuranceEndDate) {
+            formData.append("insuranceEndDate", format(insuranceEndDate, "yyyy-MM-dd"));
+        }
+        if (boloEndDate) {
+            formData.append("boloEndDate", format(boloEndDate, "yyyy-MM-dd"));
+        }
         if (imageFile) formData.append("vehicleImg", imageFile);
         if (libreFile) formData.append("libreImg", libreFile);
         
@@ -148,6 +166,36 @@ export function EditVehicleForm({ vehicle, onSubmit, onCancel }: EditVehicleForm
                     boloEndDate={boloEndDate}
                     setBoloEndDate={setBoloEndDate}
                 />
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">Last Quota Refuel</label>
+                  <Popover>
+                      <PopoverTrigger asChild>
+                          <Button
+                              variant={"outline"}
+                              className={cn(
+                                  "w-[240px] justify-start text-left font-normal",
+                                  !lastQuotaRefuel && "text-muted-foreground"
+                              )}
+                              type="button"
+                          >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {lastQuotaRefuel
+                                  ? format(lastQuotaRefuel, "PPP")
+                                  : <span>Pick a date</span>}
+                          </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                              mode="single"
+                              selected={lastQuotaRefuel}
+                              onSelect={setLastQuotaRefuel}
+                              initialFocus
+                              className={cn("p-3 pointer-events-auto")}
+                          />
+                      </PopoverContent>
+                  </Popover>
+                </div>
                 
                 <h3 className="text-xl font-semibold border-b pb-2 pt-4">Ownership & Staff</h3>
                 <VehicleStaffAndOwnership
@@ -173,7 +221,6 @@ export function EditVehicleForm({ vehicle, onSubmit, onCancel }: EditVehicleForm
                         </div>
                     )}
                 </div>
-
 
                 <div className="flex justify-end gap-2 mt-6">
                     <Button type="button" variant="outline" onClick={onCancel} disabled={uploading}>
