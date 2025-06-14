@@ -191,7 +191,7 @@ const Vehicles = () => {
         }
     };
 
-    const handleEditFormSubmit = async (id: number, data: FormData) => {
+    const handleEditFormSubmit = async (id: number, data: FormData): Promise<void> => {
         try {
             setLoading(true);
             await apiClient.vehicles.update(id, data);
@@ -200,10 +200,9 @@ const Vehicles = () => {
             toast.success("Vehicle updated successfully!");
             queryClient.invalidateQueries({ queryKey: ["vehicles"] });
             queryClient.invalidateQueries({ queryKey: ["vehicleDetail", id.toString()] });
-            return { success: true };
         } catch (error: any) {
             toast.error("Failed to update vehicle: " + error.message);
-            return { success: false, error };
+            throw error; // Re-throw to maintain error handling
         } finally {
             setLoading(false);
         }

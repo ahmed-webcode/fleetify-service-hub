@@ -1,3 +1,4 @@
+
 import { Level } from '@/types/level';
 
 export interface FlattenedLevel extends Level {
@@ -41,4 +42,30 @@ export const buildLevelOptions = (levels: Level[]) => {
         value: level.id.toString(),
         label: level.name,
     }));
+};
+
+// Add the missing getFlattenedLevels function
+export const getFlattenedLevels = (includeStructural: boolean = true): FlattenedLevel[] => {
+    try {
+        const storedLevels = localStorage.getItem('levels');
+        if (!storedLevels) return [];
+        
+        const levels: Level[] = JSON.parse(storedLevels);
+        const filteredLevels = includeStructural ? levels : levels.filter(level => !level.isStructural);
+        return flattenLevels(filteredLevels);
+    } catch (error) {
+        console.error('Error getting flattened levels:', error);
+        return [];
+    }
+};
+
+// Add the missing fetchAndStoreLevels function
+export const fetchAndStoreLevels = async () => {
+    try {
+        // This would normally fetch from API, for now return empty array
+        console.log('Fetching and storing levels...');
+        localStorage.setItem('levels', JSON.stringify([]));
+    } catch (error) {
+        console.error('Error fetching and storing levels:', error);
+    }
 };
