@@ -105,7 +105,6 @@ export function FuelRequestsList({ requests, onRefresh }: FuelRequestsListProps)
                             <TableHead>ID</TableHead>
                             <TableHead>Requested By</TableHead>
                             <TableHead>Target</TableHead>
-                            <TableHead>Project</TableHead>
                             <TableHead>Fuel Type</TableHead>
                             <TableHead>Amount</TableHead>
                             <TableHead>Status</TableHead>
@@ -137,7 +136,6 @@ export function FuelRequestsList({ requests, onRefresh }: FuelRequestsListProps)
                                         "Generator"
                                     )}
                                 </TableCell>
-                                <TableCell>{request.projectName || "N/A"}</TableCell>
                                 <TableCell>{request.fuelTypeName}</TableCell>
                                 <TableCell>{request.requestedAmount} L</TableCell>
                                 <TableCell>{renderStatusBadge(request.status)}</TableCell>

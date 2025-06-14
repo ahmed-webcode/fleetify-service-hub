@@ -158,8 +158,8 @@ const UserFormFields: React.FC<UserFormFieldsProps> = memo(
                             <SelectValue placeholder="Select gender" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value={Gender.Male}>Male</SelectItem>
-                            <SelectItem value={Gender.Female}>Female</SelectItem>
+                            <SelectItem value={Gender.MALE}>Male</SelectItem>
+                            <SelectItem value={Gender.FEMALE}>Female</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
@@ -245,7 +245,7 @@ export default function ManageUsers() {
         lastName: "",
         universityId: "",
         email: "",
-        gender: Gender.Male,
+        gender: Gender.MALE,
         phoneNumber: "",
         canDrive: false,
     });
@@ -382,7 +382,7 @@ export default function ManageUsers() {
                 lastName: "",
                 universityId: "",
                 email: "",
-                gender: Gender.Male,
+                gender: Gender.MALE,
                 phoneNumber: "",
                 canDrive: false,
                 levelId: undefined,

@@ -296,7 +296,7 @@ export const apiClient = {
             });
         },
         getFuelTypes: () => {
-            return fetchWithErrorHandling("/fuel/types");
+            return fetchWithErrorHandling("/fuel-types");
         },
 
         // New fuel request endpoints
@@ -311,20 +311,20 @@ export const apiClient = {
                     : "";
 
                 return fetchWithErrorHandling<PageResponse<FuelRequestDto>>(
-                    `/fuel/requests${queryString}`
+                    `/fuel-requests${queryString}`
                 );
             },
             getById: (id: number) => {
-                return fetchWithErrorHandling<FuelRequestDto>(`/fuel/requests/${id}`);
+                return fetchWithErrorHandling<FuelRequestDto>(`/fuel-requests/${id}`);
             },
             create: (requestData: CreateFuelRequestDto) => {
-                return fetchWithErrorHandling<FuelRequestDto>("/fuel/requests", {
+                return fetchWithErrorHandling<FuelRequestDto>("/fuel-requests", {
                     method: "POST",
                     body: JSON.stringify(requestData),
                 });
             },
             act: (id: number, actionData: FuelRequestActionDto) => {
-                return fetchWithErrorHandling<FuelRequestDto>(`/fuel/requests/${id}`, {
+                return fetchWithErrorHandling<FuelRequestDto>(`/fuel-requests/${id}`, {
                     method: "PATCH",
                     body: JSON.stringify(actionData),
                 });
@@ -343,14 +343,14 @@ export const apiClient = {
                       ).toString()}`
                     : "";
                 return fetchWithErrorHandling<PageResponse<TripRequestDto>>(
-                    `/trips/requests${queryString}`
+                    `/trip-requests${queryString}`
                 );
             },
             getById: (id: number) => {
-                return fetchWithErrorHandling<TripRequestDto>(`/trips/requests/${id}`);
+                return fetchWithErrorHandling<TripRequestDto>(`/trip-requests/${id}`);
             },
             create: (requestData: CreateTripRequestDto) => {
-                return fetchWithErrorHandling<TripRequestDto>("/trips/requests", {
+                return fetchWithErrorHandling<TripRequestDto>("/trip-requests", {
                     method: "POST",
                     body: JSON.stringify(requestData),
                     headers: {
@@ -359,7 +359,7 @@ export const apiClient = {
                 });
             },
             act: (id: number, actionData: TripRequestActionDto) => {
-                return fetchWithErrorHandling<TripRequestDto>(`/trips/requests/${id}`, {
+                return fetchWithErrorHandling<TripRequestDto>(`/trip-requests/${id}`, {
                     method: "PATCH",
                     body: JSON.stringify(actionData),
                     headers: {
@@ -409,7 +409,7 @@ export const apiClient = {
             });
         },
         update: (positionData: UpdatePositionDto) => {
-            return fetchWithErrorHandling<Position>("/positions", {
+            return fetchWithErrorHandling<Position>(`/positions/${positionData.id}`, {
                 method: "PATCH",
                 body: JSON.stringify(positionData),
             });

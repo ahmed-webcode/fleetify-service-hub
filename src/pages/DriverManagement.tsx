@@ -36,7 +36,7 @@ const MOCK_DRIVERS = [
   {
     id: "1",
     name: "Tadesse Bekele",
-    gender: "Male",
+    gender: "MALE",
     phone: "+251911222333",
     licenseNumber: "ETH-DL-98765",
     universityId: "AAU-DRV-001",
@@ -49,7 +49,7 @@ const MOCK_DRIVERS = [
   {
     id: "2",
     name: "Meron Hailu",
-    gender: "Female",
+    gender: "FEMALE",
     phone: "+251922333444",
     licenseNumber: "ETH-DL-54321",
     universityId: "AAU-DRV-002",
@@ -62,7 +62,7 @@ const MOCK_DRIVERS = [
   {
     id: "3",
     name: "Solomon Tesfaye",
-    gender: "Male",
+    gender: "MALE",
     phone: "+251933444555",
     licenseNumber: "ETH-DL-13579",
     universityId: "AAU-DRV-003",
@@ -75,7 +75,7 @@ const MOCK_DRIVERS = [
   {
     id: "4",
     name: "Hiwot Mengistu",
-    gender: "Female",
+    gender: "FEMALE",
     phone: "+251944555666",
     licenseNumber: "ETH-DL-24680",
     universityId: "AAU-DRV-004",
@@ -305,8 +305,8 @@ const DriverManagement = () => {
                         <SelectValue placeholder="Select gender" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Male">Male</SelectItem>
-                        <SelectItem value="Female">Female</SelectItem>
+                        <SelectItem value="MALE">Male</SelectItem>
+                        <SelectItem value="FEMALE">Female</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

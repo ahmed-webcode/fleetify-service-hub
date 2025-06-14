@@ -22,7 +22,6 @@ export interface FuelRequestDto {
     requestType: TargetType;
     vehiclePlateNumber?: string;
     levelName: string;
-    projectName?: string;
     fuelTypeName: string;
     status: RequestStatus;
     requestedBy: string;

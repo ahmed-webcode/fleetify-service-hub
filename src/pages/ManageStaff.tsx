@@ -36,7 +36,7 @@ const MOCK_STAFF = [
   {
     id: "1",
     name: "Dr. Abebe Bekele",
-    gender: "Male",
+    gender: "MALE",
     department: "Technology Institute",
     phone: "+251911234567",
     position: "Dean",
@@ -48,7 +48,7 @@ const MOCK_STAFF = [
   {
     id: "2",
     name: "Prof. Sara Mohammed",
-    gender: "Female",
+    gender: "FEMALE",
     department: "College of Health Sciences",
     phone: "+251922345678",
     position: "Department Head",
@@ -60,7 +60,7 @@ const MOCK_STAFF = [
   {
     id: "3",
     name: "Mr. Dawit Haile",
-    gender: "Male",
+    gender: "MALE",
     department: "Administrative Services",
     phone: "+251933456789",
     position: "Administrative Director",
@@ -290,8 +290,8 @@ const ManageStaff = () => {
                         <SelectValue placeholder="Select gender" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Male">Male</SelectItem>
-                        <SelectItem value="Female">Female</SelectItem>
+                        <SelectItem value="MALE">Male</SelectItem>
+                        <SelectItem value="FEMALE">Female</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

@@ -107,8 +107,6 @@ export function TripRequestsList({ requests, onRefresh }: TripRequestsListProps)
                             <TableHead className="w-[80px]">ID</TableHead>
                             <TableHead>Purpose</TableHead>
                             <TableHead>Requested By</TableHead>
-                            <TableHead>Vehicle</TableHead>
-                            <TableHead>Driver</TableHead>
                             <TableHead>Start Time</TableHead>
                             <TableHead>End Time</TableHead>
                             <TableHead>Status</TableHead>
@@ -127,8 +125,6 @@ export function TripRequestsList({ requests, onRefresh }: TripRequestsListProps)
                                     {request.purpose}
                                 </TableCell>
                                 <TableCell>{request.requestedBy}</TableCell>
-                                <TableCell>{request.vehiclePlateNumber || "N/A"}</TableCell>
-                                <TableCell>{request.driverName || "N/A"}</TableCell>
                                 <TableCell>{formatDate(request.startTime)}</TableCell>
                                 <TableCell>{formatDate(request.endTime)}</TableCell>
                                 <TableCell>{renderStatusBadge(request.status)}</TableCell>

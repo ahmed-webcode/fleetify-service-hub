@@ -34,8 +34,6 @@ export interface TripRequestDto {
     actedBy?: string;
     actedAt?: string;
     actionNote?: string;
-    vehiclePlateNumber?: string;
-    driverName?: string;
     createdAt: string;
     updatedAt: string;
 }
