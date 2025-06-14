@@ -73,9 +73,11 @@ export function AddProjectDialog({
     });
 
     const handleSubmit = (data: z.infer<typeof formSchema>) => {
-        // Convert Date to string before submit
+        // Explicitly extract all required fields
         const submitData: CreateProjectDto = {
-            ...data,
+            name: data.name,
+            description: data.description,
+            status: data.status,
             startDate: startDate ? format(startDate, "yyyy-MM-dd") : "",
             endDate: endDate ? format(endDate, "yyyy-MM-dd") : "",
         };
