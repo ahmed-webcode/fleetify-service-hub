@@ -19,10 +19,11 @@ interface MaintenanceRequest {
 }
 
 export interface MaintenanceRequestFormProps {
-  onSubmitSuccess: (newRequest: MaintenanceRequest) => void;
+  onSuccess: (newRequest: MaintenanceRequest) => void;
+  onCancel?: () => void;
 }
 
-export const MaintenanceRequestForm = ({ onSubmitSuccess }: MaintenanceRequestFormProps) => {
+export const MaintenanceRequestForm = ({ onSuccess, onCancel }: MaintenanceRequestFormProps) => {
   const [formData, setFormData] = useState({
     vehicle: '',
     details: '',
@@ -42,9 +43,8 @@ export const MaintenanceRequestForm = ({ onSubmitSuccess }: MaintenanceRequestFo
       priority: formData.priority,
     };
 
-    onSubmitSuccess(newRequest);
-    
-    // Reset form
+    onSuccess(newRequest);
+
     setFormData({
       vehicle: '',
       details: '',
@@ -68,7 +68,6 @@ export const MaintenanceRequestForm = ({ onSubmitSuccess }: MaintenanceRequestFo
               required
             />
           </div>
-          
           <div>
             <label className="block text-sm font-medium mb-2">Priority</label>
             <Select value={formData.priority} onValueChange={(value: 'low' | 'medium' | 'high') => setFormData({ ...formData, priority: value })}>
@@ -82,7 +81,6 @@ export const MaintenanceRequestForm = ({ onSubmitSuccess }: MaintenanceRequestFo
               </SelectContent>
             </Select>
           </div>
-          
           <div>
             <label className="block text-sm font-medium mb-2">Details</label>
             <Textarea
@@ -92,8 +90,14 @@ export const MaintenanceRequestForm = ({ onSubmitSuccess }: MaintenanceRequestFo
               required
             />
           </div>
-          
-          <Button type="submit">Submit Request</Button>
+          <div className="flex gap-2 justify-end">
+            {onCancel && (
+              <Button type="button" variant="outline" onClick={onCancel}>
+                Cancel
+              </Button>
+            )}
+            <Button type="submit">Submit Request</Button>
+          </div>
         </form>
       </CardContent>
     </Card>

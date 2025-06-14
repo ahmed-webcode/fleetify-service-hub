@@ -7,11 +7,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 
 export interface TripRequestFormProps {
-  isOpen: boolean;
-  onClose: () => void;
+  onSuccess: () => void;
+  onCancel?: () => void;
 }
 
-export const TripRequestForm = ({ isOpen, onClose }: TripRequestFormProps) => {
+export const TripRequestForm = ({ onSuccess, onCancel }: TripRequestFormProps) => {
   const [formData, setFormData] = useState({
     purpose: '',
     description: '',
@@ -26,14 +26,12 @@ export const TripRequestForm = ({ isOpen, onClose }: TripRequestFormProps) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Trip request submitted:', formData);
-    onClose();
+    onSuccess();
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <Card className="w-full max-w-2xl m-4">
+    <div className="w-full max-w-2xl m-4">
+      <Card>
         <CardHeader>
           <CardTitle>Request Trip</CardTitle>
         </CardHeader>
@@ -48,7 +46,6 @@ export const TripRequestForm = ({ isOpen, onClose }: TripRequestFormProps) => {
                 required
               />
             </div>
-            
             <div>
               <label className="block text-sm font-medium mb-2">Description</label>
               <Textarea
@@ -57,7 +54,6 @@ export const TripRequestForm = ({ isOpen, onClose }: TripRequestFormProps) => {
                 placeholder="Additional details"
               />
             </div>
-            
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-2">Start Time</label>
@@ -78,7 +74,6 @@ export const TripRequestForm = ({ isOpen, onClose }: TripRequestFormProps) => {
                 />
               </div>
             </div>
-            
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-2">Start Location</label>
@@ -99,7 +94,6 @@ export const TripRequestForm = ({ isOpen, onClose }: TripRequestFormProps) => {
                 />
               </div>
             </div>
-            
             <div className="flex items-center space-x-2">
               <Switch
                 id="roundTrip"
@@ -108,7 +102,6 @@ export const TripRequestForm = ({ isOpen, onClose }: TripRequestFormProps) => {
               />
               <label htmlFor="roundTrip" className="text-sm font-medium">Round Trip</label>
             </div>
-            
             <div>
               <label className="block text-sm font-medium mb-2">Passenger Count</label>
               <Input
@@ -119,11 +112,10 @@ export const TripRequestForm = ({ isOpen, onClose }: TripRequestFormProps) => {
                 required
               />
             </div>
-            
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={onClose}>
-                Cancel
-              </Button>
+              {onCancel && (
+                <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
+              )}
               <Button type="submit">Submit Request</Button>
             </div>
           </form>
