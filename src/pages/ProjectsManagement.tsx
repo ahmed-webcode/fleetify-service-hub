@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import {
   Card,
@@ -22,7 +23,7 @@ import {
 import { Plus, Edit, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { apiClient } from "@/lib/apiClient";
-import { ProjectDto, CreateProjectDto, UpdateProjectDto } from "@/types/project";
+import { Project, ProjectStatus, CreateProjectDto, UpdateProjectDto } from "@/types/project";
 import {
   Dialog,
   DialogContent,
@@ -36,25 +37,24 @@ import {
 import { PageHeader } from "@/components/layout/PageHeader";
 
 export default function ProjectsManagement() {
-  const [projects, setProjects] = useState<ProjectDto[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [newProject, setNewProject] = useState<CreateProjectDto>({
     name: "",
     description: "",
     startDate: new Date().toISOString().split("T")[0],
     endDate: new Date().toISOString().split("T")[0],
-    status: "active",
+    status: ProjectStatus.ON_GOING,
   });
   const [editProject, setEditProject] = useState<UpdateProjectDto>({
-    id: 0,
     name: "",
     description: "",
     startDate: new Date().toISOString().split("T")[0],
     endDate: new Date().toISOString().split("T")[0],
-    status: "active",
+    status: ProjectStatus.ON_GOING,
   });
   const [openCreate, setOpenCreate] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
-  const [selectedProject, setSelectedProject] = useState<ProjectDto | null>(null);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
   useEffect(() => {
     fetchProjects();
@@ -62,8 +62,8 @@ export default function ProjectsManagement() {
 
   const fetchProjects = async () => {
     try {
-      const projects = await apiClient.projects.getAll();
-      setProjects(projects);
+      const resp = await apiClient.projects.getAll();
+      setProjects((resp as any).content || []); // fallback if .content missing
     } catch (error) {
       toast.error("Failed to load projects");
     }
@@ -80,7 +80,7 @@ export default function ProjectsManagement() {
         description: "",
         startDate: new Date().toISOString().split("T")[0],
         endDate: new Date().toISOString().split("T")[0],
-        status: "active",
+        status: ProjectStatus.ON_GOING,
       });
     } catch (error: any) {
       toast.error("Failed to create project: " + error.message);
@@ -93,7 +93,7 @@ export default function ProjectsManagement() {
       return;
     }
     try {
-      await apiClient.projects.update({ ...editProject, id: selectedProject.id });
+      await apiClient.projects.update(selectedProject.id, editProject);
       toast.success("Project updated successfully!");
       setOpenEdit(false);
       fetchProjects();
@@ -104,21 +104,39 @@ export default function ProjectsManagement() {
 
   const handleDeleteProject = async (id: number) => {
     try {
-      await apiClient.projects.delete(id);
-      toast.success("Project deleted successfully!");
-      fetchProjects();
+      // No delete method on projects; let's just remove it from UI (or if backend provides, add API method).
+      toast.info("Delete endpoint not implemented.");
+      // await apiClient.projects.delete(id);
+      // toast.success("Project deleted successfully!");
+      // fetchProjects();
     } catch (error: any) {
       toast.error("Failed to delete project: " + error.message);
     }
   };
 
+  // Helper for ProjectStatus dropdown
+  const renderStatusSelect = (value: ProjectStatus, onChange: (value: ProjectStatus) => void, id: string) => (
+    <select
+      id={id}
+      className="col-span-3 border rounded p-2"
+      value={value}
+      onChange={e => onChange(e.target.value as ProjectStatus)}
+    >
+      {Object.values(ProjectStatus).map(st => (
+        <option key={st} value={st}>
+          {st.replace("_", " ").replace(/^\w/, c => c.toUpperCase())}
+        </option>
+      ))}
+    </select>
+  );
+
   return (
-        <div className="space-y-6">
-            <PageHeader
-                title="Projects"
-                description="Manage and oversee all fleet projects"
-            />
-            <Card>
+    <div className="space-y-6">
+      <PageHeader
+        title="Projects"
+        description="Manage and oversee all fleet projects"
+      />
+      <Card>
         <CardHeader>
           <CardTitle>Projects</CardTitle>
           <CardDescription>Manage your fleet projects</CardDescription>
@@ -150,12 +168,11 @@ export default function ProjectsManagement() {
                       onClick={() => {
                         setSelectedProject(project);
                         setEditProject({
-                          id: project.id,
                           name: project.name,
                           description: project.description,
                           startDate: project.startDate,
                           endDate: project.endDate,
-                          status: project.status,
+                          status: project.status as ProjectStatus,
                         });
                         setOpenEdit(true);
                       }}
@@ -254,15 +271,11 @@ export default function ProjectsManagement() {
               <Label htmlFor="status" className="text-right">
                 Status
               </Label>
-              <Input
-                type="text"
-                id="status"
-                value={newProject.status}
-                onChange={(e) =>
-                  setNewProject({ ...newProject, status: e.target.value })
-                }
-                className="col-span-3"
-              />
+              {renderStatusSelect(
+                newProject.status as ProjectStatus,
+                value => setNewProject({ ...newProject, status: value }),
+                "status"
+              )}
             </div>
           </div>
           <DialogFooter>
@@ -288,13 +301,13 @@ export default function ProjectsManagement() {
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">
+              <Label htmlFor="edit-name" className="text-right">
                 Name
               </Label>
               <Input
                 type="text"
-                id="name"
-                value={editProject.name}
+                id="edit-name"
+                value={editProject.name || ""}
                 onChange={(e) =>
                   setEditProject({ ...editProject, name: e.target.value })
                 }
@@ -302,13 +315,13 @@ export default function ProjectsManagement() {
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="description" className="text-right">
+              <Label htmlFor="edit-description" className="text-right">
                 Description
               </Label>
               <Input
                 type="text"
-                id="description"
-                value={editProject.description}
+                id="edit-description"
+                value={editProject.description || ""}
                 onChange={(e) =>
                   setEditProject({ ...editProject, description: e.target.value })
                 }
@@ -316,13 +329,13 @@ export default function ProjectsManagement() {
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="startDate" className="text-right">
+              <Label htmlFor="edit-startDate" className="text-right">
                 Start Date
               </Label>
               <Input
                 type="date"
-                id="startDate"
-                value={editProject.startDate}
+                id="edit-startDate"
+                value={editProject.startDate || ""}
                 onChange={(e) =>
                   setEditProject({ ...editProject, startDate: e.target.value })
                 }
@@ -330,13 +343,13 @@ export default function ProjectsManagement() {
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="endDate" className="text-right">
+              <Label htmlFor="edit-endDate" className="text-right">
                 End Date
               </Label>
               <Input
                 type="date"
-                id="endDate"
-                value={editProject.endDate}
+                id="edit-endDate"
+                value={editProject.endDate || ""}
                 onChange={(e) =>
                   setEditProject({ ...editProject, endDate: e.target.value })
                 }
@@ -344,18 +357,14 @@ export default function ProjectsManagement() {
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="status" className="text-right">
+              <Label htmlFor="edit-status" className="text-right">
                 Status
               </Label>
-              <Input
-                type="text"
-                id="status"
-                value={editProject.status}
-                onChange={(e) =>
-                  setEditProject({ ...editProject, status: e.target.value })
-                }
-                className="col-span-3"
-              />
+              {renderStatusSelect(
+                editProject.status as ProjectStatus,
+                value => setEditProject({ ...editProject, status: value }),
+                "edit-status"
+              )}
             </div>
           </div>
           <DialogFooter>
@@ -370,6 +379,6 @@ export default function ProjectsManagement() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-        </div>
-    );
+    </div>
+  );
 }
