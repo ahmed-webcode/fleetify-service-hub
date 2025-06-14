@@ -125,10 +125,12 @@ export function FuelRequestDetailsDialog({
                             </div>
                         </div>
 
+                        {/* Removed "Project" section since projectName does not exist */}
+                        {/* Optionally show Level/Office instead */}
                         <div className="space-y-1">
-                            <div className="text-sm font-medium text-muted-foreground">Project</div>
+                            <div className="text-sm font-medium text-muted-foreground">Level/Office</div>
                             <div className="flex items-center gap-2">
-                                <span>{request.projectName || "N/A"}</span>
+                                <span>{request.levelName || "N/A"}</span>
                             </div>
                         </div>
 
