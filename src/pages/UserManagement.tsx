@@ -1,10 +1,10 @@
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Plus, Filter, Users, Briefcase } from "lucide-react";
+import { Search, Plus, Users, Briefcase } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -22,72 +22,85 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import PositionsManagement from "./PositionsManagement";
+import { apiClient } from "@/lib/apiClient";
+import { UserDto } from "@/types/user";
+import { toast } from "sonner";
 
-// Mock data for demonstration
-const mockUsers = [
-  {
-    id: 1,
-    username: "admin",
-    firstName: "John",
-    lastName: "Doe",
-    email: "john.doe@university.edu",
-    roles: ["Transport Director"],
-    enabled: true,
-    createdAt: "2024-01-15",
-  },
-  {
-    id: 2,
-    username: "driver1",
-    firstName: "Jane",
-    lastName: "Smith",
-    email: "jane.smith@university.edu",
-    roles: ["Driver"],
-    enabled: true,
-    createdAt: "2024-02-20",
-  },
-  {
-    id: 3,
-    username: "staff1",
-    firstName: "Bob",
-    lastName: "Johnson",
-    email: "bob.johnson@university.edu",
-    roles: ["Staff"],
-    enabled: false,
-    createdAt: "2024-03-10",
-  },
+const ITEMS_PER_PAGE = 12;
+
+const roleOptions = [
+  { value: "all", label: "All Roles" },
+  { value: "Transport Director", label: "Transport Director" },
+  { value: "Driver", label: "Driver" },
+  { value: "Staff", label: "Staff" },
+  { value: "Fuel Manager", label: "Fuel Manager" },
+  { value: "Maintenance Manager", label: "Maintenance Manager" },
 ];
+
+const getRoleBadgeVariant = (role: string) => {
+  switch (role.toLowerCase()) {
+    case "transport director":
+      return "default";
+    case "driver":
+      return "secondary";
+    case "staff":
+      return "outline";
+    case "fuel manager":
+      return "outline";
+    case "maintenance manager":
+      return "outline";
+    default:
+      return "outline";
+  }
+};
 
 const UserManagement = () => {
   const [activeTab, setActiveTab] = useState("users");
   const [searchText, setSearchText] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
-  const [users] = useState(mockUsers);
+  const [users, setUsers] = useState<UserDto[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const filteredUsers = users.filter((user) => {
-    const matchesSearch = 
-      user.firstName.toLowerCase().includes(searchText.toLowerCase()) ||
-      user.lastName.toLowerCase().includes(searchText.toLowerCase()) ||
-      user.username.toLowerCase().includes(searchText.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchText.toLowerCase());
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
-    const matchesRole = roleFilter === "all" || 
-      user.roles.some(role => role.toLowerCase().includes(roleFilter.toLowerCase()));
-
-    return matchesSearch && matchesRole;
-  });
-
-  const getRoleBadgeVariant = (role: string) => {
-    switch (role.toLowerCase()) {
-      case "transport director":
-        return "default";
-      case "driver":
-        return "secondary";
-      case "staff":
-        return "outline";
-      default:
-        return "outline";
+  const fetchUsers = async () => {
+    setIsLoading(true);
+    try {
+      const fetchedUsers = await apiClient.users.getAll();
+      setUsers(fetchedUsers || []);
+    } catch (error) {
+      toast.error("Error loading users");
+      setUsers([]);
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  const filteredUsers = useMemo(() => {
+    return users.filter((user) => {
+      const matchesSearch =
+        user.firstName?.toLowerCase().includes(searchText.toLowerCase()) ||
+        user.lastName?.toLowerCase().includes(searchText.toLowerCase()) ||
+        user.username?.toLowerCase().includes(searchText.toLowerCase()) ||
+        user.email?.toLowerCase().includes(searchText.toLowerCase());
+      const matchesRole =
+        roleFilter === "all" ||
+        user.roles?.some((roleObj) =>
+          roleObj.name?.toLowerCase().includes(roleFilter.toLowerCase())
+        );
+      return matchesSearch && matchesRole;
+    });
+  }, [users, searchText, roleFilter]);
+
+  const paginatedUsers = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredUsers.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredUsers, currentPage]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / ITEMS_PER_PAGE));
 
   return (
     <div className="p-6">
@@ -126,7 +139,10 @@ const UserManagement = () => {
                       placeholder="Search users..."
                       className="pl-9"
                       value={searchText}
-                      onChange={(e) => setSearchText(e.target.value)}
+                      onChange={(e) => {
+                        setSearchText(e.target.value);
+                        setCurrentPage(1);
+                      }}
                     />
                   </div>
                 </div>
@@ -135,12 +151,11 @@ const UserManagement = () => {
                     <SelectValue placeholder="Filter by role" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Roles</SelectItem>
-                    <SelectItem value="transport director">Transport Director</SelectItem>
-                    <SelectItem value="driver">Driver</SelectItem>
-                    <SelectItem value="staff">Staff</SelectItem>
-                    <SelectItem value="fuel manager">Fuel Manager</SelectItem>
-                    <SelectItem value="maintenance manager">Maintenance Manager</SelectItem>
+                    {roleOptions.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <Button>
@@ -148,7 +163,6 @@ const UserManagement = () => {
                   Add User
                 </Button>
               </div>
-
               <div className="rounded-md border">
                 <Table>
                   <TableHeader>
@@ -163,14 +177,20 @@ const UserManagement = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredUsers.length === 0 ? (
+                    {isLoading ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center h-24 text-muted-foreground">
+                          Loading...
+                        </TableCell>
+                      </TableRow>
+                    ) : paginatedUsers.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={7} className="text-center h-24 text-muted-foreground">
                           No users found
                         </TableCell>
                       </TableRow>
                     ) : (
-                      filteredUsers.map((user) => (
+                      paginatedUsers.map((user) => (
                         <TableRow key={user.id}>
                           <TableCell className="font-medium">
                             {user.firstName} {user.lastName}
@@ -179,13 +199,13 @@ const UserManagement = () => {
                           <TableCell>{user.email}</TableCell>
                           <TableCell>
                             <div className="flex flex-wrap gap-1">
-                              {user.roles.map((role) => (
+                              {user.roles?.map((role) => (
                                 <Badge
-                                  key={role}
-                                  variant={getRoleBadgeVariant(role) as any}
+                                  key={role.id}
+                                  variant={getRoleBadgeVariant(role.name) as any}
                                   className="text-xs"
                                 >
-                                  {role}
+                                  {role.name}
                                 </Badge>
                               ))}
                             </div>
@@ -195,7 +215,10 @@ const UserManagement = () => {
                               {user.enabled ? "Active" : "Inactive"}
                             </Badge>
                           </TableCell>
-                          <TableCell>{user.createdAt}</TableCell>
+                          <TableCell>
+                            {user.createdAt &&
+                              new Date(user.createdAt).toLocaleDateString()}
+                          </TableCell>
                           <TableCell className="text-right">
                             <Button variant="ghost" size="sm">
                               Edit
@@ -207,10 +230,34 @@ const UserManagement = () => {
                   </TableBody>
                 </Table>
               </div>
+              {totalPages > 1 && (
+                <div className="flex items-center justify-end space-x-2 py-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1 || isLoading}
+                  >
+                    Previous
+                  </Button>
+                  <span className="text-sm text-muted-foreground">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                    }
+                    disabled={currentPage === totalPages || isLoading}
+                  >
+                    Next
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
-
         <TabsContent value="positions">
           <PositionsManagement />
         </TabsContent>

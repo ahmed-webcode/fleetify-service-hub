@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { UserCircle, Bell, Languages, Monitor, Users } from "lucide-react";
+import { UserCircle, Bell, Languages, Monitor } from "lucide-react";
 import { toast } from "sonner";
 import ManageUsersPage from "./ManageUsers";
 
@@ -47,10 +47,6 @@ export default function Settings() {
                     <TabsTrigger value="appearance" className="flex items-center gap-2">
                         <Monitor className="h-4 w-4" />
                         <span>Appearance</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="userManagement" className="flex items-center gap-2">
-                        <Users className="h-4 w-4" />
-                        <span>User Management</span>
                     </TabsTrigger>
                 </TabsList>
 
@@ -291,10 +287,6 @@ export default function Settings() {
                             </div>
                         </CardContent>
                     </Card>
-                </TabsContent>
-
-                <TabsContent value="userManagement" className="mt-4">
-                    <ManageUsersPage />
                 </TabsContent>
             </Tabs>
         </div>
