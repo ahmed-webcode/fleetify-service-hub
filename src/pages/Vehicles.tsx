@@ -75,7 +75,7 @@ const mapApiVehicleToUiVehicle = (apiVehicle: VehicleDto): Vehicle => {
 const Vehicles = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [filterStatus, setFilterStatus] = useState<string>("all");
-    const [filterLevelId, setFilterLevelId] = useState<number>(0);
+    const [filterPrivate, setFilterPrivate] = useState<string>("all");
     const [addVehicleOpen, setAddVehicleOpen] = useState(false);
     const [editVehicleOpen, setEditVehicleOpen] = useState(false);
     const [selectedVehicleToEdit, setSelectedVehicleToEdit] = useState<VehicleDto | null>(null);
@@ -99,7 +99,7 @@ const Vehicles = () => {
         error,
         refetch,
     } = useQuery({
-        queryKey: ["vehicles", currentPage, itemsPerPage, searchQuery, filterStatus],
+        queryKey: ["vehicles", currentPage, itemsPerPage, searchQuery, filterStatus, filterPrivate],
         queryFn: async () => {
             const params: VehicleQueryParams = {
                 page: currentPage,
@@ -123,7 +123,7 @@ const Vehicles = () => {
         return apiData.content.map(mapApiVehicleToUiVehicle);
     }, [apiData]);
 
-    // Filter vehicles based on search query, status, and level
+    // Filter vehicles based on search query, status, and "private"/"public"
     const filteredVehicles = useMemo(() => {
         if (!vehicles) return [];
 
@@ -135,12 +135,16 @@ const Vehicles = () => {
 
             const matchesStatus = filterStatus === "all" || vehicle.status === filterStatus;
 
-            // For level filtering, we'd need to implement this based on your requirements
-            const matchesLevel = filterLevelId === 0; // For now, always true
+            let matchesPrivate = true;
+            if (filterPrivate === "private") {
+                matchesPrivate = (apiData?.content?.find(v => v.id.toString() === vehicle.id)?.isPrivate) === true;
+            } else if (filterPrivate === "public") {
+                matchesPrivate = (apiData?.content?.find(v => v.id.toString() === vehicle.id)?.isPrivate) === false;
+            }
 
-            return matchesSearch && matchesStatus && matchesLevel;
+            return matchesSearch && matchesStatus && matchesPrivate;
         });
-    }, [vehicles, searchQuery, filterStatus, filterLevelId]);
+    }, [vehicles, searchQuery, filterStatus, filterPrivate, apiData]);
 
     const handlePageChange = (pageNumber: number) => {
         setCurrentPage(pageNumber);
@@ -171,7 +175,7 @@ const Vehicles = () => {
     const resetFilters = () => {
         setSearchQuery("");
         setFilterStatus("all");
-        setFilterLevelId(0);
+        setFilterPrivate("all");
         setCurrentPage(0);
     };
 
@@ -341,8 +345,8 @@ const Vehicles = () => {
                             setSearchQuery={setSearchQuery}
                             filterStatus={filterStatus}
                             setFilterStatus={setFilterStatus}
-                            filterLevelId={filterLevelId}
-                            setFilterLevelId={setFilterLevelId}
+                            filterPrivate={filterPrivate}
+                            setFilterPrivate={setFilterPrivate}
                         />
                     </div>
 

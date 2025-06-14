@@ -2,17 +2,14 @@
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { LevelSelector } from "@/components/positions/LevelSelector";
-import { useDebounce } from "@/hooks/useDebounce";
-import { useState } from "react";
 
 interface VehiclesSearchProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   filterStatus: string;
   setFilterStatus: (status: string) => void;
-  filterLevelId: number;
-  setFilterLevelId: (levelId: number) => void;
+  filterPrivate: string;
+  setFilterPrivate: (value: string) => void;
 }
 
 export function VehiclesSearch({
@@ -20,16 +17,9 @@ export function VehiclesSearch({
   setSearchQuery,
   filterStatus,
   setFilterStatus,
-  filterLevelId,
-  setFilterLevelId
+  filterPrivate,
+  setFilterPrivate
 }: VehiclesSearchProps) {
-  const [searchTerm, setSearchTerm] = useState("");
-  const debouncedSearchTerm = useDebounce(searchTerm, 500);
-
-  const handleLevelChange = (levelId: number) => {
-    setFilterLevelId(levelId);
-  };
-
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3 w-full">
       <div className="sm:col-span-1 md:col-span-5 relative">
@@ -60,16 +50,21 @@ export function VehiclesSearch({
       </div>
 
       <div className="sm:col-span-2 md:col-span-3">
-        <LevelSelector
-          levelId={filterLevelId}
-          onChange={handleLevelChange}
-          useProjects={false}
-          onSearchChange={setSearchTerm}
-          searchTerm={searchTerm}
-          debouncedSearchTerm={debouncedSearchTerm}
-          levels={[]}
-        />
+        <Select
+          value={filterPrivate}
+          onValueChange={setFilterPrivate}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Filter by ownership" />
+          </SelectTrigger>
+          <SelectContent className="z-50">
+            <SelectItem value="all">All</SelectItem>
+            <SelectItem value="private">Private</SelectItem>
+            <SelectItem value="public">Public</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );
 }
+

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth, ROLE_DETAILS } from "@/contexts/AuthContext";
@@ -5,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Car, AlertCircle } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
 import type { Role } from "@/contexts/AuthContext";
@@ -66,10 +67,12 @@ export default function Login() {
       <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 flex items-center justify-center p-4">
         <div className="w-full max-w-3xl">
           <div className="text-center mb-8">
-            <div className="mx-auto w-16 h-16 bg-primary rounded-full flex items-center justify-center mb-4">
-              <Car className="h-8 w-8 text-primary-foreground" />
-            </div>
-            <h1 className="text-3xl font-bold">FleetHub</h1>
+            <img
+              src="aau-logo.png"
+              alt="AAU Logo"
+              className="mx-auto w-16 h-16 rounded-full bg-white mb-4"
+            />
+            <h1 className="text-3xl font-bold">AAU Fleet Management System</h1>
             <p className="text-slate-600">Addis Ababa University Fleet Management</p>
           </div>
           
@@ -120,10 +123,12 @@ export default function Login() {
     <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="mx-auto w-16 h-16 bg-primary rounded-full flex items-center justify-center mb-4">
-            <Car className="h-8 w-8 text-primary-foreground" />
-          </div>
-          <h1 className="text-3xl font-bold">FleetHub</h1>
+          <img
+            src="aau-logo.png"
+            alt="AAU Logo"
+            className="mx-auto w-16 h-16 rounded-full bg-white mb-4"
+          />
+          <h1 className="text-3xl font-bold">AAU Fleet Management System</h1>
           <p className="text-slate-600">Addis Ababa University Fleet Management</p>
         </div>
 
@@ -191,3 +196,4 @@ export default function Login() {
     </div>
   );
 }
+
