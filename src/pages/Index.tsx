@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -27,10 +26,8 @@ const Index = () => {
       )}>
         <div className="container max-w-7xl mx-auto px-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <div className="bg-primary w-8 h-8 rounded flex items-center justify-center">
-              <Car className="text-white h-5 w-5" />
-            </div>
-            <span className="font-semibold text-xl">FleetHub</span>
+            <img src="/lovable-uploads/dbfd6afc-d76f-4045-ae9d-987fb9edfad7.png" className="h-8 w-8 rounded-full bg-white" alt="AAU Logo" />
+            <span className="font-semibold text-xl">AAU Fleet Management System</span>
           </div>
           
           <div className="hidden md:flex items-center gap-6">
@@ -58,10 +55,10 @@ const Index = () => {
               <div className="order-2 md:order-1 animate-fade-in">
                 <div className="space-y-6">
                   <div className="inline-block bg-primary/10 text-primary rounded-full px-4 py-1 text-sm font-medium">
-                    AAU Fleet Management System
+                    Addis Ababa University Fleet
                   </div>
                   <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
-                    Smart Fleet Management Solutions
+                    AAU Fleet Management System
                   </h1>
                   <p className="text-lg text-muted-foreground max-w-lg">
                     Streamline your fleet operations with our comprehensive management system, 
@@ -238,15 +235,13 @@ const Index = () => {
         <div className="container max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center gap-2 mb-6 md:mb-0">
-              <div className="bg-primary w-8 h-8 rounded flex items-center justify-center">
-                <Car className="text-white h-5 w-5" />
-              </div>
-              <span className="font-semibold">FleetHub</span>
+              <img src="/lovable-uploads/dbfd6afc-d76f-4045-ae9d-987fb9edfad7.png" className="h-8 w-8 rounded-full bg-white" alt="AAU Logo" />
+              <span className="font-semibold">AAU Fleet Management System</span>
             </div>
             
             <div className="text-center md:text-right">
               <p className="text-sm text-muted-foreground">Designed for Addis Ababa University</p>
-              <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} Fleet Management System</p>
+              <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} AAU Fleet Management System</p>
             </div>
           </div>
         </div>

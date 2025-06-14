@@ -135,9 +135,9 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
     const sidebarContent = (
         <>
             <div className={cn('flex items-center h-16 px-4 border-b border-slate-200 shrink-0', isCollapsed && !isMobileView ? 'justify-center' : 'justify-between')}>
-                <NavLink to="/dashboard" className="flex items-center gap-2" title="FleetHub Dashboard">
-                    <Car size={(isCollapsed && !isMobileView) ? 30 : 26} className="text-blue-600" />
-                    {(!isCollapsed || isMobileView) && <span className="text-xl font-semibold text-slate-800 tracking-tight">FleetHub</span>}
+                <NavLink to="/dashboard" className="flex items-center gap-2" title="AAU Fleet Management System Dashboard">
+                    <img src="/lovable-uploads/dbfd6afc-d76f-4045-ae9d-987fb9edfad7.png" alt="AAU Logo" className={isCollapsed && !isMobileView ? "h-9 w-9" : "h-8 w-8"} style={{ borderRadius: "50%", background: "white" }} />
+                    {(!isCollapsed || isMobileView) && <span className="text-xl font-semibold text-slate-800 tracking-tight">AAU Fleet Management System</span>}
                 </NavLink>
                 {isMobileView ? (
                      <button onClick={handleMobileToggle} className="p-1.5 rounded-md hover:bg-slate-100 text-slate-500 hover:text-slate-700 md:hidden" title="Close menu">

@@ -9,7 +9,7 @@ import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { apiClient } from "@/lib/apiClient";
-import { toast } from "@/hooks/use-toast";
+import { toast as sonnerToast } from "sonner";
 
 export interface TripRequestFormProps {
   onSuccess: () => void;
@@ -47,17 +47,17 @@ export const TripRequestForm = ({ onSuccess, onCancel }: TripRequestFormProps) =
     setSubmitting(true);
     try {
       await apiClient.trips.requests.create(payload);
-      toast({
-        title: "Trip request submitted",
+      sonnerToast("Trip request submitted", {
         description: "Your trip request has been submitted successfully.",
-        variant: "default"
+        // Default sonner theme is fine here.
       });
       onSuccess();
     } catch (error: any) {
-      toast({
-        title: "Error submitting trip request",
-        description: typeof error?.message === "string" ? error.message : "An error occurred while submitting your trip request.",
-        variant: "destructive",
+      sonnerToast("Error submitting trip request", {
+        description: typeof error?.message === "string"
+          ? error.message
+          : "An error occurred while submitting your trip request.",
+        // Can set type: "error" if desired
       });
     } finally {
       setSubmitting(false);
