@@ -540,6 +540,12 @@ const UserManagement = () => {
     }
   };
 
+  // Only non-structural levels
+  const nonStructuralLevels = useMemo(
+    () => levels.filter((lvl) => !lvl.isStructural),
+    [levels]
+  );
+
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
@@ -721,7 +727,7 @@ const UserManagement = () => {
             handleInputChange={handleInputChange}
             handleCheckboxChange={handleCheckboxChange}
             handleSelectChange={handleSelectChange}
-            levels={levels}
+            levels={nonStructuralLevels} {/* <--- Only pass non-structural levels */}
             positions={positions}
           />
           <DialogFooter>
@@ -751,7 +757,7 @@ const UserManagement = () => {
             handleInputChange={handleInputChange}
             handleCheckboxChange={handleCheckboxChange}
             handleSelectChange={handleSelectChange}
-            levels={levels}
+            levels={nonStructuralLevels} {/* <--- Only pass non-structural levels */}
             positions={positions}
           />
           <DialogFooter>
