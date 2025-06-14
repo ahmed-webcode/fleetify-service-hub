@@ -20,7 +20,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import PositionsManagement from "./PositionsManagement";
+import PositionsTab from "./PositionsTab";
 import { apiClient } from "@/lib/apiClient";
 import { UserDto, CreateUserDto, UpdateUserDto, Gender } from "@/types/user";
 import { Level } from "@/types/level";
@@ -702,7 +702,7 @@ const UserManagement = () => {
           </Card>
         </TabsContent>
         <TabsContent value="positions">
-          <PositionsManagement />
+          <PositionsTab />
         </TabsContent>
       </Tabs>
 
