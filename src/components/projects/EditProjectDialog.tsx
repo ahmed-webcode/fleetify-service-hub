@@ -1,8 +1,10 @@
-import { useEffect } from "react";
+
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format, parseISO } from "date-fns";
+import { CalendarIcon } from "lucide-react";
 
 import {
     Dialog,
@@ -29,6 +31,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
 import { apiClient } from "@/lib/apiClient";
 import { Project, ProjectStatus, UpdateProjectDto } from "@/types/project";
 
@@ -55,6 +60,9 @@ export function EditProjectDialog({
     onSubmit,
     isSubmitting,
 }: EditProjectDialogProps) {
+    const [startDate, setStartDate] = useState<Date | undefined>();
+    const [endDate, setEndDate] = useState<Date | undefined>();
+
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -84,6 +92,10 @@ export function EditProjectDialog({
                     startDate: formattedStartDate,
                     endDate: formattedEndDate,
                 });
+
+                // Set local date picker values
+                setStartDate(formattedStartDate ? parseISO(formattedStartDate) : undefined);
+                setEndDate(formattedEndDate ? parseISO(formattedEndDate) : undefined);
             } catch (error) {
                 console.error("Error parsing dates:", error);
                 form.reset({
@@ -93,12 +105,21 @@ export function EditProjectDialog({
                     startDate: project.startDate,
                     endDate: project.endDate,
                 });
+
+                setStartDate(undefined);
+                setEndDate(undefined);
             }
         }
     }, [form, project]);
 
     const handleSubmit = (data: z.infer<typeof formSchema>) => {
-        onSubmit(data as UpdateProjectDto);
+        // Convert Date to string before submit
+        const submitData: UpdateProjectDto = {
+            ...data,
+            startDate: startDate ? format(startDate, "yyyy-MM-dd") : "",
+            endDate: endDate ? format(endDate, "yyyy-MM-dd") : "",
+        };
+        onSubmit(submitData);
     };
 
     if (!project) return null;
@@ -145,33 +166,80 @@ export function EditProjectDialog({
                         />
 
                         <div className="grid grid-cols-2 gap-4">
-                            <FormField
-                                control={form.control}
-                                name="startDate"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Start Date</FormLabel>
+                            {/* Start Date */}
+                            <FormItem>
+                                <FormLabel>Start Date</FormLabel>
+                                <Popover>
+                                    <PopoverTrigger asChild>
                                         <FormControl>
-                                            <Input type="date" {...field} />
+                                            <Button
+                                                variant={"outline"}
+                                                className={cn(
+                                                    "w-full justify-start text-left font-normal",
+                                                    !startDate && "text-muted-foreground"
+                                                )}
+                                            >
+                                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                                {startDate
+                                                    ? format(startDate, "PPP")
+                                                    : <span>Pick a date</span>}
+                                            </Button>
                                         </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-
-                            <FormField
-                                control={form.control}
-                                name="endDate"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>End Date</FormLabel>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0" align="start">
+                                        <Calendar
+                                            mode="single"
+                                            selected={startDate}
+                                            onSelect={d => {
+                                                setStartDate(d);
+                                                form.setValue("startDate", d ? format(d, "yyyy-MM-dd") : "");
+                                            }}
+                                            initialFocus
+                                            className={cn("p-3 pointer-events-auto")}
+                                        />
+                                    </PopoverContent>
+                                </Popover>
+                                <FormMessage>
+                                    {form.formState.errors.startDate?.message}
+                                </FormMessage>
+                            </FormItem>
+                            {/* End Date */}
+                            <FormItem>
+                                <FormLabel>End Date</FormLabel>
+                                <Popover>
+                                    <PopoverTrigger asChild>
                                         <FormControl>
-                                            <Input type="date" {...field} />
+                                            <Button
+                                                variant={"outline"}
+                                                className={cn(
+                                                    "w-full justify-start text-left font-normal",
+                                                    !endDate && "text-muted-foreground"
+                                                )}
+                                            >
+                                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                                {endDate
+                                                    ? format(endDate, "PPP")
+                                                    : <span>Pick a date</span>}
+                                            </Button>
                                         </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0" align="start">
+                                        <Calendar
+                                            mode="single"
+                                            selected={endDate}
+                                            onSelect={d => {
+                                                setEndDate(d);
+                                                form.setValue("endDate", d ? format(d, "yyyy-MM-dd") : "");
+                                            }}
+                                            initialFocus
+                                            className={cn("p-3 pointer-events-auto")}
+                                        />
+                                    </PopoverContent>
+                                </Popover>
+                                <FormMessage>
+                                    {form.formState.errors.endDate?.message}
+                                </FormMessage>
+                            </FormItem>
                         </div>
 
                         <FormField
