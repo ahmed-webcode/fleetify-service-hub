@@ -1,384 +1,435 @@
+import { useState, useMemo } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Search, Plus, ArrowUpDown, Filter } from "lucide-react";
 
-import { useState, useEffect } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Plus, Edit, Trash2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { apiClient } from "@/lib/apiClient";
-import { Project, ProjectStatus, CreateProjectDto, UpdateProjectDto } from "@/types/project";
+import { Project, ProjectStatus, ProjectQueryParams } from "@/types/project";
+import { AddProjectDialog } from "@/components/projects/AddProjectDialog";
+import { EditProjectDialog } from "@/components/projects/EditProjectDialog";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogClose,
-} from "@/components/ui/dialog";
-import { PageHeader } from "@/components/layout/PageHeader";
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import { format, parseISO } from "date-fns";
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from "@/components/ui/pagination";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuGroup,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 
-export default function ProjectsManagement() {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [newProject, setNewProject] = useState<CreateProjectDto>({
-    name: "",
-    description: "",
-    startDate: new Date().toISOString().split("T")[0],
-    endDate: new Date().toISOString().split("T")[0],
-    status: ProjectStatus.ON_GOING,
-  });
-  const [editProject, setEditProject] = useState<UpdateProjectDto>({
-    name: "",
-    description: "",
-    startDate: new Date().toISOString().split("T")[0],
-    endDate: new Date().toISOString().split("T")[0],
-    status: ProjectStatus.ON_GOING,
-  });
-  const [openCreate, setOpenCreate] = useState(false);
-  const [openEdit, setOpenEdit] = useState(false);
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+const ProjectBadge = ({ status }: { status: ProjectStatus }) => {
+    const variants: Record<
+        ProjectStatus,
+        { variant: "default" | "outline" | "secondary" | "destructive" | "success"; label: string }
+    > = {
+        PENDING: { variant: "secondary", label: "Pending" },
+        ON_GOING: { variant: "success", label: "On-going" },
+        ON_HOLD: { variant: "outline", label: "On Hold" },
+        EXPIRED: { variant: "destructive", label: "Expired" },
+    };
 
-  useEffect(() => {
-    fetchProjects();
-  }, []);
+    const { variant, label } = variants[status] || { variant: "default", label: status };
 
-  const fetchProjects = async () => {
-    try {
-      const resp = await apiClient.projects.getAll();
-      setProjects((resp as any).content || []); // fallback if .content missing
-    } catch (error) {
-      toast.error("Failed to load projects");
+    return <Badge variant={variant as any}>{label}</Badge>;
+};
+
+const ProjectsManagement = () => {
+    const [searchText, setSearchText] = useState("");
+    const [addDialogOpen, setAddDialogOpen] = useState(false);
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+    const [pagination, setPagination] = useState<ProjectQueryParams>({
+        page: 0,
+        size: 10,
+        sortBy: "createdAt",
+        direction: "DESC",
+    });
+    const [selectedStatuses, setSelectedStatuses] = useState<ProjectStatus[]>([]);
+
+    const queryClient = useQueryClient();
+
+    const { data, isLoading, error } = useQuery({
+        queryKey: ["projects", pagination],
+        queryFn: () => apiClient.projects.getAll(pagination),
+    });
+
+    const createProjectMutation = useMutation({
+        mutationFn: apiClient.projects.create,
+        onSuccess: () => {
+            toast.success("Project created successfully");
+            queryClient.invalidateQueries({ queryKey: ["projects"] });
+            setAddDialogOpen(false);
+        },
+        onError: (error: any) => {
+            toast.error(`Failed to create project: ${error.message}`);
+        },
+    });
+
+    const updateProjectMutation = useMutation({
+        mutationFn: ({ id, data }: { id: number; data: any }) =>
+            apiClient.projects.update(id, data),
+        onSuccess: () => {
+            toast.success("Project updated successfully");
+            queryClient.invalidateQueries({ queryKey: ["projects"] });
+            setEditDialogOpen(false);
+            setSelectedProject(null);
+        },
+        onError: (error: any) => {
+            toast.error(`Failed to update project: ${error.message}`);
+        },
+    });
+
+    const handleSort = (column: string) => {
+        setPagination((prev) => ({
+            ...prev,
+            sortBy: column,
+            direction: prev.sortBy === column && prev.direction === "ASC" ? "DESC" : "ASC",
+        }));
+    };
+
+    const handlePageChange = (page: number) => {
+        setPagination({
+            ...pagination,
+            page: page,
+        });
+    };
+
+    const statusOptions = Object.values(ProjectStatus).map((status) => ({
+        value: status,
+        label: status
+            .replace("_", " ")
+            .toLowerCase()
+            .replace(/\b\w/g, (s) => s.toUpperCase()),
+    }));
+
+    const toggleStatusFilter = (status: ProjectStatus) => {
+        setSelectedStatuses((prev) => {
+            if (prev.includes(status)) {
+                return prev.filter((s) => s !== status);
+            } else {
+                return [...prev, status];
+            }
+        });
+    };
+
+    const filteredProjects = useMemo(() => {
+        if (!data?.content) return [];
+
+        let filtered = data.content;
+
+        // First apply text search
+        if (searchText) {
+            filtered = filtered.filter(
+                (project) =>
+                    project.name.toLowerCase().includes(searchText.toLowerCase()) ||
+                    (project.description &&
+                        project.description.toLowerCase().includes(searchText.toLowerCase()))
+            );
+        }
+
+        // Then apply status filter
+        if (selectedStatuses.length > 0) {
+            filtered = filtered.filter((project) => selectedStatuses.includes(project.status));
+        }
+
+        return filtered;
+    }, [data?.content, searchText, selectedStatuses]);
+
+    const handleEdit = (project: Project) => {
+        setSelectedProject(project);
+        setEditDialogOpen(true);
+    };
+
+    // Calculate pagination
+    const totalPages = data?.totalPages || 0;
+    const currentPage = pagination.page;
+
+    if (error) {
+        toast.error("Failed to load projects");
+        return (
+            <>
+                <div className="p-6">
+                    <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+                        <p className="text-red-700">
+                            Error loading projects. Please try again later.
+                        </p>
+                    </div>
+                </div>
+            </>
+        );
     }
-  };
 
-  const handleCreateProject = async () => {
-    try {
-      await apiClient.projects.create(newProject);
-      toast.success("Project created successfully!");
-      setOpenCreate(false);
-      fetchProjects();
-      setNewProject({
-        name: "",
-        description: "",
-        startDate: new Date().toISOString().split("T")[0],
-        endDate: new Date().toISOString().split("T")[0],
-        status: ProjectStatus.ON_GOING,
-      });
-    } catch (error: any) {
-      toast.error("Failed to create project: " + error.message);
-    }
-  };
+    return (
+        <>
+            <div className="p-6">
+                <h1 className="text-2xl font-bold tracking-tight mb-6">Projects Management</h1>
 
-  const handleUpdateProject = async () => {
-    if (!selectedProject) {
-      toast.error("No project selected to update.");
-      return;
-    }
-    try {
-      await apiClient.projects.update(selectedProject.id, editProject);
-      toast.success("Project updated successfully!");
-      setOpenEdit(false);
-      fetchProjects();
-    } catch (error: any) {
-      toast.error("Failed to update project: " + error.message);
-    }
-  };
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                    <div className="flex items-center gap-2 w-full md:w-auto">
+                        <div className="relative flex-1 md:w-64">
+                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+                            <Input
+                                placeholder="Search projects..."
+                                className="pl-9"
+                                value={searchText}
+                                onChange={(e) => setSearchText(e.target.value)}
+                            />
+                        </div>
 
-  const handleDeleteProject = async (id: number) => {
-    try {
-      // No delete method on projects; let's just remove it from UI (or if backend provides, add API method).
-      toast.info("Delete endpoint not implemented.");
-      // await apiClient.projects.delete(id);
-      // toast.success("Project deleted successfully!");
-      // fetchProjects();
-    } catch (error: any) {
-      toast.error("Failed to delete project: " + error.message);
-    }
-  };
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline" size="icon" className="ml-2">
+                                    <Filter className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-48">
+                                <DropdownMenuGroup>
+                                    <div className="px-2 py-1.5 text-sm font-semibold">
+                                        Filter by Status
+                                    </div>
+                                    {statusOptions.map((status) => (
+                                        <DropdownMenuItem
+                                            key={status.value}
+                                            onClick={() =>
+                                                toggleStatusFilter(status.value as ProjectStatus)
+                                            }
+                                            className="flex items-center gap-2"
+                                        >
+                                            <div
+                                                className={cn(
+                                                    "h-4 w-4 border rounded-sm flex items-center justify-center",
+                                                    selectedStatuses.includes(
+                                                        status.value as ProjectStatus
+                                                    )
+                                                        ? "bg-primary border-primary"
+                                                        : "border-gray-400"
+                                                )}
+                                            >
+                                                {selectedStatuses.includes(
+                                                    status.value as ProjectStatus
+                                                ) && <span className="text-white text-xs">✓</span>}
+                                            </div>
+                                            {status.label}
+                                        </DropdownMenuItem>
+                                    ))}
+                                </DropdownMenuGroup>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
 
-  // Helper for ProjectStatus dropdown
-  const renderStatusSelect = (value: ProjectStatus, onChange: (value: ProjectStatus) => void, id: string) => (
-    <select
-      id={id}
-      className="col-span-3 border rounded p-2"
-      value={value}
-      onChange={e => onChange(e.target.value as ProjectStatus)}
-    >
-      {Object.values(ProjectStatus).map(st => (
-        <option key={st} value={st}>
-          {st.replace("_", " ").replace(/^\w/, c => c.toUpperCase())}
-        </option>
-      ))}
-    </select>
-  );
-
-  return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Projects"
-        description="Manage and oversee all fleet projects"
-      />
-      <Card>
-        <CardHeader>
-          <CardTitle>Projects</CardTitle>
-          <CardDescription>Manage your fleet projects</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Start Date</TableHead>
-                <TableHead>End Date</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {projects.map((project) => (
-                <TableRow key={project.id}>
-                  <TableCell>{project.name}</TableCell>
-                  <TableCell>{project.description}</TableCell>
-                  <TableCell>{project.startDate}</TableCell>
-                  <TableCell>{project.endDate}</TableCell>
-                  <TableCell>{project.status}</TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedProject(project);
-                        setEditProject({
-                          name: project.name,
-                          description: project.description,
-                          startDate: project.startDate,
-                          endDate: project.endDate,
-                          status: project.status as ProjectStatus,
-                        });
-                        setOpenEdit(true);
-                      }}
-                    >
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit
+                    <Button onClick={() => setAddDialogOpen(true)}>
+                        <Plus className="mr-2 h-4 w-4" /> Add Project
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDeleteProject(project.id)}
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+                </div>
 
-      <Dialog open={openCreate} onOpenChange={setOpenCreate}>
-        <DialogTrigger asChild>
-          <Button variant="outline">
-            <Plus className="mr-2 h-4 w-4" />
-            Create Project
-          </Button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Create Project</DialogTitle>
-            <DialogDescription>
-              Create a new project to manage your fleet
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">
-                Name
-              </Label>
-              <Input
-                type="text"
-                id="name"
-                value={newProject.name}
-                onChange={(e) =>
-                  setNewProject({ ...newProject, name: e.target.value })
-                }
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="description" className="text-right">
-                Description
-              </Label>
-              <Input
-                type="text"
-                id="description"
-                value={newProject.description}
-                onChange={(e) =>
-                  setNewProject({ ...newProject, description: e.target.value })
-                }
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="startDate" className="text-right">
-                Start Date
-              </Label>
-              <Input
-                type="date"
-                id="startDate"
-                value={newProject.startDate}
-                onChange={(e) =>
-                  setNewProject({ ...newProject, startDate: e.target.value })
-                }
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="endDate" className="text-right">
-                End Date
-              </Label>
-              <Input
-                type="date"
-                id="endDate"
-                value={newProject.endDate}
-                onChange={(e) =>
-                  setNewProject({ ...newProject, endDate: e.target.value })
-                }
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="status" className="text-right">
-                Status
-              </Label>
-              {renderStatusSelect(
-                newProject.status as ProjectStatus,
-                value => setNewProject({ ...newProject, status: value }),
-                "status"
-              )}
-            </div>
-          </div>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button type="button" variant="secondary">
-                Cancel
-              </Button>
-            </DialogClose>
-            <Button type="submit" onClick={handleCreateProject}>
-              Create
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+                {isLoading ? (
+                    <div className="space-y-4">
+                        <Skeleton className="h-8 w-full" />
+                        <Skeleton className="h-8 w-full" />
+                        <Skeleton className="h-8 w-full" />
+                        <Skeleton className="h-8 w-full" />
+                        <Skeleton className="h-8 w-full" />
+                    </div>
+                ) : (
+                    <div className="rounded-md border">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead
+                                        onClick={() => handleSort("id")}
+                                        className="cursor-pointer w-16"
+                                    >
+                                        <div className="flex items-center">
+                                            ID
+                                            <ArrowUpDown className="ml-2 h-4 w-4" />
+                                        </div>
+                                    </TableHead>
+                                    <TableHead
+                                        onClick={() => handleSort("name")}
+                                        className="cursor-pointer"
+                                    >
+                                        <div className="flex items-center">
+                                            Name
+                                            <ArrowUpDown className="ml-2 h-4 w-4" />
+                                        </div>
+                                    </TableHead>
+                                    <TableHead>Description</TableHead>
+                                    <TableHead
+                                        onClick={() => handleSort("status")}
+                                        className="cursor-pointer"
+                                    >
+                                        <div className="flex items-center">
+                                            Status
+                                            <ArrowUpDown className="ml-2 h-4 w-4" />
+                                        </div>
+                                    </TableHead>
+                                    <TableHead
+                                        onClick={() => handleSort("startDate")}
+                                        className="cursor-pointer"
+                                    >
+                                        <div className="flex items-center">
+                                            Start Date
+                                            <ArrowUpDown className="ml-2 h-4 w-4" />
+                                        </div>
+                                    </TableHead>
+                                    <TableHead
+                                        onClick={() => handleSort("endDate")}
+                                        className="cursor-pointer"
+                                    >
+                                        <div className="flex items-center">
+                                            End Date
+                                            <ArrowUpDown className="ml-2 h-4 w-4" />
+                                        </div>
+                                    </TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {filteredProjects.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell
+                                            colSpan={7}
+                                            className="text-center h-24 text-muted-foreground"
+                                        >
+                                            {searchText || selectedStatuses.length > 0
+                                                ? "No matching projects found"
+                                                : "No projects available"}
+                                        </TableCell>
+                                    </TableRow>
+                                ) : (
+                                    filteredProjects.map((project) => (
+                                        <TableRow key={project.id}>
+                                            <TableCell className="font-medium">
+                                                {project.id}
+                                            </TableCell>
+                                            <TableCell>{project.name}</TableCell>
+                                            <TableCell className="max-w-md truncate">
+                                                {project.description || "N/A"}
+                                            </TableCell>
+                                            <TableCell>
+                                                <ProjectBadge status={project.status} />
+                                            </TableCell>
+                                            <TableCell>
+                                                {format(parseISO(project.startDate), "MMM d, yyyy")}
+                                            </TableCell>
+                                            <TableCell>
+                                                {format(parseISO(project.endDate), "MMM d, yyyy")}
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <Button
+                                                    variant="ghost"
+                                                    onClick={() => handleEdit(project)}
+                                                >
+                                                    Edit
+                                                </Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
+                )}
 
-      <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Edit Project</DialogTitle>
-            <DialogDescription>
-              Make changes to your project here. Click save when you're done.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-name" className="text-right">
-                Name
-              </Label>
-              <Input
-                type="text"
-                id="edit-name"
-                value={editProject.name || ""}
-                onChange={(e) =>
-                  setEditProject({ ...editProject, name: e.target.value })
-                }
-                className="col-span-3"
-              />
+                {!isLoading && data && data.totalPages > 1 && (
+                    <Pagination className="mt-4">
+                        <PaginationContent>
+                            <PaginationItem>
+                                <PaginationPrevious
+                                    onClick={() => handlePageChange(Math.max(0, currentPage - 1))}
+                                    className={
+                                        currentPage === 0
+                                            ? "pointer-events-none opacity-50"
+                                            : "cursor-pointer"
+                                    }
+                                />
+                            </PaginationItem>
+
+                            {Array.from({ length: Math.min(5, totalPages) }).map((_, i) => {
+                                // Calculate page numbers to show
+                                let pageToShow;
+                                if (totalPages <= 5) {
+                                    // If there are 5 or fewer pages, show all pages
+                                    pageToShow = i;
+                                } else if (currentPage <= 2) {
+                                    // If we're near the beginning, show first 5 pages
+                                    pageToShow = i;
+                                } else if (currentPage >= totalPages - 3) {
+                                    // If we're near the end, show last 5 pages
+                                    pageToShow = totalPages - 5 + i;
+                                } else {
+                                    // Otherwise show current page and 2 on each side
+                                    pageToShow = currentPage - 2 + i;
+                                }
+
+                                return (
+                                    <PaginationItem key={pageToShow}>
+                                        <PaginationLink
+                                            onClick={() => handlePageChange(pageToShow)}
+                                            isActive={pageToShow === currentPage}
+                                        >
+                                            {pageToShow + 1}
+                                        </PaginationLink>
+                                    </PaginationItem>
+                                );
+                            })}
+
+                            <PaginationItem>
+                                <PaginationNext
+                                    onClick={() =>
+                                        handlePageChange(Math.min(totalPages - 1, currentPage + 1))
+                                    }
+                                    className={
+                                        currentPage === totalPages - 1
+                                            ? "pointer-events-none opacity-50"
+                                            : "cursor-pointer"
+                                    }
+                                />
+                            </PaginationItem>
+                        </PaginationContent>
+                    </Pagination>
+                )}
+
+                <AddProjectDialog
+                    open={addDialogOpen}
+                    onOpenChange={setAddDialogOpen}
+                    onSubmit={createProjectMutation.mutate}
+                    isSubmitting={createProjectMutation.isPending}
+                />
+
+                <EditProjectDialog
+                    open={editDialogOpen}
+                    onOpenChange={setEditDialogOpen}
+                    project={selectedProject}
+                    onSubmit={(data) =>
+                        selectedProject &&
+                        updateProjectMutation.mutate({ id: selectedProject.id, data })
+                    }
+                    isSubmitting={updateProjectMutation.isPending}
+                />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-description" className="text-right">
-                Description
-              </Label>
-              <Input
-                type="text"
-                id="edit-description"
-                value={editProject.description || ""}
-                onChange={(e) =>
-                  setEditProject({ ...editProject, description: e.target.value })
-                }
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-startDate" className="text-right">
-                Start Date
-              </Label>
-              <Input
-                type="date"
-                id="edit-startDate"
-                value={editProject.startDate || ""}
-                onChange={(e) =>
-                  setEditProject({ ...editProject, startDate: e.target.value })
-                }
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-endDate" className="text-right">
-                End Date
-              </Label>
-              <Input
-                type="date"
-                id="edit-endDate"
-                value={editProject.endDate || ""}
-                onChange={(e) =>
-                  setEditProject({ ...editProject, endDate: e.target.value })
-                }
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-status" className="text-right">
-                Status
-              </Label>
-              {renderStatusSelect(
-                editProject.status as ProjectStatus,
-                value => setEditProject({ ...editProject, status: value }),
-                "edit-status"
-              )}
-            </div>
-          </div>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button type="button" variant="secondary">
-                Cancel
-              </Button>
-            </DialogClose>
-            <Button type="submit" onClick={handleUpdateProject}>
-              Save changes
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-}
+        </>
+    );
+};
+
+export default ProjectsManagement;

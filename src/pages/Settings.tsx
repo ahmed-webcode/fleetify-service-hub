@@ -13,7 +13,6 @@ import { Separator } from "@/components/ui/separator";
 import { UserCircle, Bell, Languages, Monitor } from "lucide-react";
 import { toast } from "sonner";
 import ManageUsersPage from "./ManageUsers";
-import { PageHeader } from "@/components/layout/PageHeader";
 
 export default function Settings() {
     const { hasPermission } = useAuth();
@@ -101,10 +100,12 @@ export default function Settings() {
 
     return (
         <div className="space-y-6">
-            <PageHeader
-                title="Settings"
-                description="Manage your account and application settings"
-            />
+            <div className="flex flex-col gap-2">
+                <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
+                <p className="text-muted-foreground">
+                    Manage your account and application settings
+                </p>
+            </div>
 
             <Tabs defaultValue="profile">
                 <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">

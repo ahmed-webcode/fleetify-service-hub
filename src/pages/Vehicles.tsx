@@ -23,7 +23,6 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from "@/components/ui/pagination";
-import { PageHeader } from "@/components/layout/PageHeader";
 
 interface Vehicle {
     id: string;
@@ -320,10 +319,10 @@ const Vehicles = () => {
     return (
         <>
             <div className="page-container">
-                <PageHeader
-                    title="Vehicles"
-                    description="Manage and monitor your fleet"
-                />
+                <div className="page-title-container">
+                    <h1 className="page-title">Vehicles</h1>
+                    <p className="page-description">Manage and monitor your fleet</p>
+                </div>
 
                 <div className="card-uniform">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 md:mb-6 gap-4">

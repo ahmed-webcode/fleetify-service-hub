@@ -9,7 +9,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { MaintenanceStatusChart } from "@/components/dashboard/MaintenanceStatusChart";
 import { FuelConsumptionChart } from "@/components/dashboard/FuelConsumptionChart";
-import { PageHeader } from "@/components/layout/PageHeader";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -30,10 +29,10 @@ export default function Dashboard() {
 
   return (
     <div className="w-full space-y-6">
-      <PageHeader 
-        title={`Welcome, ${user?.fullName || "User"}`}
-        description="Here's an overview of your fleet management system"
-      />
+      <div className="flex flex-col gap-2">
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Welcome, {user?.fullName || "User"}</h1>
+        <p className="text-muted-foreground">Here's an overview of your fleet management system</p>
+      </div>
       
       <MetricsOverview />
       
