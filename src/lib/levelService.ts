@@ -1,5 +1,5 @@
-
 import { Level } from '@/types/level';
+import { apiClient } from "./apiClient";
 
 export interface FlattenedLevel extends Level {
     depth: number;
@@ -59,12 +59,13 @@ export const getFlattenedLevels = (includeStructural: boolean = true): Flattened
     }
 };
 
-// Add the missing fetchAndStoreLevels function
+// Update the fetchAndStoreLevels to make a real API call
 export const fetchAndStoreLevels = async () => {
     try {
-        // This would normally fetch from API, for now return empty array
-        console.log('Fetching and storing levels...');
-        localStorage.setItem('levels', JSON.stringify([]));
+        console.log('Fetching levels from backend...');
+        const levels = await apiClient.levels.getAll();
+        localStorage.setItem('levels', JSON.stringify(levels));
+        console.log('Levels fetched and stored in localStorage.');
     } catch (error) {
         console.error('Error fetching and storing levels:', error);
     }
