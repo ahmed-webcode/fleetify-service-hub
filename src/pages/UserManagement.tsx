@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo, useCallback, memo } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,6 +29,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
+import { ROLE_DETAILS } from "@/lib/jwtUtils";
 
 // --- UserFormFields inline (copy of ManageUsers.tsx) ---
 interface UserFormFieldsProps {
@@ -216,35 +216,18 @@ const UserFormFields: React.FC<UserFormFieldsProps> = memo(
 );
 UserFormFields.displayName = "UserFormFields";
 
-// --- END UserFormFields inline ---
-
-const ITEMS_PER_PAGE = 12;
+// Dynamically generate role options from ROLE_DETAILS
+const allRoles = Object.values(ROLE_DETAILS).map((role) => ({
+  value: role.name,
+  label: role.name,
+}));
 
 const roleOptions = [
   { value: "all", label: "All Roles" },
-  { value: "Transport Director", label: "Transport Director" },
-  { value: "Driver", label: "Driver" },
-  { value: "Staff", label: "Staff" },
-  { value: "Fuel Manager", label: "Fuel Manager" },
-  { value: "Maintenance Manager", label: "Maintenance Manager" },
+  ...allRoles,
 ];
 
-const getRoleBadgeVariant = (role: string) => {
-  switch (role.toLowerCase()) {
-    case "transport director":
-      return "default";
-    case "driver":
-      return "secondary";
-    case "staff":
-      return "outline";
-    case "fuel manager":
-      return "outline";
-    case "maintenance manager":
-      return "outline";
-    default:
-      return "outline";
-  }
-};
+const ITEMS_PER_PAGE = 12;
 
 const UserManagement = () => {
   const [activeTab, setActiveTab] = useState("users");

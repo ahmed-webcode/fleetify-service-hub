@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth, ROLE_DETAILS } from "@/contexts/AuthContext";
@@ -185,9 +184,7 @@ export default function Login() {
             </form>
           </CardContent>
           <CardFooter>
-            <div className="w-full text-xs text-slate-500 text-center">
-              <p>Demo account: <span className="font-medium">transport_director</span> / <span className="font-medium">password</span></p>
-            </div>
+            {/* Demo account text removed as requested */}
           </CardFooter>
         </Card>
       </div>
