@@ -132,10 +132,9 @@ export const EditPositionDialog = ({ open, onClose, position }: EditPositionDial
                 <DialogHeader>
                     <DialogTitle>Edit Position</DialogTitle>
                 </DialogHeader>
-
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
-                        {/* Name Field */}
+                        {/* Name and Fuel Quota */}
                         <div className="grid grid-cols-2 gap-4">
                             <FormField
                                 control={form.control}
@@ -150,8 +149,6 @@ export const EditPositionDialog = ({ open, onClose, position }: EditPositionDial
                                     </FormItem>
                                 )}
                             />
-
-                            {/* Fuel Quota Field */}
                             <FormField
                                 control={form.control}
                                 name="fuelQuota"
@@ -166,9 +163,8 @@ export const EditPositionDialog = ({ open, onClose, position }: EditPositionDial
                                                 {...field}
                                                 onChange={(e) => {
                                                     const value = e.target.value;
-                                                    // Allow empty string for user to clear input, otherwise parse
                                                     if (value === "") {
-                                                        field.onChange(""); // Or handle as needed, e.g., field.onChange(undefined) or specific logic
+                                                        field.onChange("");
                                                     } else {
                                                         field.onChange(parseInt(value, 10) || 0);
                                                     }
@@ -178,7 +174,7 @@ export const EditPositionDialog = ({ open, onClose, position }: EditPositionDial
                                                     form.getFieldState("fuelQuota").isDirty
                                                         ? "0"
                                                         : field.value || ""
-                                                } // Better handling for 0 and empty
+                                                }
                                             />
                                         </FormControl>
                                         <FormMessage />
@@ -187,7 +183,7 @@ export const EditPositionDialog = ({ open, onClose, position }: EditPositionDial
                             />
                         </div>
 
-                        {/* Description Field */}
+                        {/* Description */}
                         <FormField
                             control={form.control}
                             name="description"
@@ -223,7 +219,6 @@ export const EditPositionDialog = ({ open, onClose, position }: EditPositionDial
                                     </FormItem>
                                 )}
                             />
-
                             <FormField
                                 control={form.control}
                                 name="policyReference"
@@ -239,47 +234,35 @@ export const EditPositionDialog = ({ open, onClose, position }: EditPositionDial
                             />
                         </div>
 
-                        {/* Level Selector & Status */}
+                        {/* Level and Status as SHADCN SELECTS */}
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <div className="flex justify-between items-center">
-                                    <FormLabel>Level</FormLabel>
-                                    <div className="flex items-center space-x-2">
-                                        <FormLabel
-                                            htmlFor="project-toggle-edit"
-                                            className="text-sm cursor-pointer"
+                            <FormField
+                                control={form.control}
+                                name="levelId"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Organizational Level</FormLabel>
+                                        <Select
+                                            value={field.value ? String(field.value) : ""}
+                                            onValueChange={value => field.onChange(Number(value))}
                                         >
-                                            Use Projects
-                                        </FormLabel>
-                                        <Switch
-                                            id="project-toggle-edit"
-                                            checked={useProjects}
-                                            onCheckedChange={setUseProjects}
-                                        />
-                                    </div>
-                                </div>
-                                <FormField
-                                    control={form.control}
-                                    name="levelId"
-                                    render={({ field }) => (
-                                        <FormItem>
                                             <FormControl>
-                                                <LevelSelector
-                                                    useProjects={useProjects}
-                                                    levelId={field.value}
-                                                    onChange={field.onChange}
-                                                    onSearchChange={setSearchTerm}
-                                                    searchTerm={searchTerm}
-                                                    debouncedSearchTerm={debouncedSearchTerm}
-                                                    levels={flattenedLevels} // Pass memoized levels
-                                                />
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select level" />
+                                                </SelectTrigger>
                                             </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            </div>
-
+                                            <SelectContent>
+                                                {flattenedLevels.map(level => (
+                                                    <SelectItem key={level.id} value={String(level.id)}>
+                                                        {level.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
                             <FormField
                                 control={form.control}
                                 name="status"
@@ -287,10 +270,8 @@ export const EditPositionDialog = ({ open, onClose, position }: EditPositionDial
                                     <FormItem>
                                         <FormLabel>Status</FormLabel>
                                         <Select
-                                            onValueChange={(value) =>
-                                                field.onChange(value as PositionStatus)
-                                            }
-                                            value={field.value} // Step 3: Use only value for controlled component
+                                            value={field.value}
+                                            onValueChange={value => field.onChange(value as PositionStatus)}
                                         >
                                             <FormControl>
                                                 <SelectTrigger>
@@ -298,7 +279,7 @@ export const EditPositionDialog = ({ open, onClose, position }: EditPositionDial
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                {Object.values(PositionStatus).map((status) => (
+                                                {Object.values(PositionStatus).map(status => (
                                                     <SelectItem key={status} value={status}>
                                                         {status}
                                                     </SelectItem>

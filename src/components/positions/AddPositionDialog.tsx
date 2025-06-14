@@ -189,45 +189,36 @@ export const AddPositionDialog = ({ open, onClose }: AddPositionDialogProps) => 
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <div className="flex justify-between items-center">
-                                    <FormLabel>Level</FormLabel>
-                                    <div className="flex items-center space-x-2">
-                                        <FormLabel
-                                            htmlFor="project-toggle"
-                                            className="text-sm cursor-pointer"
+                            {/* ORGANIZATIONAL LEVEL as SHADCN SELECT */}
+                            <FormField
+                                control={form.control}
+                                name="levelId"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Organizational Level</FormLabel>
+                                        <Select
+                                            value={field.value ? String(field.value) : ""}
+                                            onValueChange={value => field.onChange(Number(value))}
                                         >
-                                            Use Projects
-                                        </FormLabel>
-                                        <Switch
-                                            id="project-toggle"
-                                            checked={useProjects}
-                                            onCheckedChange={setUseProjects}
-                                        />
-                                    </div>
-                                </div>
-                                <FormField
-                                    control={form.control}
-                                    name="levelId"
-                                    render={({ field }) => (
-                                        <FormItem>
                                             <FormControl>
-                                                <LevelSelector
-                                                    useProjects={useProjects}
-                                                    levelId={field.value}
-                                                    onChange={field.onChange}
-                                                    onSearchChange={setSearchTerm}
-                                                    searchTerm={searchTerm}
-                                                    debouncedSearchTerm={debouncedSearchTerm}
-                                                    levels={flattenedLevels}
-                                                />
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select level" />
+                                                </SelectTrigger>
                                             </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            </div>
+                                            <SelectContent>
+                                                {flattenedLevels.map(level => (
+                                                    <SelectItem key={level.id} value={String(level.id)}>
+                                                        {level.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
 
+                            {/* STATUS as SHADCN SELECT */}
                             <FormField
                                 control={form.control}
                                 name="status"
@@ -235,10 +226,8 @@ export const AddPositionDialog = ({ open, onClose }: AddPositionDialogProps) => 
                                     <FormItem>
                                         <FormLabel>Status</FormLabel>
                                         <Select
-                                            onValueChange={(value) =>
-                                                field.onChange(value as PositionStatus)
-                                            }
-                                            defaultValue={field.value}
+                                            value={field.value}
+                                            onValueChange={value => field.onChange(value as PositionStatus)}
                                         >
                                             <FormControl>
                                                 <SelectTrigger>
@@ -246,7 +235,7 @@ export const AddPositionDialog = ({ open, onClose }: AddPositionDialogProps) => 
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                {Object.values(PositionStatus).map((status) => (
+                                                {Object.values(PositionStatus).map(status => (
                                                     <SelectItem key={status} value={status}>
                                                         {status}
                                                     </SelectItem>
