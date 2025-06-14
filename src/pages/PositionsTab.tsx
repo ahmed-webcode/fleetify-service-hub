@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -25,8 +24,42 @@ export default function PositionsTab() {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState<Position | null>(null);
 
-  const [newPosition, setNewPosition] = useState<{ name: string; levelId?: number }>({ name: "", levelId: undefined });
-  const [editPosition, setEditPosition] = useState<{ id?: number; name: string; levelId?: number }>({ name: "", levelId: undefined });
+  // Update form state to include all required fields
+  const [newPosition, setNewPosition] = useState<{
+    name: string;
+    description: string;
+    fuelQuota: number;
+    vehicleEntitlement: boolean;
+    policyReference: string;
+    levelId?: number;
+    status: string;
+  }>({
+    name: "",
+    description: "",
+    fuelQuota: 0,
+    vehicleEntitlement: false,
+    policyReference: "",
+    levelId: undefined,
+    status: "ACTIVE",
+  });
+  const [editPosition, setEditPosition] = useState<{
+    id?: number;
+    name: string;
+    description: string;
+    fuelQuota: number;
+    vehicleEntitlement: boolean;
+    policyReference: string;
+    levelId?: number;
+    status: string;
+  }>({
+    name: "",
+    description: "",
+    fuelQuota: 0,
+    vehicleEntitlement: false,
+    policyReference: "",
+    levelId: undefined,
+    status: "ACTIVE",
+  });
 
   useEffect(() => {
     fetchPositions();
@@ -54,11 +87,15 @@ export default function PositionsTab() {
     }
   };
 
-  const filteredPositions = useMemo(() =>
-    positions.filter((pos) =>
-      pos.name?.toLowerCase().includes(searchText.toLowerCase()) ||
-      (pos.level?.name?.toLowerCase() || "").includes(searchText.toLowerCase())
-    ), [positions, searchText]);
+  const filteredPositions = useMemo(
+    () =>
+      positions.filter(
+        (pos) =>
+          pos.name?.toLowerCase().includes(searchText.toLowerCase()) ||
+          (pos.levelName?.toLowerCase() || "").includes(searchText.toLowerCase())
+      ),
+    [positions, searchText]
+  );
 
   const paginatedPositions = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -68,15 +105,38 @@ export default function PositionsTab() {
 
   // Add
   const handleAdd = async () => {
-    if (!newPosition.name || !newPosition.levelId) {
-      toast.error("Position Name & Organizational Level are required.");
+    // All required fields
+    if (
+      !newPosition.name ||
+      !newPosition.description ||
+      newPosition.levelId === undefined ||
+      !newPosition.policyReference ||
+      !newPosition.status
+    ) {
+      toast.error("All fields are required.");
       return;
     }
     try {
-      await apiClient.positions.create({ name: newPosition.name, levelId: newPosition.levelId });
+      await apiClient.positions.create({
+        name: newPosition.name,
+        description: newPosition.description,
+        fuelQuota: Number(newPosition.fuelQuota),
+        vehicleEntitlement: Boolean(newPosition.vehicleEntitlement),
+        policyReference: newPosition.policyReference,
+        levelId: newPosition.levelId,
+        status: newPosition.status as any,
+      });
       toast.success("Position added!");
       setIsAddOpen(false);
-      setNewPosition({ name: "", levelId: undefined });
+      setNewPosition({
+        name: "",
+        description: "",
+        fuelQuota: 0,
+        vehicleEntitlement: false,
+        policyReference: "",
+        levelId: undefined,
+        status: "ACTIVE",
+      });
       fetchPositions();
     } catch (e: any) {
       toast.error(e.message || "Failed to add position.");
@@ -86,20 +146,48 @@ export default function PositionsTab() {
   // Edit
   const openEdit = (pos: Position) => {
     setSelectedPosition(pos);
-    setEditPosition({ id: pos.id, name: pos.name, levelId: pos.level?.id });
+    setEditPosition({
+      id: pos.id,
+      name: pos.name,
+      description: pos.description,
+      fuelQuota: pos.fuelQuota,
+      vehicleEntitlement: !!pos.vehicleEntitlement,
+      policyReference: pos.policyReference,
+      levelId: levels.find((l) => l.name === pos.levelName)?.id ?? undefined,
+      status: pos.status || "ACTIVE",
+    });
     setIsEditOpen(true);
   };
 
   const handleEdit = async () => {
-    if (!editPosition.id || !editPosition.name || !editPosition.levelId) {
+    if (
+      !editPosition.id ||
+      !editPosition.name ||
+      !editPosition.description ||
+      editPosition.levelId === undefined ||
+      !editPosition.policyReference ||
+      !editPosition.status
+    ) {
       toast.error("All fields are required.");
       return;
     }
     try {
-      await apiClient.positions.update(editPosition.id, {
-        name: editPosition.name,
-        levelId: editPosition.levelId,
-      });
+      // Only send fields that changed
+      const original = positions.find((p) => p.id === editPosition.id);
+      if (!original) return;
+      const changes: any = { id: editPosition.id };
+      if (editPosition.name !== original.name) changes.name = editPosition.name;
+      if (editPosition.description !== original.description) changes.description = editPosition.description;
+      if (editPosition.levelId !== levels.find((l) => l.name === original.levelName)?.id)
+        changes.levelId = editPosition.levelId;
+      if (editPosition.fuelQuota !== original.fuelQuota) changes.fuelQuota = editPosition.fuelQuota;
+      if (editPosition.vehicleEntitlement !== original.vehicleEntitlement)
+        changes.vehicleEntitlement = editPosition.vehicleEntitlement;
+      if (editPosition.policyReference !== original.policyReference)
+        changes.policyReference = editPosition.policyReference;
+      if (editPosition.status !== original.status) changes.status = editPosition.status;
+
+      await apiClient.positions.update(changes);
       toast.success("Position updated!");
       setIsEditOpen(false);
       setSelectedPosition(null);
@@ -135,24 +223,34 @@ export default function PositionsTab() {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead>Fuel Quota</TableHead>
+                <TableHead>Vehicle Entitlement</TableHead>
+                <TableHead>Policy Reference</TableHead>
                 <TableHead>Organizational Level</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={3} className="text-center text-muted-foreground h-20">Loading...</TableCell>
+                  <TableCell colSpan={8} className="text-center text-muted-foreground h-20">Loading...</TableCell>
                 </TableRow>
               ) : paginatedPositions.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={3} className="text-center text-muted-foreground h-20">No positions found</TableCell>
+                  <TableCell colSpan={8} className="text-center text-muted-foreground h-20">No positions found</TableCell>
                 </TableRow>
               ) : (
                 paginatedPositions.map(pos => (
                   <TableRow key={pos.id}>
                     <TableCell>{pos.name}</TableCell>
-                    <TableCell>{pos.level?.name || "N/A"}</TableCell>
+                    <TableCell>{pos.description}</TableCell>
+                    <TableCell>{pos.fuelQuota}</TableCell>
+                    <TableCell>{pos.vehicleEntitlement ? "Yes" : "No"}</TableCell>
+                    <TableCell>{pos.policyReference}</TableCell>
+                    <TableCell>{pos.levelName || "N/A"}</TableCell>
+                    <TableCell>{pos.status || "N/A"}</TableCell>
                     <TableCell className="text-right">
                       <Button variant="ghost" size="sm" onClick={() => openEdit(pos)}>
                         <Pencil className="h-4 w-4" /> Edit
@@ -188,7 +286,7 @@ export default function PositionsTab() {
 
         {/* Add Position Dialog */}
         <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-          <DialogContent className="sm:max-w-[400px]">
+          <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
               <DialogTitle>Add Position</DialogTitle>
             </DialogHeader>
@@ -199,6 +297,44 @@ export default function PositionsTab() {
                 value={newPosition.name}
                 onChange={e => setNewPosition(p => ({ ...p, name: e.target.value }))}
                 placeholder="E.g. Senior Driver"
+              />
+            </div>
+            <div className="space-y-2 mt-2">
+              <Label htmlFor="pos-description">Description</Label>
+              <Input
+                id="pos-description"
+                value={newPosition.description}
+                onChange={e => setNewPosition(p => ({ ...p, description: e.target.value }))}
+                placeholder="Position description"
+              />
+            </div>
+            <div className="space-y-2 mt-2">
+              <Label htmlFor="pos-fuelquota">Weekly Fuel Quota (Liters)</Label>
+              <Input
+                id="pos-fuelquota"
+                type="number"
+                value={newPosition.fuelQuota}
+                min={0}
+                onChange={e => setNewPosition(p => ({ ...p, fuelQuota: parseInt(e.target.value) || 0 }))}
+                placeholder="Fuel quota in liters"
+              />
+            </div>
+            <div className="flex items-center mt-2 space-x-2">
+              <Label htmlFor="pos-vehicleEntitlement">Vehicle Entitlement</Label>
+              <input
+                id="pos-vehicleEntitlement"
+                type="checkbox"
+                checked={newPosition.vehicleEntitlement}
+                onChange={e => setNewPosition(p => ({ ...p, vehicleEntitlement: e.target.checked }))}
+              />
+            </div>
+            <div className="space-y-2 mt-2">
+              <Label htmlFor="pos-policyReference">Policy Reference</Label>
+              <Input
+                id="pos-policyReference"
+                value={newPosition.policyReference}
+                onChange={e => setNewPosition(p => ({ ...p, policyReference: e.target.value }))}
+                placeholder="Policy reference"
               />
             </div>
             <div className="space-y-2 mt-2">
@@ -215,6 +351,19 @@ export default function PositionsTab() {
                 ))}
               </select>
             </div>
+            <div className="space-y-2 mt-2">
+              <Label htmlFor="pos-status">Status</Label>
+              <select
+                id="pos-status"
+                className="w-full border rounded px-2 py-1"
+                value={newPosition.status}
+                onChange={e => setNewPosition(p => ({ ...p, status: e.target.value }))}
+              >
+                <option value="ACTIVE">Active</option>
+                <option value="INACTIVE">Inactive</option>
+                <option value="ON_HOLD">On Hold</option>
+              </select>
+            </div>
             <DialogFooter className="mt-4">
               <DialogClose asChild>
                 <Button type="button" variant="outline">Cancel</Button>
@@ -226,7 +375,7 @@ export default function PositionsTab() {
 
         {/* Edit Position Dialog */}
         <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-          <DialogContent className="sm:max-w-[400px]">
+          <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
               <DialogTitle>Edit Position</DialogTitle>
             </DialogHeader>
@@ -237,6 +386,44 @@ export default function PositionsTab() {
                 value={editPosition.name}
                 onChange={e => setEditPosition(p => ({ ...p, name: e.target.value }))}
                 placeholder="E.g. Senior Driver"
+              />
+            </div>
+            <div className="space-y-2 mt-2">
+              <Label htmlFor="edit-pos-description">Description</Label>
+              <Input
+                id="edit-pos-description"
+                value={editPosition.description}
+                onChange={e => setEditPosition(p => ({ ...p, description: e.target.value }))}
+                placeholder="Position description"
+              />
+            </div>
+            <div className="space-y-2 mt-2">
+              <Label htmlFor="edit-pos-fuelquota">Weekly Fuel Quota (Liters)</Label>
+              <Input
+                id="edit-pos-fuelquota"
+                type="number"
+                value={editPosition.fuelQuota}
+                min={0}
+                onChange={e => setEditPosition(p => ({ ...p, fuelQuota: parseInt(e.target.value) || 0 }))}
+                placeholder="Fuel quota in liters"
+              />
+            </div>
+            <div className="flex items-center mt-2 space-x-2">
+              <Label htmlFor="edit-pos-vehicleEntitlement">Vehicle Entitlement</Label>
+              <input
+                id="edit-pos-vehicleEntitlement"
+                type="checkbox"
+                checked={editPosition.vehicleEntitlement}
+                onChange={e => setEditPosition(p => ({ ...p, vehicleEntitlement: e.target.checked }))}
+              />
+            </div>
+            <div className="space-y-2 mt-2">
+              <Label htmlFor="edit-pos-policyReference">Policy Reference</Label>
+              <Input
+                id="edit-pos-policyReference"
+                value={editPosition.policyReference}
+                onChange={e => setEditPosition(p => ({ ...p, policyReference: e.target.value }))}
+                placeholder="Policy reference"
               />
             </div>
             <div className="space-y-2 mt-2">
@@ -251,6 +438,19 @@ export default function PositionsTab() {
                 {levels.map(l => (
                   <option key={l.id} value={l.id}>{l.name}</option>
                 ))}
+              </select>
+            </div>
+            <div className="space-y-2 mt-2">
+              <Label htmlFor="edit-pos-status">Status</Label>
+              <select
+                id="edit-pos-status"
+                className="w-full border rounded px-2 py-1"
+                value={editPosition.status}
+                onChange={e => setEditPosition(p => ({ ...p, status: e.target.value }))}
+              >
+                <option value="ACTIVE">Active</option>
+                <option value="INACTIVE">Inactive</option>
+                <option value="ON_HOLD">On Hold</option>
               </select>
             </div>
             <DialogFooter className="mt-4">
