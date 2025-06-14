@@ -721,13 +721,14 @@ const UserManagement = () => {
               Fill in the details below to create a new user account.
             </DialogDescription>
           </DialogHeader>
+          {/* Only pass non-structural levels */}
           <UserFormFields
             isEdit={false}
             formState={newUser}
             handleInputChange={handleInputChange}
             handleCheckboxChange={handleCheckboxChange}
             handleSelectChange={handleSelectChange}
-            levels={nonStructuralLevels} {/* <--- Only pass non-structural levels */}
+            levels={nonStructuralLevels}
             positions={positions}
           />
           <DialogFooter>
@@ -751,13 +752,14 @@ const UserManagement = () => {
               Update the details for this user account.
             </DialogDescription>
           </DialogHeader>
+          {/* Only pass non-structural levels */}
           <UserFormFields
             isEdit={true}
             formState={editUser}
             handleInputChange={handleInputChange}
             handleCheckboxChange={handleCheckboxChange}
             handleSelectChange={handleSelectChange}
-            levels={nonStructuralLevels} {/* <--- Only pass non-structural levels */}
+            levels={nonStructuralLevels}
             positions={positions}
           />
           <DialogFooter>
