@@ -5,7 +5,7 @@
 @import './utils/misc.css';
 @import './layout/header.css';
 @import './layout/main.css';
-@import './layout/page.css';
+/* @import './layout/page.css'; Removed missing import */
 @import './map.css';
 
 /* Additional utility classes */
@@ -54,3 +54,4 @@
 .status-pending {
   @apply bg-blue-100 text-blue-800;
 }
+
