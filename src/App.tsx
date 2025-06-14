@@ -1,4 +1,5 @@
 
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -167,6 +168,12 @@ const App = () => {
                 </ProtectedRoute>
               } />
               
+              <Route path="/maintenance-requests" element={
+                <ProtectedRoute allowedRoleIds={[ROLES.TRANSPORT_DIRECTOR, ROLES.MAINTENANCE_MANAGER, ROLES.MECHANIC]}>
+                  <MaintenanceRequests />
+                </ProtectedRoute>
+              } />
+              
               <Route path="/report-incident" element={
                 <ProtectedRoute>
                   <ReportIncident />
@@ -176,12 +183,6 @@ const App = () => {
               <Route path="/insurance-management" element={
                 <ProtectedRoute allowedRoleIds={[ROLES.TRANSPORT_DIRECTOR, ROLES.MAINTENANCE_MANAGER]}>
                   <InsuranceManagement />
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/maintenance-requests" element={
-                <ProtectedRoute allowedRoleIds={[ROLES.TRANSPORT_DIRECTOR, ROLES.MAINTENANCE_MANAGER, ROLES.MECHANIC]}>
-                  <MaintenanceRequests />
                 </ProtectedRoute>
               } />
 

@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
-import { apiClient, LightLevelDto } from '@/lib/apiClient';
+import { LightLevelDto } from '@/types/level';
+import { apiClient } from '@/lib/apiClient';
 import { FlattenedLevel } from '@/lib/levelService';
 import {
   Select,

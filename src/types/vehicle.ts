@@ -1,3 +1,4 @@
+
 import { PageResponse } from "./common";
 
 // Types for Vehicle Management
@@ -126,4 +127,10 @@ export interface VehicleQueryParams {
     size?: number;
     sortBy?: string;
     direction?: "ASC" | "DESC";
+}
+
+export interface EditVehicleFormProps {
+    vehicle: VehicleDto;
+    onSubmit: (id: number, data: FormData) => Promise<void>;
+    onCancel: () => void;
 }

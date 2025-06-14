@@ -1,3 +1,4 @@
+
 import { ActionType, RequestStatus, TargetType } from "./common";
 
 // Types for Fuel Request Management
@@ -32,6 +33,7 @@ export interface FuelRequestDto {
     actedAt?: string;
     actedAmount?: number;
     actionNote?: string;
+    projectName?: string;
     createdAt?: string;
     updatedAt: string;
 }

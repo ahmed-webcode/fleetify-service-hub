@@ -467,3 +467,6 @@ export const apiClient = {
         },
     },
 };
+
+// Export types for use in other files
+export type { Level, LightLevelDto };
