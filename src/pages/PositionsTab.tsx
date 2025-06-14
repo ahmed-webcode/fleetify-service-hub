@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -7,11 +7,26 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogC
 import { Label } from "@/components/ui/label";
 import { Pencil, Plus } from "lucide-react";
 import { apiClient } from "@/lib/apiClient";
-import { Position } from "@/types/position";
+import { Position, PositionStatus } from "@/types/position";
 import { Level } from "@/types/level";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 
 const ITEMS_PER_PAGE = 12;
+
+// Helper to return badge style for each status
+function getStatusBadge(status: string | undefined) {
+  switch (status) {
+    case PositionStatus.ACTIVE:
+      return { variant: "success", label: "Active" };
+    case PositionStatus.INACTIVE:
+      return { variant: "secondary", label: "Inactive" };
+    case PositionStatus.ON_HOLD:
+      return { variant: "outline", label: "On Hold" };
+    default:
+      return { variant: "outline", label: status || "N/A" };
+  }
+}
 
 export default function PositionsTab() {
   const [positions, setPositions] = useState<Position[]>([]);
@@ -250,7 +265,11 @@ export default function PositionsTab() {
                     <TableCell>{pos.vehicleEntitlement ? "Yes" : "No"}</TableCell>
                     <TableCell>{pos.policyReference}</TableCell>
                     <TableCell>{pos.levelName || "N/A"}</TableCell>
-                    <TableCell>{pos.status || "N/A"}</TableCell>
+                    <TableCell>
+                      <Badge variant={getStatusBadge(pos.status).variant as any}>
+                        {getStatusBadge(pos.status).label}
+                      </Badge>
+                    </TableCell>
                     <TableCell className="text-right">
                       <Button variant="ghost" size="sm" onClick={() => openEdit(pos)}>
                         <Pencil className="h-4 w-4" /> Edit
@@ -286,179 +305,201 @@ export default function PositionsTab() {
 
         {/* Add Position Dialog */}
         <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-          <DialogContent className="sm:max-w-[600px]">
+          <DialogContent className="sm:max-w-[700px]">
             <DialogHeader>
               <DialogTitle>Add Position</DialogTitle>
             </DialogHeader>
-            <div className="space-y-2">
-              <Label htmlFor="pos-name">Position Name</Label>
-              <Input
-                id="pos-name"
-                value={newPosition.name}
-                onChange={e => setNewPosition(p => ({ ...p, name: e.target.value }))}
-                placeholder="E.g. Senior Driver"
-              />
-            </div>
-            <div className="space-y-2 mt-2">
-              <Label htmlFor="pos-description">Description</Label>
-              <Input
-                id="pos-description"
-                value={newPosition.description}
-                onChange={e => setNewPosition(p => ({ ...p, description: e.target.value }))}
-                placeholder="Position description"
-              />
-            </div>
-            <div className="space-y-2 mt-2">
-              <Label htmlFor="pos-fuelquota">Weekly Fuel Quota (Liters)</Label>
-              <Input
-                id="pos-fuelquota"
-                type="number"
-                value={newPosition.fuelQuota}
-                min={0}
-                onChange={e => setNewPosition(p => ({ ...p, fuelQuota: parseInt(e.target.value) || 0 }))}
-                placeholder="Fuel quota in liters"
-              />
-            </div>
-            <div className="flex items-center mt-2 space-x-2">
-              <Label htmlFor="pos-vehicleEntitlement">Vehicle Entitlement</Label>
-              <input
-                id="pos-vehicleEntitlement"
-                type="checkbox"
-                checked={newPosition.vehicleEntitlement}
-                onChange={e => setNewPosition(p => ({ ...p, vehicleEntitlement: e.target.checked }))}
-              />
-            </div>
-            <div className="space-y-2 mt-2">
-              <Label htmlFor="pos-policyReference">Policy Reference</Label>
-              <Input
-                id="pos-policyReference"
-                value={newPosition.policyReference}
-                onChange={e => setNewPosition(p => ({ ...p, policyReference: e.target.value }))}
-                placeholder="Policy reference"
-              />
-            </div>
-            <div className="space-y-2 mt-2">
-              <Label htmlFor="pos-level">Organizational Level</Label>
-              <select
-                id="pos-level"
-                className="w-full border rounded px-2 py-1"
-                value={newPosition.levelId ?? ""}
-                onChange={e => setNewPosition(p => ({ ...p, levelId: +e.target.value }))}
-              >
-                <option value="">Select level</option>
-                {levels.map(l => (
-                  <option key={l.id} value={l.id}>{l.name}</option>
-                ))}
-              </select>
-            </div>
-            <div className="space-y-2 mt-2">
-              <Label htmlFor="pos-status">Status</Label>
-              <select
-                id="pos-status"
-                className="w-full border rounded px-2 py-1"
-                value={newPosition.status}
-                onChange={e => setNewPosition(p => ({ ...p, status: e.target.value }))}
-              >
-                <option value="ACTIVE">Active</option>
-                <option value="INACTIVE">Inactive</option>
-                <option value="ON_HOLD">On Hold</option>
-              </select>
-            </div>
-            <DialogFooter className="mt-4">
-              <DialogClose asChild>
-                <Button type="button" variant="outline">Cancel</Button>
-              </DialogClose>
-              <Button type="submit" onClick={handleAdd}>Add Position</Button>
-            </DialogFooter>
+            <form
+              onSubmit={e => {
+                e.preventDefault();
+                handleAdd();
+              }}
+              className="space-y-2"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="pos-name">Position Name</Label>
+                  <Input
+                    id="pos-name"
+                    value={newPosition.name}
+                    onChange={e => setNewPosition(p => ({ ...p, name: e.target.value }))}
+                    placeholder="E.g. Senior Driver"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="pos-description">Description</Label>
+                  <Input
+                    id="pos-description"
+                    value={newPosition.description}
+                    onChange={e => setNewPosition(p => ({ ...p, description: e.target.value }))}
+                    placeholder="Position description"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="pos-fuelquota">Weekly Fuel Quota (Liters)</Label>
+                  <Input
+                    id="pos-fuelquota"
+                    type="number"
+                    value={newPosition.fuelQuota}
+                    min={0}
+                    onChange={e => setNewPosition(p => ({ ...p, fuelQuota: parseInt(e.target.value) || 0 }))}
+                    placeholder="Fuel quota in liters"
+                  />
+                </div>
+                <div className="flex items-center pt-6">
+                  <input
+                    id="pos-vehicleEntitlement"
+                    type="checkbox"
+                    checked={newPosition.vehicleEntitlement}
+                    onChange={e => setNewPosition(p => ({ ...p, vehicleEntitlement: e.target.checked }))}
+                    className="mr-2"
+                  />
+                  <Label htmlFor="pos-vehicleEntitlement">Vehicle Entitlement</Label>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="pos-policyReference">Policy Reference</Label>
+                  <Input
+                    id="pos-policyReference"
+                    value={newPosition.policyReference}
+                    onChange={e => setNewPosition(p => ({ ...p, policyReference: e.target.value }))}
+                    placeholder="Policy reference"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="pos-level">Organizational Level</Label>
+                  <select
+                    id="pos-level"
+                    className="w-full border rounded px-2 py-1"
+                    value={newPosition.levelId ?? ""}
+                    onChange={e => setNewPosition(p => ({ ...p, levelId: +e.target.value }))}
+                  >
+                    <option value="">Select level</option>
+                    {levels.map(l => (
+                      <option key={l.id} value={l.id}>{l.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="pos-status">Status</Label>
+                  <select
+                    id="pos-status"
+                    className="w-full border rounded px-2 py-1"
+                    value={newPosition.status}
+                    onChange={e => setNewPosition(p => ({ ...p, status: e.target.value }))}
+                  >
+                    <option value="ACTIVE">Active</option>
+                    <option value="INACTIVE">Inactive</option>
+                    <option value="ON_HOLD">On Hold</option>
+                  </select>
+                </div>
+              </div>
+              <DialogFooter className="mt-4">
+                <DialogClose asChild>
+                  <Button type="button" variant="outline">Cancel</Button>
+                </DialogClose>
+                <Button type="submit">Add Position</Button>
+              </DialogFooter>
+            </form>
           </DialogContent>
         </Dialog>
 
         {/* Edit Position Dialog */}
         <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-          <DialogContent className="sm:max-w-[600px]">
+          <DialogContent className="sm:max-w-[700px]">
             <DialogHeader>
               <DialogTitle>Edit Position</DialogTitle>
             </DialogHeader>
-            <div className="space-y-2">
-              <Label htmlFor="edit-pos-name">Position Name</Label>
-              <Input
-                id="edit-pos-name"
-                value={editPosition.name}
-                onChange={e => setEditPosition(p => ({ ...p, name: e.target.value }))}
-                placeholder="E.g. Senior Driver"
-              />
-            </div>
-            <div className="space-y-2 mt-2">
-              <Label htmlFor="edit-pos-description">Description</Label>
-              <Input
-                id="edit-pos-description"
-                value={editPosition.description}
-                onChange={e => setEditPosition(p => ({ ...p, description: e.target.value }))}
-                placeholder="Position description"
-              />
-            </div>
-            <div className="space-y-2 mt-2">
-              <Label htmlFor="edit-pos-fuelquota">Weekly Fuel Quota (Liters)</Label>
-              <Input
-                id="edit-pos-fuelquota"
-                type="number"
-                value={editPosition.fuelQuota}
-                min={0}
-                onChange={e => setEditPosition(p => ({ ...p, fuelQuota: parseInt(e.target.value) || 0 }))}
-                placeholder="Fuel quota in liters"
-              />
-            </div>
-            <div className="flex items-center mt-2 space-x-2">
-              <Label htmlFor="edit-pos-vehicleEntitlement">Vehicle Entitlement</Label>
-              <input
-                id="edit-pos-vehicleEntitlement"
-                type="checkbox"
-                checked={editPosition.vehicleEntitlement}
-                onChange={e => setEditPosition(p => ({ ...p, vehicleEntitlement: e.target.checked }))}
-              />
-            </div>
-            <div className="space-y-2 mt-2">
-              <Label htmlFor="edit-pos-policyReference">Policy Reference</Label>
-              <Input
-                id="edit-pos-policyReference"
-                value={editPosition.policyReference}
-                onChange={e => setEditPosition(p => ({ ...p, policyReference: e.target.value }))}
-                placeholder="Policy reference"
-              />
-            </div>
-            <div className="space-y-2 mt-2">
-              <Label htmlFor="edit-pos-level">Organizational Level</Label>
-              <select
-                id="edit-pos-level"
-                className="w-full border rounded px-2 py-1"
-                value={editPosition.levelId ?? ""}
-                onChange={e => setEditPosition(p => ({ ...p, levelId: +e.target.value }))}
-              >
-                <option value="">Select level</option>
-                {levels.map(l => (
-                  <option key={l.id} value={l.id}>{l.name}</option>
-                ))}
-              </select>
-            </div>
-            <div className="space-y-2 mt-2">
-              <Label htmlFor="edit-pos-status">Status</Label>
-              <select
-                id="edit-pos-status"
-                className="w-full border rounded px-2 py-1"
-                value={editPosition.status}
-                onChange={e => setEditPosition(p => ({ ...p, status: e.target.value }))}
-              >
-                <option value="ACTIVE">Active</option>
-                <option value="INACTIVE">Inactive</option>
-                <option value="ON_HOLD">On Hold</option>
-              </select>
-            </div>
-            <DialogFooter className="mt-4">
-              <DialogClose asChild>
-                <Button type="button" variant="outline">Cancel</Button>
-              </DialogClose>
-              <Button type="submit" onClick={handleEdit}>Save Changes</Button>
-            </DialogFooter>
+            <form
+              onSubmit={e => {
+                e.preventDefault();
+                handleEdit();
+              }}
+              className="space-y-2"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-pos-name">Position Name</Label>
+                  <Input
+                    id="edit-pos-name"
+                    value={editPosition.name}
+                    onChange={e => setEditPosition(p => ({ ...p, name: e.target.value }))}
+                    placeholder="E.g. Senior Driver"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-pos-description">Description</Label>
+                  <Input
+                    id="edit-pos-description"
+                    value={editPosition.description}
+                    onChange={e => setEditPosition(p => ({ ...p, description: e.target.value }))}
+                    placeholder="Position description"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-pos-fuelquota">Weekly Fuel Quota (Liters)</Label>
+                  <Input
+                    id="edit-pos-fuelquota"
+                    type="number"
+                    value={editPosition.fuelQuota}
+                    min={0}
+                    onChange={e => setEditPosition(p => ({ ...p, fuelQuota: parseInt(e.target.value) || 0 }))}
+                    placeholder="Fuel quota in liters"
+                  />
+                </div>
+                <div className="flex items-center pt-6">
+                  <input
+                    id="edit-pos-vehicleEntitlement"
+                    type="checkbox"
+                    checked={editPosition.vehicleEntitlement}
+                    onChange={e => setEditPosition(p => ({ ...p, vehicleEntitlement: e.target.checked }))}
+                    className="mr-2"
+                  />
+                  <Label htmlFor="edit-pos-vehicleEntitlement">Vehicle Entitlement</Label>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-pos-policyReference">Policy Reference</Label>
+                  <Input
+                    id="edit-pos-policyReference"
+                    value={editPosition.policyReference}
+                    onChange={e => setEditPosition(p => ({ ...p, policyReference: e.target.value }))}
+                    placeholder="Policy reference"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-pos-level">Organizational Level</Label>
+                  <select
+                    id="edit-pos-level"
+                    className="w-full border rounded px-2 py-1"
+                    value={editPosition.levelId ?? ""}
+                    onChange={e => setEditPosition(p => ({ ...p, levelId: +e.target.value }))}
+                  >
+                    <option value="">Select level</option>
+                    {levels.map(l => (
+                      <option key={l.id} value={l.id}>{l.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-pos-status">Status</Label>
+                  <select
+                    id="edit-pos-status"
+                    className="w-full border rounded px-2 py-1"
+                    value={editPosition.status}
+                    onChange={e => setEditPosition(p => ({ ...p, status: e.target.value }))}
+                  >
+                    <option value="ACTIVE">Active</option>
+                    <option value="INACTIVE">Inactive</option>
+                    <option value="ON_HOLD">On Hold</option>
+                  </select>
+                </div>
+              </div>
+              <DialogFooter className="mt-4">
+                <DialogClose asChild>
+                  <Button type="button" variant="outline">Cancel</Button>
+                </DialogClose>
+                <Button type="submit">Save Changes</Button>
+              </DialogFooter>
+            </form>
           </DialogContent>
         </Dialog>
       </CardContent>
