@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,7 +50,7 @@ export const TripRequestForm = ({ onSuccess, onCancel }: TripRequestFormProps) =
       toast({
         title: "Trip request submitted",
         description: "Your trip request has been submitted successfully.",
-        variant: "success"
+        variant: "default"
       });
       onSuccess();
     } catch (error: any) {
@@ -232,4 +231,3 @@ export const TripRequestForm = ({ onSuccess, onCancel }: TripRequestFormProps) =
     </div>
   );
 };
-
