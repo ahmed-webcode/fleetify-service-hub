@@ -6,7 +6,6 @@ export interface CreateFuelRequestDto {
     requestType: TargetType;
     vehicleId?: number;
     levelId?: number;
-    projectId?: number;
     fuelTypeId: number;
     requestNote?: string;
     requestedAmount: number;
@@ -33,7 +32,6 @@ export interface FuelRequestDto {
     actedAt?: string;
     actedAmount?: number;
     actionNote?: string;
-    projectName?: string;
     createdAt?: string;
     updatedAt: string;
 }

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,13 +28,11 @@ import { apiClient } from '@/lib/apiClient';
 import { CreateFuelRequestDto } from '@/types/fuel';
 import { TargetType } from '@/types/common';
 import { useQuery } from '@tanstack/react-query';
-import { Combobox } from '../ui/combobox';
 
 const formSchema = z.object({
     targetType: z.nativeEnum(TargetType),
     vehicleId: z.number().optional().nullable(),
     levelId: z.number().optional().nullable(),
-    projectId: z.number().optional().nullable(),
     fuelTypeId: z.number({ required_error: 'Fuel type is required.' }),
     requestNote: z.string().optional(),
     requestedAmount: z
@@ -69,12 +68,7 @@ export function FuelRequestForm({ onSuccess, onCancel }: FuelRequestFormProps) {
     const { data: levelsData, isLoading: isLoadingLevels } = useQuery({
         queryKey: ['levels', 'all'],
         queryFn: () => apiClient.levels.getAll(),
-        enabled: targetType === 'GENERATOR', // Or other non-vehicle types
-    });
-
-    const { data: projectsData, isLoading: isLoadingProjects } = useQuery({
-        queryKey: ['projects', 'all'],
-        queryFn: () => apiClient.projects.getAll({ size: 1000 }),
+        enabled: targetType === 'GENERATOR',
     });
 
     const { data: fuelTypes, isLoading: isLoadingFuelTypes } = useQuery({
@@ -89,6 +83,9 @@ export function FuelRequestForm({ onSuccess, onCancel }: FuelRequestFormProps) {
         form.setValue('levelId', null);
     }, [watchedTargetType, form]);
 
+    // Filter non-structural levels for generator
+    const filteredLevels = (levelsData ?? []).filter((level: any) => level.isStructural === false);
+
     const onSubmit = async (data: FuelFormValues) => {
         try {
             setLoading(true);
@@ -97,7 +94,6 @@ export function FuelRequestForm({ onSuccess, onCancel }: FuelRequestFormProps) {
                 requestType: data.targetType,
                 fuelTypeId: data.fuelTypeId,
                 requestedAmount: data.requestedAmount,
-                projectId: data.projectId,
                 requestNote: data.requestNote,
             };
 
@@ -131,172 +127,148 @@ export function FuelRequestForm({ onSuccess, onCancel }: FuelRequestFormProps) {
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                    control={form.control}
-                    name="targetType"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Target Type</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select target type" />
-                                    </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                    <SelectItem value="VEHICLE">Vehicle</SelectItem>
-                                    <SelectItem value="GENERATOR">Generator/Office</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <FormDescription>
-                                Select if fuel is for a vehicle or a generator/office.
-                            </FormDescription>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                {targetType === 'VEHICLE' ? (
+                {/* Responsive two column grid for form fields */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <FormField
                         control={form.control}
-                        name="vehicleId"
+                        name="targetType"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Vehicle</FormLabel>
-                                <Select
-                                    onValueChange={(value) => field.onChange(parseInt(value))}
-                                    disabled={isLoadingVehicles}
-                                >
+                                <FormLabel>Target Type</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
                                     <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select a vehicle" />
+                                            <SelectValue placeholder="Select target type" />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        {vehiclesData?.content.map((vehicle) => (
-                                            <SelectItem
-                                                key={vehicle.id}
-                                                value={vehicle.id.toString()}
-                                            >
-                                                {vehicle.model} ({vehicle.plateNumber})
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <FormDescription>Select the vehicle requiring fuel</FormDescription>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                ) : (
-                    <FormField
-                        control={form.control}
-                        name="levelId"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Level/Office</FormLabel>
-                                <Select
-                                    onValueChange={(value) => field.onChange(parseInt(value))}
-                                    disabled={isLoadingLevels}
-                                >
-                                    <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select a level/office" />
-                                        </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        {levelsData?.map((level) => (
-                                            <SelectItem key={level.id} value={level.id.toString()}>
-                                                {level.name}
-                                            </SelectItem>
-                                        ))}
+                                        <SelectItem value="VEHICLE">Vehicle</SelectItem>
+                                        <SelectItem value="GENERATOR">Generator/Office</SelectItem>
                                     </SelectContent>
                                 </Select>
                                 <FormDescription>
-                                    Select the level/office requiring fuel
+                                    Select if fuel is for a vehicle or a generator/office.
                                 </FormDescription>
                                 <FormMessage />
                             </FormItem>
                         )}
                     />
-                )}
 
-                <FormField
-                    control={form.control}
-                    name="projectId"
-                    render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                            <FormLabel>Project (Optional)</FormLabel>
-                            <Combobox
-                                options={
-                                    projectsData?.content.map((project) => ({
-                                        value: project.id.toString(),
-                                        label: project.name,
-                                    })) ?? []
-                                }
-                                value={field.value ? field.value.toString() : null}
-                                onChange={(value) => field.onChange(value ? parseInt(value) : null)}
-                                placeholder="Search for a project..."
-                                notFoundText="No project found."
-                                isLoading={isLoadingProjects}
-                            />
-                            <FormDescription>
-                                If applicable, associate this request with a project.
-                            </FormDescription>
-                            <FormMessage />
-                        </FormItem>
+                    {targetType === 'VEHICLE' ? (
+                        <FormField
+                            control={form.control}
+                            name="vehicleId"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Vehicle</FormLabel>
+                                    <Select
+                                        onValueChange={(value) => field.onChange(parseInt(value))}
+                                        disabled={isLoadingVehicles}
+                                    >
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select a vehicle" />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            {vehiclesData?.content.map((vehicle) => (
+                                                <SelectItem
+                                                    key={vehicle.id}
+                                                    value={vehicle.id.toString()}
+                                                >
+                                                    {vehicle.model} ({vehicle.plateNumber})
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormDescription>Select the vehicle requiring fuel</FormDescription>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    ) : (
+                        <FormField
+                            control={form.control}
+                            name="levelId"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Level/Office</FormLabel>
+                                    <Select
+                                        onValueChange={(value) => field.onChange(parseInt(value))}
+                                        disabled={isLoadingLevels}
+                                    >
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select a level/office" />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            {filteredLevels.map((level: any) => (
+                                                <SelectItem key={level.id} value={level.id.toString()}>
+                                                    {level.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormDescription>
+                                        Select the level/office requiring fuel
+                                    </FormDescription>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
                     )}
-                />
 
-                <FormField
-                    control={form.control}
-                    name="fuelTypeId"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Fuel Type</FormLabel>
-                            <Select
-                                onValueChange={(value) => field.onChange(parseInt(value))}
-                                disabled={isLoadingFuelTypes}
-                            >
+                    <FormField
+                        control={form.control}
+                        name="fuelTypeId"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Fuel Type</FormLabel>
+                                <Select
+                                    onValueChange={(value) => field.onChange(parseInt(value))}
+                                    disabled={isLoadingFuelTypes}
+                                >
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select fuel type" />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {(fuelTypes as any)?.map((fuelType: any) => (
+                                            <SelectItem
+                                                key={fuelType.id}
+                                                value={fuelType.id.toString()}
+                                            >
+                                                {fuelType.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="requestedAmount"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Amount (Liters)</FormLabel>
                                 <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select fuel type" />
-                                    </SelectTrigger>
+                                    <Input
+                                        type="number"
+                                        placeholder="e.g., 50"
+                                        {...field}
+                                        onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                                    />
                                 </FormControl>
-                                <SelectContent>
-                                    {(fuelTypes as any)?.map((fuelType: any) => (
-                                        <SelectItem
-                                            key={fuelType.id}
-                                            value={fuelType.id.toString()}
-                                        >
-                                            {fuelType.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                <FormField
-                    control={form.control}
-                    name="requestedAmount"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Amount (Liters)</FormLabel>
-                            <FormControl>
-                                <Input
-                                    type="number"
-                                    placeholder="e.g., 50"
-                                    {...field}
-                                    onChange={(e) => field.onChange(parseFloat(e.target.value))}
-                                />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
 
                 <FormField
                     control={form.control}
