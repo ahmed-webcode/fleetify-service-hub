@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useMemo } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,6 +12,14 @@ import { Position, PositionStatus } from "@/types/position";
 import { Level } from "@/types/level";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+// import shadcn select components
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 
 const ITEMS_PER_PAGE = 12;
 
@@ -39,7 +48,7 @@ export default function PositionsTab() {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState<Position | null>(null);
 
-  // Update form state to include all required fields
+  // Form states
   const [newPosition, setNewPosition] = useState<{
     name: string;
     description: string;
@@ -102,6 +111,12 @@ export default function PositionsTab() {
     }
   };
 
+  // Filter only non-structural levels to use in both dropdowns
+  const nonStructuralLevels = useMemo(
+    () => levels.filter((l) => !l.isStructural),
+    [levels]
+  );
+
   const filteredPositions = useMemo(
     () =>
       positions.filter(
@@ -120,7 +135,6 @@ export default function PositionsTab() {
 
   // Add
   const handleAdd = async () => {
-    // All required fields
     if (
       !newPosition.name ||
       !newPosition.description ||
@@ -367,35 +381,54 @@ export default function PositionsTab() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="pos-level">Organizational Level</Label>
-                  <select
-                    id="pos-level"
-                    className="w-full border rounded px-2 py-1"
-                    value={newPosition.levelId ?? ""}
-                    onChange={e => setNewPosition(p => ({ ...p, levelId: +e.target.value }))}
+                  <Select
+                    value={newPosition.levelId ? String(newPosition.levelId) : ""}
+                    onValueChange={v =>
+                      setNewPosition(p => ({
+                        ...p,
+                        levelId: v ? Number(v) : undefined,
+                      }))
+                    }
                   >
-                    <option value="">Select level</option>
-                    {levels.map(l => (
-                      <option key={l.id} value={l.id}>{l.name}</option>
-                    ))}
-                  </select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {nonStructuralLevels.map(l => (
+                        <SelectItem key={l.id} value={String(l.id)}>
+                          {l.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="pos-status">Status</Label>
-                  <select
-                    id="pos-status"
-                    className="w-full border rounded px-2 py-1"
+                  <Select
                     value={newPosition.status}
-                    onChange={e => setNewPosition(p => ({ ...p, status: e.target.value }))}
+                    onValueChange={v =>
+                      setNewPosition(p => ({
+                        ...p,
+                        status: v,
+                      }))
+                    }
                   >
-                    <option value="ACTIVE">Active</option>
-                    <option value="INACTIVE">Inactive</option>
-                    <option value="ON_HOLD">On Hold</option>
-                  </select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ACTIVE">Active</SelectItem>
+                      <SelectItem value="INACTIVE">Inactive</SelectItem>
+                      <SelectItem value="ON_HOLD">On Hold</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <DialogFooter className="mt-4">
                 <DialogClose asChild>
-                  <Button type="button" variant="outline">Cancel</Button>
+                  <Button type="button" variant="outline">
+                    Cancel
+                  </Button>
                 </DialogClose>
                 <Button type="submit">Add Position</Button>
               </DialogFooter>
@@ -422,7 +455,9 @@ export default function PositionsTab() {
                   <Input
                     id="edit-pos-name"
                     value={editPosition.name}
-                    onChange={e => setEditPosition(p => ({ ...p, name: e.target.value }))}
+                    onChange={e =>
+                      setEditPosition(p => ({ ...p, name: e.target.value }))
+                    }
                     placeholder="E.g. Senior Driver"
                   />
                 </div>
@@ -431,18 +466,27 @@ export default function PositionsTab() {
                   <Input
                     id="edit-pos-description"
                     value={editPosition.description}
-                    onChange={e => setEditPosition(p => ({ ...p, description: e.target.value }))}
+                    onChange={e =>
+                      setEditPosition(p => ({ ...p, description: e.target.value }))
+                    }
                     placeholder="Position description"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="edit-pos-fuelquota">Weekly Fuel Quota (Liters)</Label>
+                  <Label htmlFor="edit-pos-fuelquota">
+                    Weekly Fuel Quota (Liters)
+                  </Label>
                   <Input
                     id="edit-pos-fuelquota"
                     type="number"
                     value={editPosition.fuelQuota}
                     min={0}
-                    onChange={e => setEditPosition(p => ({ ...p, fuelQuota: parseInt(e.target.value) || 0 }))}
+                    onChange={e =>
+                      setEditPosition(p => ({
+                        ...p,
+                        fuelQuota: parseInt(e.target.value) || 0,
+                      }))
+                    }
                     placeholder="Fuel quota in liters"
                   />
                 </div>
@@ -451,51 +495,84 @@ export default function PositionsTab() {
                     id="edit-pos-vehicleEntitlement"
                     type="checkbox"
                     checked={editPosition.vehicleEntitlement}
-                    onChange={e => setEditPosition(p => ({ ...p, vehicleEntitlement: e.target.checked }))}
+                    onChange={e =>
+                      setEditPosition(p => ({
+                        ...p,
+                        vehicleEntitlement: e.target.checked,
+                      }))
+                    }
                     className="mr-2"
                   />
-                  <Label htmlFor="edit-pos-vehicleEntitlement">Vehicle Entitlement</Label>
+                  <Label htmlFor="edit-pos-vehicleEntitlement">
+                    Vehicle Entitlement
+                  </Label>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="edit-pos-policyReference">Policy Reference</Label>
+                  <Label htmlFor="edit-pos-policyReference">
+                    Policy Reference
+                  </Label>
                   <Input
                     id="edit-pos-policyReference"
                     value={editPosition.policyReference}
-                    onChange={e => setEditPosition(p => ({ ...p, policyReference: e.target.value }))}
+                    onChange={e =>
+                      setEditPosition(p => ({
+                        ...p,
+                        policyReference: e.target.value,
+                      }))
+                    }
                     placeholder="Policy reference"
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="edit-pos-level">Organizational Level</Label>
-                  <select
-                    id="edit-pos-level"
-                    className="w-full border rounded px-2 py-1"
-                    value={editPosition.levelId ?? ""}
-                    onChange={e => setEditPosition(p => ({ ...p, levelId: +e.target.value }))}
+                  <Select
+                    value={editPosition.levelId ? String(editPosition.levelId) : ""}
+                    onValueChange={v =>
+                      setEditPosition(p => ({
+                        ...p,
+                        levelId: v ? Number(v) : undefined,
+                      }))
+                    }
                   >
-                    <option value="">Select level</option>
-                    {levels.map(l => (
-                      <option key={l.id} value={l.id}>{l.name}</option>
-                    ))}
-                  </select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {nonStructuralLevels.map(l => (
+                        <SelectItem key={l.id} value={String(l.id)}>
+                          {l.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="edit-pos-status">Status</Label>
-                  <select
-                    id="edit-pos-status"
-                    className="w-full border rounded px-2 py-1"
+                  <Select
                     value={editPosition.status}
-                    onChange={e => setEditPosition(p => ({ ...p, status: e.target.value }))}
+                    onValueChange={v =>
+                      setEditPosition(p => ({
+                        ...p,
+                        status: v,
+                      }))
+                    }
                   >
-                    <option value="ACTIVE">Active</option>
-                    <option value="INACTIVE">Inactive</option>
-                    <option value="ON_HOLD">On Hold</option>
-                  </select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ACTIVE">Active</SelectItem>
+                      <SelectItem value="INACTIVE">Inactive</SelectItem>
+                      <SelectItem value="ON_HOLD">On Hold</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <DialogFooter className="mt-4">
                 <DialogClose asChild>
-                  <Button type="button" variant="outline">Cancel</Button>
+                  <Button type="button" variant="outline">
+                    Cancel
+                  </Button>
                 </DialogClose>
                 <Button type="submit">Save Changes</Button>
               </DialogFooter>
