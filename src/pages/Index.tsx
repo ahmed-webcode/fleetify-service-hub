@@ -26,7 +26,7 @@ const Index = () => {
       )}>
         <div className="container max-w-7xl mx-auto px-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <img src="/lovable-uploads/dbfd6afc-d76f-4045-ae9d-987fb9edfad7.png" className="h-8 w-8 rounded-full bg-white" alt="AAU Logo" />
+            <img src="aau-logo.png" className="h-8 w-8 rounded-full bg-white" alt="AAU Logo" />
             <span className="font-semibold text-xl">AAU Fleet Management System</span>
           </div>
           
@@ -235,7 +235,7 @@ const Index = () => {
         <div className="container max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center gap-2 mb-6 md:mb-0">
-              <img src="/lovable-uploads/dbfd6afc-d76f-4045-ae9d-987fb9edfad7.png" className="h-8 w-8 rounded-full bg-white" alt="AAU Logo" />
+              <img src="aau-logo.png" className="h-8 w-8 rounded-full bg-white" alt="AAU Logo" />
               <span className="font-semibold">AAU Fleet Management System</span>
             </div>
             

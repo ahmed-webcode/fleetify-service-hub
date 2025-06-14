@@ -477,7 +477,7 @@ export default function TripManagement() {
 
             {/* Trip Request Dialog */}
             <Dialog open={requestTripOpen} onOpenChange={setRequestTripOpen}>
-                <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+                <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>New Trip Request</DialogTitle>
                     </DialogHeader>
