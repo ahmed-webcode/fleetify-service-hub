@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -6,27 +7,16 @@ import {
     BarChart,
     Car,
     ChevronLeft,
-    ChevronDown,
     MapPin,
     Settings,
     User,
     Users,
-    Wrench,
-    FileText,
-    Shield,
-    Building,
     Fuel,
-    Landmark,
-    GraduationCap,
-    BookOpen,
-    PlaneTakeoff,
+    School,
     Bell,
     HelpCircle,
     LogOut,
-    UserCog,
     Menu,
-    Briefcase,
-    School,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -41,15 +31,14 @@ interface SidebarItem {
     icon: React.ReactNode;
     path: string;
     permission: string | null;
-    children?: SidebarItem[];
     exactMatch?: boolean;
+    requiresTransportDirector?: boolean;
 }
 
 export function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobileOpen }: SidebarProps) {
     const { user, hasPermission, selectedRole } = useAuth();
     const location = useLocation();
     const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768);
-    const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
 
     const handleResize = useCallback(() => {
         const mobile = window.innerWidth < 768;
@@ -72,10 +61,6 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
                 setIsCollapsed(savedState === 'true');
             }
         }
-        const savedOpenGroups = localStorage.getItem('sidebarOpenGroups');
-        if (savedOpenGroups) {
-            setOpenGroups(JSON.parse(savedOpenGroups));
-        }
     }, [setIsCollapsed, isMobileView]);
 
     const handleDesktopToggle = () => {
@@ -88,126 +73,32 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
         setIsMobileOpen?.(!isMobileOpen);
     };
 
-    const toggleGroup = (groupName: string) => {
-        const newOpenGroups = {
-            ...openGroups,
-            [groupName]: !openGroups[groupName],
-        };
-        setOpenGroups(newOpenGroups);
-        localStorage.setItem('sidebarOpenGroups', JSON.stringify(newOpenGroups));
-    };
+    const isTransportDirector = selectedRole?.id === 1; // TRANSPORT_DIRECTOR role ID
 
     const sidebarItems: SidebarItem[] = [
         { name: 'Dashboard', icon: <BarChart size={20} />, path: '/dashboard', permission: null, exactMatch: true },
-        {
-            name: 'Fleet Operations', icon: <Car size={20} />, path: '#fleet-ops', permission: null,
-            children: [
-                { name: 'Vehicles', icon: <Car size={18} />, path: '/vehicles', permission: null },
-                { name: 'GPS Tracking', icon: <MapPin size={18} />, path: '/gps-tracking', permission: 'track_vehicles' },
-                { name: 'Trip Requests', icon: <PlaneTakeoff size={18} />, path: '/trip-requests', permission: 'request_fleet' },
-                { name: 'Trip Management', icon: <Car size={18} />, path: '/trip-management', permission: null },
-                { name: 'Fuel Management', icon: <Fuel size={18} />, path: '/fuel-management', permission: null },
-                { name: 'Maintenance Management', icon: <Wrench size={18} />, path: '/maintenance-management', permission: null },
-            ],
-        },
-        {
-            name: 'Service Requests',
-            icon: <FileText size={20} />,
-            path: '#service-requests',
-            permission: null,
-            children: [
-                { name: 'Fleet Service', icon: <Car size={18} />, path: '/service-requests/fleet', permission: null },
-                { name: 'Fuel Service', icon: <Fuel size={18} />, path: '/service-requests/fuel', permission: null },
-                { name: 'Maintenance', icon: <Wrench size={18} />, path: '/service-requests/maintenance', permission: null }
-            ]
-        },
-        {
-            name: 'Records & Incidents', icon: <Wrench size={20} />, path: '#services', permission: null,
-            children: [
-                { name: 'Maintenance Records', icon: <Wrench size={18} />, path: '/maintenance-requests', permission: 'approve_maintenance' },
-                // { name: 'Request Maintenance', icon: <FileText size={18} />, path: '/request-maintenance', permission: 'request_maintenance' },
-                { name: 'Report Incident', icon: <Shield size={18} />, path: '/report-incident', permission: 'report_incidents' },
-                { name: 'Insurance Management', icon: <Shield size={18} />, path: '/insurance-management', permission: null },
-            ],
-        },
-        { name: 'Reports', icon: <BarChart size={20} />, path: '/reports', permission: 'view_reports' },
-        { name: 'Projects Management', icon: <School size={20} />, path: '/projects-management', permission: null, exactMatch: true },
-        {
-            name: 'Administration', icon: <UserCog size={20} />, path: '#admin', permission: 'view_admin_section',
-            children: [
-                {
-                    name: 'User Management', icon: <Users size={18} />, path: '#user-mgmt', permission: 'manage_users_section',
-                    children: [
-                        { name: 'Staff', icon: <Users size={16} />, path: '/manage-staff', permission: 'add_users' },
-                        { name: 'Drivers', icon: <User size={16} />, path: '/driver-management', permission: 'manage_drivers' },
-                        { name: 'Positions', icon: <Briefcase size={16} />, path: '/positions-management', permission: null },
-                    ],
-                },
-                {
-                    name: 'Organizational Units', icon: <Building size={18} />, path: '#org-units', permission: 'manage_org_units_section',
-                    children: [
-                        { name: 'Colleges', icon: <GraduationCap size={16} />, path: '/colleges', permission: null },
-                        { name: 'Institutes', icon: <BookOpen size={16} />, path: '/institutes', permission: null },
-                        { name: 'Central Offices', icon: <Landmark size={16} />, path: '/central-offices', permission: null },
-                    ],
-                },
-            ],
-        },
+        { name: 'Vehicles', icon: <Car size={20} />, path: '/vehicles', permission: null },
+        { name: 'Trip Management', icon: <MapPin size={20} />, path: '/trip-management', permission: null },
+        { name: 'Fuel Management', icon: <Fuel size={20} />, path: '/fuel-management', permission: null },
+        { name: 'Projects Management', icon: <School size={20} />, path: '/projects-management', permission: null, requiresTransportDirector: true },
+        { name: 'User Management', icon: <Users size={20} />, path: '/user-management', permission: null, requiresTransportDirector: true },
         { name: 'Settings', icon: <Settings size={20} />, path: '/settings', permission: null },
     ];
 
-    const renderSidebarItems = (items: SidebarItem[], level: number = 0): React.ReactNode[] => {
+    const renderSidebarItems = (items: SidebarItem[]): React.ReactNode[] => {
         return items
-            .filter(item => !item.permission || hasPermission(item.permission as Permission))
-            .map((item) => {
-                const effectiveChildren = item.children?.filter(child => !child.permission || hasPermission(child.permission as Permission)) || [];
-                const isGroup = item.path.startsWith('#');
-
-                if (isGroup) {
-                    if (effectiveChildren.length === 0 && item.children && item.children.length > 0) { // Only hide if all children are filtered out by permission
-                        return null;
-                    }
-                    if (effectiveChildren.length === 0 && !item.children) { // If it's meant to be a group but has no children defined, it's probably an error or just a header
-                        // Decide how to handle this case: render as a non-clickable header or hide
-                        // For now, let's assume if it's a group it must have children to be useful
-                        // return null; // Hiding if no effective children
-                    }
-
-
-                    const isOpen = openGroups[item.name] || false;
-                    const isParentActive = effectiveChildren.some(child => location.pathname.startsWith(child.path) && child.path !== '/');
-
-                    return (
-                        <div key={item.name} className="w-full">
-                            <button
-                                type="button"
-                                className={cn(
-                                    'flex items-center gap-3 w-full text-sm rounded-md transition-colors duration-150 ease-in-out',
-                                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1',
-                                    level === 0 ? 'px-3 py-2.5 text-slate-700 hover:bg-slate-100 hover:text-slate-900' : 'px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-slate-800',
-                                    (isOpen || (isParentActive && !isCollapsed)) && !isCollapsed && (level === 0 ? 'bg-slate-100 text-slate-900 font-medium' : 'text-slate-800 font-medium'),
-                                    isCollapsed && level === 0 && 'justify-center p-2.5',
-                                    isCollapsed && level > 0 && 'hidden'
-                                )}
-                                onClick={() => !isCollapsed && toggleGroup(item.name)}
-                                title={isCollapsed ? item.name : undefined}
-                                aria-expanded={isOpen}
-                            >
-                                <span className={cn('text-slate-500', (isOpen || isParentActive) && !isCollapsed && 'text-blue-600', isCollapsed && isParentActive && 'text-blue-600')}>
-                                    {item.icon}
-                                </span>
-                                {!isCollapsed && <span className="flex-1 text-left truncate">{item.name}</span>}
-                                {!isCollapsed && effectiveChildren.length > 0 && <ChevronDown size={16} className={cn('text-slate-400 transition-transform duration-200', isOpen ? 'rotate-180' : 'rotate-0')} />}
-                            </button>
-                            {!isCollapsed && isOpen && effectiveChildren.length > 0 && (
-                                <div className="mt-1 space-y-0.5 pl-5">
-                                    {renderSidebarItems(effectiveChildren, level + 1)}
-                                </div>
-                            )}
-                        </div>
-                    );
+            .filter(item => {
+                // Filter by permission
+                if (item.permission && !hasPermission(item.permission as Permission)) {
+                    return false;
                 }
-
+                // Filter by Transport Director requirement
+                if (item.requiresTransportDirector && !isTransportDirector) {
+                    return false;
+                }
+                return true;
+            })
+            .map((item) => {
                 return (
                     <NavLink
                         key={item.path}
@@ -217,23 +108,22 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
                             cn(
                                 'flex items-center gap-3 text-sm rounded-md transition-colors duration-150 ease-in-out group',
                                 'focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1',
-                                level === 0 ? 'px-3 py-2.5 text-slate-700 hover:bg-slate-100 hover:text-slate-900' : 'px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-slate-800',
-                                isActive && (level === 0 ? 'bg-blue-600 text-white hover:bg-blue-600 hover:text-white font-medium' : 'bg-blue-50 text-blue-700 font-medium hover:bg-blue-100'),
-                                isCollapsed && level === 0 && 'justify-center p-2.5',
-                                isCollapsed && level > 0 && 'hidden'
+                                'px-3 py-2.5 text-slate-700 hover:bg-slate-100 hover:text-slate-900',
+                                isActive && 'bg-blue-600 text-white hover:bg-blue-600 hover:text-white font-medium',
+                                isCollapsed && !isMobileView && 'justify-center p-2.5'
                             )
                         }
-                        title={isCollapsed ? item.name : undefined}
+                        title={isCollapsed && !isMobileView ? item.name : undefined}
                         onClick={() => {
                             if (isMobileView && setIsMobileOpen) {
                                 setIsMobileOpen(false);
                             }
                         }}
                     >
-                        <span className={cn('text-slate-500 group-hover:text-slate-700', 'group-[.bg-blue-600]:text-white', 'group-[.bg-blue-50]:text-blue-600')}>
+                        <span className={cn('text-slate-500 group-hover:text-slate-700', 'group-[.bg-blue-600]:text-white')}>
                             {item.icon}
                         </span>
-                        {!isCollapsed && <span className="truncate">{item.name}</span>}
+                        {(!isCollapsed || isMobileView) && <span className="truncate">{item.name}</span>}
                     </NavLink>
                 );
             });
@@ -337,7 +227,7 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
     return (
         <aside className={cn('relative h-screen bg-white border-r border-slate-200 shadow-sm flex flex-col transition-width duration-300 ease-in-out', isCollapsed ? 'w-[72px]' : 'w-64')}>
             {sidebarContent}
-            {isCollapsed && !isMobileView && ( // Ensure button only shows on desktop collapsed
+            {isCollapsed && !isMobileView && (
                 <button
                     onClick={handleDesktopToggle}
                     className="absolute left-full top-3 -translate-x-1/2 z-10 p-1 bg-white border border-slate-300 rounded-full shadow-md hover:bg-slate-50 text-slate-600 transition-all hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"

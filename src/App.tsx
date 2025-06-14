@@ -9,27 +9,28 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Vehicles from "./pages/Vehicles";
-import ServiceRequests from "./pages/ServiceRequests";
-import GPSTracking from "./pages/GPSTracking";
+// import ServiceRequests from "./pages/ServiceRequests";
+// import GPSTracking from "./pages/GPSTracking";
 import NotFound from "./pages/NotFound";
-import Reports from "./pages/Reports";
+// import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import Notifications from "./pages/Notifications";
-import TripRequests from "./pages/TripRequests";
+// import TripRequests from "./pages/TripRequests";
 import FuelManagement from "./pages/FuelManagement";
-import ManageUsers from "./pages/ManageUsers";
-import ManageColleges from "./pages/ManageColleges";
-import ManageStaff from "./pages/ManageStaff";
-import DriverManagement from "./pages/DriverManagement";
-import MaintenanceRequests from "./pages/MaintenanceRequests";
-import RequestMaintenance from "./pages/RequestMaintenance";
-import ReportIncident from "./pages/ReportIncident";
-import InsuranceManagement from "./pages/InsuranceManagement";
+// import ManageUsers from "./pages/ManageUsers";
+// import ManageColleges from "./pages/ManageColleges";
+// import ManageStaff from "./pages/ManageStaff";
+// import DriverManagement from "./pages/DriverManagement";
+// import MaintenanceRequests from "./pages/MaintenanceRequests";
+// import RequestMaintenance from "./pages/RequestMaintenance";
+// import ReportIncident from "./pages/ReportIncident";
+// import InsuranceManagement from "./pages/InsuranceManagement";
 import VehicleDetail from './pages/VehicleDetail';
-import PositionsManagement from './pages/PositionsManagement';
+// import PositionsManagement from './pages/PositionsManagement';
 import ProjectsManagement from './pages/ProjectsManagement';
 import TripManagement from "./pages/TripManagement";
-import MaintenanceManagement from "./pages/MaintenanceManagement";
+import UserManagement from "./pages/UserManagement";
+// import MaintenanceManagement from "./pages/MaintenanceManagement";
 
 // Define role IDs for easier reference in protected routes
 const ROLES = {
@@ -67,7 +68,7 @@ const App = () => {
               <Route path="/" element={<Navigate to="/login" replace />} />
               <Route path="/login" element={<Login />} />
               
-              {/* Protected routes */}
+              {/* Protected routes - MVP */}
               <Route path="/dashboard" element={
                 <ProtectedRoute>
                   <Dashboard />
@@ -85,7 +86,45 @@ const App = () => {
                   <VehicleDetail />
                 </ProtectedRoute>
               } />
+
+              <Route path="/trip-management" element={
+                <ProtectedRoute>
+                  <TripManagement />
+                </ProtectedRoute>
+              } />
               
+              <Route path="/fuel-management" element={
+                <ProtectedRoute>
+                  <FuelManagement />
+                </ProtectedRoute>
+              } />
+
+              <Route path="/projects-management" element={
+                <ProtectedRoute requiredRoleId={ROLES.TRANSPORT_DIRECTOR}>
+                  <ProjectsManagement />
+                </ProtectedRoute>
+              } />
+
+              <Route path="/user-management" element={
+                <ProtectedRoute requiredRoleId={ROLES.TRANSPORT_DIRECTOR}>
+                  <UserManagement />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/settings" element={
+                <ProtectedRoute>
+                  <Settings />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/notifications" element={
+                <ProtectedRoute>
+                  <Notifications />
+                </ProtectedRoute>
+              } />
+
+              {/* Commented out routes for future implementation */}
+              {/*
               <Route path="/gps-tracking" element={
                 <ProtectedRoute allowedRoleIds={[ROLES.TRANSPORT_DIRECTOR, ROLES.DEPLOYMENT_MANAGER, ROLES.OPERATIONAL_DIRECTOR]}>
                   <GPSTracking />
@@ -98,26 +137,12 @@ const App = () => {
                 </ProtectedRoute>
               } />
 
-              <Route path="/trip-management" element={
-                <ProtectedRoute allowedRoleIds={[ROLES.TRANSPORT_DIRECTOR, ROLES.FUEL_MANAGER, ROLES.FUEL_ATTENDANT, ROLES.OPERATIONAL_DIRECTOR]}>
-                  <TripManagement />
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/fuel-management" element={
-                <ProtectedRoute allowedRoleIds={[ROLES.TRANSPORT_DIRECTOR, ROLES.FUEL_MANAGER, ROLES.FUEL_ATTENDANT, ROLES.OPERATIONAL_DIRECTOR]}>
-                  <FuelManagement />
-                </ProtectedRoute>
-              } />
-
               <Route path="/maintenance-management" element={
                 <ProtectedRoute allowedRoleIds={[ROLES.TRANSPORT_DIRECTOR, ROLES.FUEL_MANAGER, ROLES.FUEL_ATTENDANT, ROLES.OPERATIONAL_DIRECTOR]}>
                   <MaintenanceManagement />
                 </ProtectedRoute>
               } />
 
-              
-              {/* Service request routes */}
               <Route path="/service-requests" element={
                 <ProtectedRoute>
                   <ServiceRequests />
@@ -166,12 +191,6 @@ const App = () => {
                 </ProtectedRoute>
               } />
               
-              <Route path="/settings" element={
-                <ProtectedRoute>
-                  <Settings />
-                </ProtectedRoute>
-              } />
-              
               <Route path="/manage-users" element={
                 <ProtectedRoute requiredRoleId={ROLES.TRANSPORT_DIRECTOR}>
                   <ManageUsers />
@@ -201,18 +220,7 @@ const App = () => {
                   <PositionsManagement />
                 </ProtectedRoute>
               } />
-
-              <Route path="/projects-management" element={
-                <ProtectedRoute allowedRoleIds={[ROLES.TRANSPORT_DIRECTOR, ROLES.OPERATIONAL_DIRECTOR]}>
-                  <ProjectsManagement />
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/notifications" element={
-                <ProtectedRoute>
-                  <Notifications />
-                </ProtectedRoute>
-              } />
+              */}
               
               {/* Fallback routes */}
               <Route path="/404" element={<NotFound />} />
