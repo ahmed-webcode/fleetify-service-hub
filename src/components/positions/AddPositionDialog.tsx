@@ -72,6 +72,9 @@ export const AddPositionDialog = ({ open, onClose }: AddPositionDialogProps) => 
     // Get flattened levels from localStorage - exclude structural levels
     const flattenedLevels = getFlattenedLevels(false);
 
+    // --- Add this filter right here to ensure only non-structural levels are listed ---
+    const nonStructuralLevels = flattenedLevels.filter(level => !level.isStructural);
+
     // Create mutation
     const createMutation = useMutation({
         mutationFn: (data: CreatePositionDto) => apiClient.positions.create(data),
@@ -206,7 +209,7 @@ export const AddPositionDialog = ({ open, onClose }: AddPositionDialogProps) => 
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                {flattenedLevels.map(level => (
+                                                {nonStructuralLevels.map(level => (
                                                     <SelectItem key={level.id} value={String(level.id)}>
                                                         {level.name}
                                                     </SelectItem>
