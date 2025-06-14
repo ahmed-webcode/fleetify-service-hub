@@ -1,208 +1,188 @@
-import React, { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Textarea } from "@/components/ui/textarea"; // Assuming you might need it
-import { EditVehicleFormProps, UpdateVehicleDto } from "@/types/vehicle"; // Import new types
-import { VehicleDto } from "@/types/vehicle";
-import { VehicleStatus, VehicleType } from "@/types/vehicle";
 
-// This is a placeholder. You will need to replace this with your actual form structure,
-// similar to AddVehicleForm.tsx, but for editing.
+import React, { useState, useEffect } from "react";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useQuery } from "@tanstack/react-query";
+import { Form } from "@/components/ui/form";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { apiClient } from "@/lib/apiClient";
+import { VehicleStatus, VehicleType, EditVehicleFormProps } from "@/types/vehicle";
+import { VehicleBasicInfo } from "./form-sections/VehicleBasicInfo";
+import { VehicleTechnicalDetails } from "./form-sections/VehicleTechnicalDetails";
+import { VehicleInsuranceInfo } from "./form-sections/VehicleInsuranceInfo";
+import { VehicleStaffAndOwnership } from "./form-sections/VehicleStaffAndOwnership";
+import { VehicleFileUploads } from "./form-sections/VehicleFileUploads";
+
+const editVehicleSchema = z.object({
+    plateNumber: z.string().min(2, "License plate is required."),
+    vehicleType: z.nativeEnum(VehicleType, { required_error: "Vehicle type is required" }),
+    model: z.string().min(2, "Model must be at least 2 characters."),
+    fuelTypeId: z.coerce.number().min(1, "Fuel type is required."),
+    status: z.nativeEnum(VehicleStatus, { required_error: "Status is required" }),
+    isPrivate: z.boolean().default(false),
+    chassisNumber: z.string().min(2, "Chassis number is required."),
+    motorNumber: z.string().min(2, "Motor number is required."),
+    color: z.string().min(1, "Color is required."),
+    madeYear: z.coerce.number().min(1900).max(new Date().getFullYear() + 1),
+    responsibleStaffId: z.coerce.number().min(1, "Responsible staff is required."),
+    madeIn: z.string().min(1, "Country of origin is required."),
+    horsePower: z.coerce.number().min(0),
+    singleWeight: z.coerce.number().min(0),
+    totalWeight: z.coerce.number().min(0),
+    cylinderCount: z.coerce.number().min(0),
+    axleCount: z.coerce.number().min(0).optional(),
+    seatsCount: z.coerce.number().min(0),
+    kmReading: z.coerce.number().min(0),
+    workEnvironment: z.string().min(1, "Work environment is required."),
+    fuelConsumptionRate: z.coerce.number().min(0),
+    driverId: z.coerce.number().optional(),
+    insuranceCompany: z.string().optional(),
+    insuranceEndDate: z.string().optional(),
+    boloEndDate: z.string().optional(),
+});
+
+interface User {
+    id: number;
+    username: string;
+    firstName: string;
+    lastName: string;
+    canDrive: boolean;
+    roles: { id: number; name: string }[];
+}
 
 export function EditVehicleForm({ vehicle, onSubmit, onCancel }: EditVehicleFormProps) {
-    // Initialize form state with the vehicle data
-    // For simplicity, using a generic state. You'll want to map vehicle props to form fields.
-    const [formData, setFormData] = useState<Partial<UpdateVehicleDto>>({});
-    const [vehicleImageFile, setVehicleImageFile] = useState<File | null>(null);
-    const [libreImageFile, setLibreImageFile] = useState<File | null>(null);
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [libreFile, setLibreFile] = useState<File | null>(null);
+    const [uploading, setUploading] = useState(false);
+    const [insuranceEndDate, setInsuranceEndDate] = useState<Date | undefined>();
+    const [boloEndDate, setBoloEndDate] = useState<Date | undefined>();
+
+    const { data: fuelTypes } = useQuery({
+        queryKey: ["fuelTypes"],
+        queryFn: () => apiClient.fuel.getFuelTypes() as any,
+    });
+
+    const { data: users = [], isLoading: isLoadingUsers } = useQuery({
+        queryKey: ["users"],
+        queryFn: async () => {
+            try {
+                return (await apiClient.users.getAll()) as any;
+            } catch (error) {
+                toast.error("Failed to load users");
+                return [];
+            }
+        },
+    });
+
+    const form = useForm({
+        resolver: zodResolver(editVehicleSchema),
+        defaultValues: {},
+    });
 
     useEffect(() => {
-        // Populate formData from the vehicle prop when it changes
-        // This ensures the form is pre-filled with the correct data
-        if (vehicle) {
-            setFormData({
-                id: vehicle.id,
-                plateNumber: vehicle.plateNumber,
-                vehicleType: vehicle.vehicleType,
-                model: vehicle.model,
-                // fuelTypeId: vehicle.fuelTypeId, // You'll need to get this from fuelTypeName or have it in VehicleDto
-                status: vehicle.status,
-                // isPrivate: vehicle.isPrivate, // Backend UpdateVehicleDto doesn't list this, but CreateDto does. Clarify if editable.
-                chassisNumber: vehicle.chassisNumber,
-                motorNumber: vehicle.motorNumber,
-                color: vehicle.color,
-                madeYear: vehicle.madeYear,
-                // responsibleStaffId: vehicle.responsibleStaffId, // Need to map from name or get ID
-                madeIn: vehicle.madeIn,
-                lastQuotaRefuel: vehicle.lastQuotaRefuel,
-                horsePower: vehicle.horsePower,
-                singleWeight: vehicle.singleWeight,
-                totalWeight: vehicle.totalWeight,
-                axleCount: vehicle.axleCount,
-                cylinderCount: vehicle.cylinderCount,
-                seatsCount: vehicle.seatsCount,
-                kmReading: vehicle.kmReading,
-                workEnvironment: vehicle.workEnvironment,
-                fuelConsumptionRate: vehicle.fuelConsumptionRate,
-                // driverId: vehicle.driverId, // Need to map from name or get ID
-                insuranceCompany: vehicle.insuranceCompany,
-                insuranceEndDate: vehicle.insuranceEndDate,
-                boloEndDate: vehicle.boloEndDate,
+        if (vehicle && users.length > 0 && fuelTypes) {
+            form.reset({
+                ...vehicle,
+                fuelTypeId: fuelTypes.find(ft => ft.name === vehicle.fuelTypeName)?.id,
+                responsibleStaffId: users.find(u => `${u.firstName} ${u.lastName}` === vehicle.responsibleStaffName)?.id,
+                driverId: users.find(u => `${u.firstName} ${u.lastName}` === vehicle.driverName)?.id,
             });
+            if (vehicle.insuranceEndDate) setInsuranceEndDate(new Date(vehicle.insuranceEndDate));
+            if (vehicle.boloEndDate) setBoloEndDate(new Date(vehicle.boloEndDate));
         }
-    }, [vehicle]);
+    }, [vehicle, users, fuelTypes, form]);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const { name, value, type } = e.target;
-        // @ts-ignore // Basic handling, refine as per your needs
-        const isCheckbox =
-            type === "checkbox" && e.target instanceof HTMLInputElement && e.target.checked;
-        // @ts-ignore
-        setFormData((prev) => ({ ...prev, [name]: isCheckbox ? e.target.checked : value }));
+    const responsibleStaffId = form.watch("responsibleStaffId");
+    const selectedStaff = users.find((user) => user.id === Number(responsibleStaffId));
+    const showDriverField = selectedStaff && !selectedStaff.canDrive;
+
+    const availableDrivers = users.filter((user) => user.canDrive);
+    const staffUsers = users.filter((user) => user.roles?.some((role) => role.name.toLowerCase() === "staff"));
+
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files?.[0]) setImageFile(e.target.files[0]);
     };
 
-    const handleSelectChange = (name: string, value: string) => {
-        // Convert to number if it's a field like 'madeYear', 'fuelTypeId', etc.
-        const numValueFields = [
-            "madeYear",
-            "fuelTypeId",
-            "responsibleStaffId",
-            "driverId" /* add other numeric fields */,
-        ];
-        const finalValue = numValueFields.includes(name) ? parseInt(value, 10) : value;
-        setFormData((prev) => ({ ...prev, [name]: finalValue }));
+    const handleLibreUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files?.[0]) setLibreFile(e.target.files[0]);
     };
 
-    const handleFileChange = (
-        e: React.ChangeEvent<HTMLInputElement>,
-        fileType: "vehicleImg" | "libreImg"
-    ) => {
-        if (e.target.files && e.target.files[0]) {
-            if (fileType === "vehicleImg") {
-                setVehicleImageFile(e.target.files[0]);
-            } else if (fileType === "libreImg") {
-                setLibreImageFile(e.target.files[0]);
+    const handleSubmit = async (values: z.infer<typeof editVehicleSchema>) => {
+        setUploading(true);
+        const formData = new FormData();
+
+        Object.entries(values).forEach(([key, value]) => {
+            if (value !== undefined && value !== null) {
+                formData.append(key, String(value));
             }
-        }
-    };
+        });
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        const data = new FormData();
-
-        // Append non-file fields from formData state
-        for (const key in formData) {
-            // @ts-ignore
-            if (formData[key] !== null && formData[key] !== undefined && key !== "id") {
-                // Exclude id from FormData body
-                // @ts-ignore
-                data.append(key, String(formData[key]));
-            }
+        if (imageFile) formData.append("vehicleImg", imageFile);
+        if (libreFile) formData.append("libreImg", libreFile);
+        
+        if (vehicle?.id) {
+           await onSubmit(vehicle.id, formData);
         }
-
-        // Append file fields if they exist
-        if (vehicleImageFile) {
-            data.append("vehicleImg", vehicleImageFile);
-        }
-        if (libreImageFile) {
-            data.append("libreImg", libreImageFile);
-        }
-
-        // ID is passed separately to onSubmit, not in FormData for PATCH
-        if (vehicle && vehicle.id) {
-            await onSubmit(vehicle.id, data);
-        }
+        setUploading(false);
     };
 
     if (!vehicle) return <p>Loading vehicle data...</p>;
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-6 p-1">
-            <h2 className="text-xl font-semibold">
-                Edit Vehicle: {vehicle.model} ({vehicle.plateNumber})
-            </h2>
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+                <h3 className="text-xl font-semibold border-b pb-2">Basic Information</h3>
+                <VehicleBasicInfo control={form.control} fuelTypes={fuelTypes} />
 
-            {/* 
-        ADD YOUR FORM FIELDS HERE, similar to AddVehicleForm.tsx.
-        Pre-fill them using the `formData` state.
-        Example for one field:
-      */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <Label htmlFor="plateNumber">Plate Number</Label>
-                    <Input
-                        id="plateNumber"
-                        name="plateNumber"
-                        value={formData.plateNumber || ""}
-                        onChange={handleChange}
-                    />
-                </div>
-                <div>
-                    <Label htmlFor="model">Model</Label>
-                    <Input
-                        id="model"
-                        name="model"
-                        value={formData.model || ""}
-                        onChange={handleChange}
-                    />
-                </div>
+                <h3 className="text-xl font-semibold border-b pb-2 pt-4">Technical Details</h3>
+                <VehicleTechnicalDetails control={form.control} />
+                
+                <h3 className="text-xl font-semibold border-b pb-2 pt-4">Insurance Information</h3>
+                <VehicleInsuranceInfo
+                    form={form}
+                    insuranceEndDate={insuranceEndDate}
+                    setInsuranceEndDate={setInsuranceEndDate}
+                    boloEndDate={boloEndDate}
+                    setBoloEndDate={setBoloEndDate}
+                />
+                
+                <h3 className="text-xl font-semibold border-b pb-2 pt-4">Ownership & Staff</h3>
+                <VehicleStaffAndOwnership
+                    control={form.control}
+                    isLoadingUsers={isLoadingUsers}
+                    staffUsers={staffUsers}
+                    showDriverField={showDriverField}
+                    availableDrivers={availableDrivers}
+                />
 
-                {/* Example for a Select field (assuming VehicleType is an enum/object) */}
-                <div>
-                    <Label htmlFor="vehicleType">Vehicle Type</Label>
-                    <Select
-                        name="vehicleType"
-                        value={formData.vehicleType || ""}
-                        onValueChange={(value) => handleSelectChange("vehicleType", value)}
-                    >
-                        <SelectTrigger>
-                            <SelectValue placeholder="Select Type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {Object.values(VehicleType).map((type) => (
-                                <SelectItem key={type} value={type}>
-                                    {type.replace(/_/g, " ")}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                {/* Example for Image Upload */}
-                <div>
-                    <Label htmlFor="vehicleImg">Vehicle Image</Label>
-                    <Input
-                        id="vehicleImg"
-                        name="vehicleImg"
-                        type="file"
-                        onChange={(e) => handleFileChange(e, "vehicleImg")}
+                <h3 className="text-xl font-semibold border-b pb-2 pt-4">File Uploads</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <VehicleFileUploads
+                        handleImageUpload={handleImageUpload}
+                        handleLibreUpload={handleLibreUpload}
+                        imageFile={imageFile}
+                        libreFile={libreFile}
                     />
-                    {vehicle.imgSrc && !vehicleImageFile && (
-                        <img
-                            src={vehicle.imgSrc}
-                            alt="Current vehicle"
-                            className="mt-2 h-20 w-auto"
-                        />
+                    {vehicle.imgSrc && !imageFile && (
+                        <div className="space-y-2">
+                           <label className="text-sm font-medium">Current Image</label>
+                           <img src={vehicle.imgSrc} alt="Current vehicle" className="mt-2 h-20 w-auto rounded-md border" />
+                        </div>
                     )}
                 </div>
-            </div>
-            {/* ... Add all other fields from UpdateVehicleDto, pre-filled and with onChange handlers ... */}
 
-            <div className="flex justify-end gap-2 pt-4">
-                <Button type="button" variant="outline" onClick={onCancel}>
-                    Cancel
-                </Button>
-                <Button type="submit">Save Changes</Button>
-            </div>
-        </form>
+
+                <div className="flex justify-end gap-2 mt-6">
+                    <Button type="button" variant="outline" onClick={onCancel} disabled={uploading}>
+                        Cancel
+                    </Button>
+                    <Button type="submit" disabled={uploading}>
+                        {uploading ? "Saving..." : "Save Changes"}
+                    </Button>
+                </div>
+            </form>
+        </Form>
     );
 }

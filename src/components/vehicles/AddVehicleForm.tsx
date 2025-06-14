@@ -1,36 +1,19 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
 import { toast } from "sonner";
 import { apiClient } from "@/lib/apiClient";
 import { VehicleStatus, VehicleType } from "@/types/vehicle";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Loader } from "lucide-react";
-import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
+import { VehicleBasicInfo } from "./form-sections/VehicleBasicInfo";
+import { VehicleTechnicalDetails } from "./form-sections/VehicleTechnicalDetails";
+import { VehicleInsuranceInfo } from "./form-sections/VehicleInsuranceInfo";
+import { VehicleStaffAndOwnership } from "./form-sections/VehicleStaffAndOwnership";
+import { VehicleFileUploads } from "./form-sections/VehicleFileUploads";
 
 // Define the schema for vehicle data
 const vehicleSchema = z.object({
@@ -80,8 +63,8 @@ interface User {
 }
 
 export function AddVehicleForm({ onSubmit }) {
-    const [imageFile, setImageFile] = useState(null);
-    const [libreFile, setLibreFile] = useState(null);
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [libreFile, setLibreFile] = useState<File | null>(null);
     const [uploading, setUploading] = useState(false);
     const [insuranceEndDate, setInsuranceEndDate] = useState<Date | undefined>();
     const [boloEndDate, setBoloEndDate] = useState<Date | undefined>();
@@ -94,7 +77,7 @@ export function AddVehicleForm({ onSubmit }) {
     //   { id: 4, name: "Hybrid" },
     // ];
 
-    const { data: fuelTypes, isLoading: isLoadingFuelTypes } = useQuery({
+    const { data: fuelTypes } = useQuery({
         queryKey: ["fuelTypes"],
         queryFn: async () => {
             return apiClient.fuel.getFuelTypes() as any;
@@ -228,552 +211,37 @@ export function AddVehicleForm({ onSubmit }) {
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                    {/* Basic Vehicle Information */}
-                    <FormField
-                        control={form.control}
-                        name="vehicleType"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Vehicle Type</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                    <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select type" />
-                                        </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        {Object.values(VehicleType).map((type) => (
-                                            <SelectItem key={type} value={type}>
-                                                {type}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                <h3 className="text-xl font-semibold border-b pb-2">Basic Information</h3>
+                <VehicleBasicInfo control={form.control} fuelTypes={fuelTypes} />
 
-                    <FormField
-                        control={form.control}
-                        name="model"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Model</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="e.g. Land Cruiser" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                <h3 className="text-xl font-semibold border-b pb-2 pt-4">Technical Details</h3>
+                <VehicleTechnicalDetails control={form.control} />
+                
+                <h3 className="text-xl font-semibold border-b pb-2 pt-4">Insurance Information</h3>
+                <VehicleInsuranceInfo
+                    form={form}
+                    insuranceEndDate={insuranceEndDate}
+                    setInsuranceEndDate={setInsuranceEndDate}
+                    boloEndDate={boloEndDate}
+                    setBoloEndDate={setBoloEndDate}
+                />
+                
+                <h3 className="text-xl font-semibold border-b pb-2 pt-4">Ownership & Staff</h3>
+                <VehicleStaffAndOwnership
+                    control={form.control}
+                    isLoadingUsers={isLoadingUsers}
+                    staffUsers={staffUsers}
+                    showDriverField={showDriverField}
+                    availableDrivers={availableDrivers}
+                />
 
-                    <FormField
-                        control={form.control}
-                        name="madeYear"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Year</FormLabel>
-                                <FormControl>
-                                    <Input type="number" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    <FormField
-                        control={form.control}
-                        name="plateNumber"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>License Plate</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="e.g. AAU-1234" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    <FormField
-                        control={form.control}
-                        name="chassisNumber"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Chassis Number</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Chassis Number" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    <FormField
-                        control={form.control}
-                        name="motorNumber"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Motor Number</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Motor Number" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    <FormField
-                        control={form.control}
-                        name="fuelTypeId"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Fuel Type</FormLabel>
-                                <Select
-                                    onValueChange={field.onChange}
-                                    defaultValue={field.value?.toString()}
-                                >
-                                    <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select fuel type" />
-                                        </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        {fuelTypes?.map((fuelType) => (
-                                            <SelectItem
-                                                key={fuelType.id}
-                                                value={fuelType.id.toString()}
-                                            >
-                                                {fuelType.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    <FormField
-                        control={form.control}
-                        name="color"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Color</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="e.g. White" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    <FormField
-                        control={form.control}
-                        name="status"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Status</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                    <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select status" />
-                                        </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        {Object.values(VehicleStatus).map((status) => (
-                                            <SelectItem key={status} value={status}>
-                                                {status.replace(/_/g, " ")}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    <FormField
-                        control={form.control}
-                        name="kmReading"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Odometer Reading (km)</FormLabel>
-                                <FormControl>
-                                    <Input type="number" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    <FormField
-                        control={form.control}
-                        name="madeIn"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Country of Origin</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="e.g. Japan" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    <FormField
-                        control={form.control}
-                        name="seatsCount"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Number of Seats</FormLabel>
-                                <FormControl>
-                                    <Input type="number" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    {/* Technical Details */}
-                    <FormField
-                        control={form.control}
-                        name="horsePower"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Horse Power</FormLabel>
-                                <FormControl>
-                                    <Input type="number" step="0.1" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    <FormField
-                        control={form.control}
-                        name="singleWeight"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Single Weight (kg)</FormLabel>
-                                <FormControl>
-                                    <Input type="number" step="0.1" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    <FormField
-                        control={form.control}
-                        name="totalWeight"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Total Weight (kg)</FormLabel>
-                                <FormControl>
-                                    <Input type="number" step="0.1" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    <FormField
-                        control={form.control}
-                        name="cylinderCount"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Number of Cylinders</FormLabel>
-                                <FormControl>
-                                    <Input type="number" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    <FormField
-                        control={form.control}
-                        name="axleCount"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Number of Axles</FormLabel>
-                                <FormControl>
-                                    <Input type="number" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    <FormField
-                        control={form.control}
-                        name="fuelConsumptionRate"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Fuel Consumption Rate (L/100km)</FormLabel>
-                                <FormControl>
-                                    <Input type="number" step="0.1" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    <FormField
-                        control={form.control}
-                        name="workEnvironment"
-                        render={({ field }) => (
-                            <FormItem className="col-span-full">
-                                <FormLabel>Work Environment</FormLabel>
-                                <FormControl>
-                                    <Textarea
-                                        placeholder="Where will this vehicle be used?"
-                                        className="resize-none"
-                                        {...field}
-                                    />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    {/* Insurance Information */}
-                    <FormField
-                        control={form.control}
-                        name="insuranceCompany"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Insurance Company</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="e.g. Awash Insurance" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    <FormItem>
-                        <FormLabel>Insurance End Date</FormLabel>
-                        <Popover>
-                            <PopoverTrigger asChild>
-                                <FormControl>
-                                    <Button
-                                        variant={"outline"}
-                                        className={cn(
-                                            "w-full justify-start text-left font-normal",
-                                            !insuranceEndDate && "text-muted-foreground"
-                                        )}
-                                    >
-                                        <CalendarIcon className="mr-2 h-4 w-4" />
-                                        {insuranceEndDate
-                                            ? format(insuranceEndDate, "PPP")
-                                            : <span>Pick a date</span>}
-                                    </Button>
-                                </FormControl>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar
-                                    mode="single"
-                                    selected={insuranceEndDate}
-                                    onSelect={(date) => {
-                                        setInsuranceEndDate(date);
-                                        form.setValue("insuranceEndDate", date ? format(date, "yyyy-MM-dd") : "");
-                                    }}
-                                    initialFocus
-                                    className={cn("p-3 pointer-events-auto")}
-                                />
-                            </PopoverContent>
-                        </Popover>
-                        <FormMessage>
-                            {form.formState.errors.insuranceEndDate?.message}
-                        </FormMessage>
-                    </FormItem>
-
-                    <FormItem>
-                        <FormLabel>Bolo End Date</FormLabel>
-                        <Popover>
-                            <PopoverTrigger asChild>
-                                <FormControl>
-                                    <Button
-                                        variant={"outline"}
-                                        className={cn(
-                                            "w-full justify-start text-left font-normal",
-                                            !boloEndDate && "text-muted-foreground"
-                                        )}
-                                    >
-                                        <CalendarIcon className="mr-2 h-4 w-4" />
-                                        {boloEndDate
-                                            ? format(boloEndDate, "PPP")
-                                            : <span>Pick a date</span>}
-                                    </Button>
-                                </FormControl>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar
-                                    mode="single"
-                                    selected={boloEndDate}
-                                    onSelect={(date) => {
-                                        setBoloEndDate(date);
-                                        form.setValue("boloEndDate", date ? format(date, "yyyy-MM-dd") : "");
-                                    }}
-                                    initialFocus
-                                    className={cn("p-3 pointer-events-auto")}
-                                />
-                            </PopoverContent>
-                        </Popover>
-                        <FormMessage>
-                            {form.formState.errors.boloEndDate?.message}
-                        </FormMessage>
-                    </FormItem>
-
-                    {/* Ownership Information */}
-                    <FormField
-                        control={form.control}
-                        name="isPrivate"
-                        render={({ field }) => (
-                            <FormItem className="flex flex-row items-center space-x-3 space-y-0 p-4 rounded-md border">
-                                <FormControl>
-                                    <Checkbox
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                    />
-                                </FormControl>
-                                <div className="space-y-1 leading-none">
-                                    <FormLabel>Private Vehicle</FormLabel>
-                                </div>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </div>
-
-                {/* Staff/Driver Assignment */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 p-4 bg-muted/20 rounded-md border">
-                    <h3 className="text-lg font-medium col-span-full mb-2">Staff Assignment</h3>
-
-                    <FormField
-                        control={form.control}
-                        name="responsibleStaffId"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Responsible Staff</FormLabel>
-                                <Select
-                                    onValueChange={field.onChange}
-                                    defaultValue={field.value?.toString()}
-                                    disabled={isLoadingUsers}
-                                >
-                                    <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select staff member" />
-                                        </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        {isLoadingUsers ? (
-                                            <div className="flex items-center justify-center p-2">
-                                                <Loader className="h-4 w-4 animate-spin mr-2" />
-                                                Loading...
-                                            </div>
-                                        ) : (
-                                            staffUsers.map((user) => (
-                                                <SelectItem
-                                                    key={user.id}
-                                                    value={user.id.toString()}
-                                                >
-                                                    {user.firstName} {user.lastName} (
-                                                    {user.canDrive ? "Can drive" : "Can't drive"})
-                                                </SelectItem>
-                                            ))
-                                        )}
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    {showDriverField && (
-                        <FormField
-                            control={form.control}
-                            name="driverId"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Driver</FormLabel>
-                                    <Select
-                                        onValueChange={field.onChange}
-                                        defaultValue={field.value?.toString()}
-                                        disabled={isLoadingUsers}
-                                    >
-                                        <FormControl>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select driver" />
-                                            </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            {isLoadingUsers ? (
-                                                <div className="flex items-center justify-center p-2">
-                                                    <Loader className="h-4 w-4 animate-spin mr-2" />
-                                                    Loading...
-                                                </div>
-                                            ) : (
-                                                availableDrivers.map((driver) => (
-                                                    <SelectItem
-                                                        key={driver.id}
-                                                        value={driver.id.toString()}
-                                                    >
-                                                        {driver.firstName} {driver.lastName}
-                                                    </SelectItem>
-                                                ))
-                                            )}
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                    )}
-                </div>
-
-                {/* File Upload Section */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-4">
-                    <div className="space-y-2">
-                        <FormLabel>Vehicle Image</FormLabel>
-                        <Input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleImageUpload}
-                            className="cursor-pointer"
-                        />
-                        {imageFile && (
-                            <p className="text-sm text-muted-foreground">
-                                Selected: {imageFile.name}
-                            </p>
-                        )}
-                    </div>
-
-                    <div className="space-y-2">
-                        <FormLabel className="flex items-center">
-                            Libre Document <span className="text-destructive ml-1">*</span>
-                        </FormLabel>
-                        <Input
-                            type="file"
-                            accept="image/*,.pdf"
-                            onChange={handleLibreUpload}
-                            className="cursor-pointer"
-                            required
-                        />
-                        {libreFile && (
-                            <p className="text-sm text-muted-foreground">
-                                Selected: {libreFile.name}
-                            </p>
-                        )}
-                        {!libreFile && (
-                            <p className="text-sm text-destructive">This field is required</p>
-                        )}
-                    </div>
-                </div>
+                <h3 className="text-xl font-semibold border-b pb-2 pt-4">File Uploads</h3>
+                <VehicleFileUploads
+                    handleImageUpload={handleImageUpload}
+                    handleLibreUpload={handleLibreUpload}
+                    imageFile={imageFile}
+                    libreFile={libreFile}
+                />
 
                 <div className="flex justify-end gap-2 mt-6">
                     <Button type="submit" disabled={uploading || !libreFile}>
