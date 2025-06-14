@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -43,6 +42,8 @@ const editVehicleSchema = z.object({
     boloEndDate: z.string().optional(),
 });
 
+type EditVehicleValues = z.infer<typeof editVehicleSchema>;
+
 interface User {
     id: number;
     username: string;
@@ -76,7 +77,7 @@ export function EditVehicleForm({ vehicle, onSubmit, onCancel }: EditVehicleForm
         },
     });
 
-    const form = useForm({
+    const form = useForm<EditVehicleValues>({
         resolver: zodResolver(editVehicleSchema),
         defaultValues: {},
     });
