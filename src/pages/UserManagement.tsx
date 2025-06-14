@@ -30,6 +30,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { ROLE_DETAILS } from "@/lib/jwtUtils";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 // --- UserFormFields inline (copy of ManageUsers.tsx) ---
 interface UserFormFieldsProps {
@@ -548,14 +549,10 @@ const UserManagement = () => {
 
   return (
     <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
-          <p className="text-muted-foreground">
-            Manage users and positions in the system
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="User Management"
+        description="Manage users and positions in the system"
+      />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList className="grid w-full grid-cols-2 max-w-[400px]">
