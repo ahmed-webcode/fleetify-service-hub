@@ -16,7 +16,7 @@ import { TripRequestForm } from "@/components/trips/TripRequestForm";
 import { TripRequestsList } from "@/components/trips/TripRequestsList";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/apiClient";
-import { TripRequestDto, TripRequestQueryParams } from "@/types/trip";
+import { TripRequestDto } from "@/types/trip";
 import {
   Pagination,
   PaginationContent,
@@ -62,12 +62,12 @@ export default function TripManagement() {
   // Filter requests by search query (client-side filtering)
   const filteredRequests = tripRequestsData?.content.filter(request => {
     if (!searchQuery) return true;
-    
+
     const searchLower = searchQuery.toLowerCase();
+    // Fix: Use only valid properties from TripRequestDto
     return (
       request.requestedBy.toLowerCase().includes(searchLower) ||
-      getValueOrDash(request.levelName ?? request.purpose).toLowerCase().includes(searchLower) ||
-      getValueOrDash(request.destination ?? request.purpose).toLowerCase().includes(searchLower)
+      request.purpose.toLowerCase().includes(searchLower)
     );
   }) || [];
 
