@@ -1,8 +1,8 @@
 
-import { 
-  Car, 
-  Fuel, 
-  Wrench,
+import {
+  Car,
+  Fuel,
+  Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -10,23 +10,20 @@ interface MetricCardProps {
   title: string;
   value: string | number;
   icon: React.ReactNode;
-  trend?: number;
-  trendLabel?: string;
   className?: string;
 }
 
 interface MetricsOverviewProps {
   vehicles: number;
-  serviceRequests: number;
+  tripRequests: number;
   fuelRequests: number;
   drivers: number;
   loading?: boolean;
 }
 
 export function MetricsOverview({
-  vehicles, serviceRequests, fuelRequests, drivers, loading,
+  vehicles, tripRequests, fuelRequests, drivers, loading,
 }: MetricsOverviewProps) {
-  // Remove trend because can't compute without comparative data here
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
       <MetricCard
@@ -36,9 +33,9 @@ export function MetricsOverview({
         className="border-l-4 border-l-blue-500"
       />
       <MetricCard
-        title="Service Requests"
-        value={loading ? "..." : serviceRequests}
-        icon={<Wrench className="h-5 w-5" />}
+        title="Trip Requests"
+        value={loading ? "..." : tripRequests}
+        icon={<Car className="h-5 w-5" />}
         className="border-l-4 border-l-indigo-500"
       />
       <MetricCard
@@ -50,7 +47,7 @@ export function MetricsOverview({
       <MetricCard
         title="Drivers"
         value={loading ? "..." : drivers}
-        icon={<Car className="h-5 w-5" />}
+        icon={<Users className="h-5 w-5" />}
         className="border-l-4 border-l-green-500"
       />
     </div>

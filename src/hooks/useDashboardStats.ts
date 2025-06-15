@@ -10,13 +10,6 @@ export function useDashboardStats() {
     refetchOnWindowFocus: false,
   });
 
-  // Service (maintenance) requests
-  const serviceRequestsQuery = useQuery({
-    queryKey: ["dashboard", "serviceRequests"],
-    queryFn: () => apiClient.maintenance.requests.getAll({ size: 1 }),
-    refetchOnWindowFocus: false,
-  });
-
   // Fuel requests
   const fuelRequestsQuery = useQuery({
     queryKey: ["dashboard", "fuelRequests"],
@@ -24,7 +17,7 @@ export function useDashboardStats() {
     refetchOnWindowFocus: false,
   });
 
-  // Staff/drivers: count active users with role "DRIVER"
+  // Users that are drivers
   const staffQuery = useQuery({
     queryKey: ["dashboard", "staff"],
     queryFn: async () => {
@@ -36,26 +29,25 @@ export function useDashboardStats() {
     refetchOnWindowFocus: false,
   });
 
-  // Fuel/consumption stats - use fuel records as an example (could be replaced with reporting endpoint if available)
-  const fuelRecordsQuery = useQuery({
-    queryKey: ["dashboard", "fuelRecords"],
-    queryFn: () => apiClient.fuel.records.getAll({ size: 100 }),
+  // Trips requests
+  const tripRequestsQuery = useQuery({
+    queryKey: ["dashboard", "tripRequests"],
+    queryFn: () => apiClient.trips.requests.getAll({ size: 1 }),
     refetchOnWindowFocus: false,
   });
 
-  // Maintenance stats (statuses/counts by type)
-  const maintenanceRequestsQuery = useQuery({
-    queryKey: ["dashboard", "maintenanceRequests"],
-    queryFn: () => apiClient.maintenance.requests.getAll({ size: 100 }),
-    refetchOnWindowFocus: false,
-  });
+  // Optionally, recent trips (not used in summary cards—could be used for a small chart)
+  // const recentTripsQuery = useQuery({
+  //   queryKey: ["dashboard", "recentTrips"],
+  //   queryFn: () => apiClient.trips.requests.getAll({ size: 10, direction: "DESC" }),
+  //   refetchOnWindowFocus: false,
+  // });
 
   return {
     vehiclesQuery,
-    serviceRequestsQuery,
     fuelRequestsQuery,
     staffQuery,
-    fuelRecordsQuery,
-    maintenanceRequestsQuery,
+    tripRequestsQuery
+    // recentTripsQuery,
   };
 }
