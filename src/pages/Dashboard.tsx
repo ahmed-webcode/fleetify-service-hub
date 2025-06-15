@@ -1,3 +1,4 @@
+
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { MetricsOverview } from "@/components/dashboard/MetricsOverview";
@@ -42,9 +43,19 @@ export default function Dashboard() {
     staffQuery.isLoading ||
     tripRequestsQuery.isLoading;
 
-  // Get lists for charting if available
-  const tripRequestList = tripRequestsQuery.data?.content ?? [];
-  const fuelRequestList = fuelRequestsQuery.data?.content ?? [];
+  // STEP 1: Map TripRequestDto[] -> TripRequest[] (convert id to string)
+  const tripRequestList =
+    (tripRequestsQuery.data?.content ?? []).map((item) => ({
+      ...item,
+      id: String(item.id),
+    }));
+
+  // STEP 2: Map FuelRequestDto[] -> FuelRequest[] (convert id to string)
+  const fuelRequestList =
+    (fuelRequestsQuery.data?.content ?? []).map((item) => ({
+      ...item,
+      id: String(item.id),
+    }));
 
   return (
     <div className="w-full px-4 md:px-8 space-y-6">
@@ -67,7 +78,6 @@ export default function Dashboard() {
         <FuelRequestsChart fuelRequests={fuelRequestList} />
       </div>
 
-      {/* Cards below can be left or further reduced - only essentials */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <DashboardCard
           title="Vehicles"
@@ -101,3 +111,4 @@ export default function Dashboard() {
     </div>
   );
 }
+
