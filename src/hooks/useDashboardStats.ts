@@ -30,7 +30,7 @@ export function useDashboardStats() {
     queryFn: async () => {
       const users = await apiClient.users.getAll();
       return Array.isArray(users)
-        ? users.filter((u) => Array.isArray(u.roles) && u.roles.includes("DRIVER"))
+        ? users.filter((u) => Array.isArray(u.roles) && u.roles.some((role) => role.name === "DRIVER"))
         : [];
     },
     refetchOnWindowFocus: false,
