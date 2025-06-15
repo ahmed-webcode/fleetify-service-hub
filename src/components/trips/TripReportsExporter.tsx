@@ -19,7 +19,7 @@ import { Loader2, FileSpreadsheet } from "lucide-react";
 // Simple Zod schema for both filters
 const filterSchema = z.object({
   reportType: z.enum(["requests", "records"]),
-  status: z.string().optional(),
+  status: z.string().default("any"), // use "any" as default value
   requestedBy: z.string().optional(),
   assignedBy: z.string().optional(),
   from: z.date().optional(),
@@ -35,7 +35,7 @@ export function TripReportsExporter() {
     resolver: zodResolver(filterSchema),
     defaultValues: {
       reportType: "requests",
-      status: "",
+      status: "any", // default to "any" instead of ""
       requestedBy: "",
       assignedBy: "",
       from: undefined,
@@ -53,7 +53,7 @@ export function TripReportsExporter() {
   async function fetchRequests(filters: FilterValues): Promise<TripRequestDto[]> {
     const params: Record<string, any> = {
       size: 1000,
-      ...(filters.status && { status: filters.status }),
+      ...(filters.status && filters.status !== "any" ? { status: filters.status } : {}),
     };
 
     const resp = await apiClient.trips.requests.getAll(params);
@@ -210,7 +210,8 @@ export function TripReportsExporter() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="">Any</SelectItem>
+                          {/* Fix: use value="any" for "Any" option */}
+                          <SelectItem value="any">Any</SelectItem>
                           {statusOptions.map(s => (
                             <SelectItem key={s.value} value={s.value}>
                               {s.label}
