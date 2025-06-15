@@ -110,3 +110,10 @@ export interface UserFull {
     updatedBy?: UserRef | null;
     lastLogin?: string | null;
 }
+
+// DTO for changing password
+export interface ChangePasswordDto {
+    oldPassword: string;
+    newPassword: string;
+    confirmPassword: string;
+}

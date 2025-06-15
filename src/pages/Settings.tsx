@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiClient } from "@/lib/apiClient";
-import type { UserFull, UpdateUserDto } from "@/types/user";
+import type { UserFull, UpdateUserDto, ChangePasswordDto } from "@/types/user";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -84,6 +84,57 @@ export default function Settings() {
             id: user.id,
             ...changes,
         });
+    };
+
+    // Change Password form state
+    const [passwordForm, setPasswordForm] = useState<ChangePasswordDto>({
+        oldPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+    });
+
+    const [passwordLoading, setPasswordLoading] = useState(false);
+
+    const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { id, value } = e.target;
+        setPasswordForm((prev) => ({
+            ...prev,
+            [id]: value,
+        }));
+    };
+
+    const handlePasswordSubmit = async () => {
+        if (
+            !passwordForm.oldPassword ||
+            !passwordForm.newPassword ||
+            !passwordForm.confirmPassword
+        ) {
+            toast.error("Please fill in all fields");
+            return;
+        }
+        if (passwordForm.newPassword.length < 8 || passwordForm.newPassword.length > 64) {
+            toast.error("New password must be between 8 and 64 characters");
+            return;
+        }
+        if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+            toast.error("New password and confirmation do not match");
+            return;
+        }
+
+        setPasswordLoading(true);
+        try {
+            await apiClient.users.changePassword(passwordForm);
+            setPasswordForm({ oldPassword: "", newPassword: "", confirmPassword: "" });
+            toast.success("Password updated successfully");
+        } catch (e: any) {
+            // Error message shown by apiClient, but in case customize for known errors
+            if (e?.response?.data?.message) {
+                toast.error(e.response.data.message);
+            }
+            // else handled already by apiClient
+        } finally {
+            setPasswordLoading(false);
+        }
     };
 
     const [notifications, setNotifications] = useState({
@@ -214,28 +265,47 @@ export default function Settings() {
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="currentPassword">Current Password</Label>
-                                    <Input id="currentPassword" type="password" />
+                                    <Label htmlFor="oldPassword">Current Password</Label>
+                                    <Input
+                                        id="oldPassword"
+                                        type="password"
+                                        value={passwordForm.oldPassword}
+                                        onChange={handlePasswordChange}
+                                        autoComplete="current-password"
+                                    />
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="newPassword">New Password</Label>
-                                    <Input id="newPassword" type="password" />
+                                    <Input
+                                        id="newPassword"
+                                        type="password"
+                                        value={passwordForm.newPassword}
+                                        onChange={handlePasswordChange}
+                                        autoComplete="new-password"
+                                    />
                                 </div>
 
                                 <div className="space-y-2">
                                     <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                                    <Input id="confirmPassword" type="password" />
+                                    <Input
+                                        id="confirmPassword"
+                                        type="password"
+                                        value={passwordForm.confirmPassword}
+                                        onChange={handlePasswordChange}
+                                        autoComplete="new-password"
+                                    />
                                 </div>
                             </div>
 
                             <div className="flex justify-end">
                                 <Button
-                                    onClick={() => toast.success("Password updated successfully")}
+                                    onClick={handlePasswordSubmit}
+                                    disabled={passwordLoading}
                                 >
-                                    Update Password
+                                    {passwordLoading ? "Updating..." : "Update Password"}
                                 </Button>
                             </div>
                         </CardContent>
