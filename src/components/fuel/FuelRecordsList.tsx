@@ -71,7 +71,8 @@ export function FuelRecordsList({ records, total, page, pageSize, pageCount, onP
                                 <td className="px-2 py-2">{r.receivedAt ? new Date(r.receivedAt).toLocaleString() : "-"}</td>
                                 <td className="px-2 py-2">
                                     {/* Show receive button if current user is receiver, and not yet received */}
-                                    {!r.receivedAt && r.receivedBy && user && r.receivedBy.id === user.id && (
+                                    {/* Fix: Compare user.username with receivedBy.email */}
+                                    {!r.receivedAt && r.receivedBy && user && r.receivedBy.email === user.username && (
                                         <Button size="sm" variant="outline" onClick={() => setReceiveDialog({ open: true, record: r })}>
                                             Receive
                                         </Button>
@@ -183,4 +184,3 @@ export function FuelRecordsList({ records, total, page, pageSize, pageCount, onP
 }
 
 export default FuelRecordsList;
-
