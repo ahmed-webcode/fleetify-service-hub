@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import {
     Dialog,
@@ -56,7 +55,8 @@ export function TripRequestActionDialog({
         queryKey: ["usersForTrip"],
         queryFn: () => apiClient.users.getAll(), // Fetch all users
         enabled: isOpen && action === ActionType.APPROVE,
-        select: (data) => data.filter((user) => user.roles.map((role)=>role.id).includes(7)), // Filter for drivers
+        // Update the driver filter to match new driver role ID (10)
+        select: (data) => data.filter((user) => user.roles.map((role)=>role.id).includes(10)), // Filter for drivers
     });
 
     const handleSubmit = async () => {

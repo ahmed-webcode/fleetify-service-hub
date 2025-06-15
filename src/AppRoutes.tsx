@@ -1,4 +1,3 @@
-
 import { Routes, Route, Navigate } from "react-router-dom";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Login from "./pages/Login";
@@ -13,17 +12,19 @@ import ProjectsManagement from './pages/ProjectsManagement';
 import TripManagement from "./pages/TripManagement";
 import UserManagement from "./pages/UserManagement";
 
-// Define role IDs for easier reference in protected routes
+// Update role IDs in ROLES to reflect new backend order:
 const ROLES = {
   TRANSPORT_DIRECTOR: 1,
-  MAINTENANCE_MANAGER: 2,
-  DEPLOYMENT_MANAGER: 3,
-  FUEL_MANAGER: 4,
-  OPERATIONAL_DIRECTOR: 5,
-  FUEL_ATTENDANT: 6,
-  DRIVER: 7,
-  STAFF: 8,
-  MECHANIC: 9
+  DEPLOYMENT_MANAGER: 2,
+  FUEL_MANAGER: 3,
+  INSURANCE_MANAGER: 4,
+  MAINTENANCE_MANAGER: 5,
+  STORE_MANAGER: 6,
+  OPERATIONAL_DIRECTOR: 7,
+  FUEL_ATTENDANT: 8,
+  STAFF: 9,
+  DRIVER: 10,
+  MECHANIC: 11
 };
 
 export function AppRoutes() {
