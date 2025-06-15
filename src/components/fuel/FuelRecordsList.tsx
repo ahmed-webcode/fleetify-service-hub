@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -89,7 +88,9 @@ export function FuelRecordsList({ records, total, page, pageSize, pageCount, onP
                     <PaginationContent>
                         <PaginationItem>
                             <PaginationPrevious
-                                onClick={() => onPageChange(Math.max(0, page - 1))}
+                                onClick={() => {
+                                    if (page > 0) onPageChange(page - 1);
+                                }}
                                 aria-disabled={page === 0}
                                 className={page === 0 ? "pointer-events-none opacity-50" : ""}
                             />
@@ -106,9 +107,11 @@ export function FuelRecordsList({ records, total, page, pageSize, pageCount, onP
                         ))}
                         <PaginationItem>
                             <PaginationNext
-                                onClick={() => onPageChange(Math.min(pageCount - 1, page + 1))}
-                                aria-disabled={page === pageCount - 1}
-                                className={page === pageCount - 1 ? "pointer-events-none opacity-50" : ""}
+                                onClick={() => {
+                                    if (page < pageCount - 1) onPageChange(page + 1);
+                                }}
+                                aria-disabled={page === pageCount - 1 || pageCount === 0}
+                                className={page === pageCount - 1 || pageCount === 0 ? "pointer-events-none opacity-50" : ""}
                             />
                         </PaginationItem>
                     </PaginationContent>
