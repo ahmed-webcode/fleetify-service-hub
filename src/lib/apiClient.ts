@@ -313,6 +313,9 @@ export const apiClient = {
         getFuelTypes: () => {
             return fetchWithErrorHandling("/fuel-types");
         },
+        listFuels: () => {
+            return fetchWithErrorHandling<import('@/types/fuel').FuelFull[]>("/fuels");
+        },
 
         // New fuel request endpoints
         requests: {

@@ -96,3 +96,28 @@ export interface FuelRecordFullDto {
     issuedAmount: number;
     receivedAmount?: number | null;
 }
+
+// Add this at the end of the file:
+export interface FuelFull {
+    id: number;
+    fuelType: {
+        id: number;
+        name: string;
+    };
+    pricePerLiter: number;
+    amount: number;
+    createdAt: string;
+    updatedAt: string;
+    createdBy: {
+        id: number;
+        email: string;
+        firstName: string;
+        lastName: string;
+    };
+    updatedBy: {
+        id: number;
+        email: string;
+        firstName: string;
+        lastName: string;
+    };
+}
