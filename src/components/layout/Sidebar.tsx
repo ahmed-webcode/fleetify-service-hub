@@ -214,7 +214,7 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
                 {isMobileOpen && <div className="fixed inset-0 z-30 bg-black/30 backdrop-blur-sm md:hidden" onClick={handleMobileToggle} aria-hidden="true" />}
                 <aside
                     className={cn(
-                        'fixed left-0 top-0 z-40 h-screen w-64 bg-white border-r border-slate-200 shadow-lg flex flex-col transition-transform duration-300 ease-in-out md:hidden',
+                        'fixed left-0 top-0 z-40 h-screen w-64 bg-background border-r border-slate-200 shadow-lg flex flex-col transition-transform duration-300 ease-in-out md:hidden',
                         isMobileOpen ? 'translate-x-0' : '-translate-x-full'
                     )}
                 >
@@ -225,12 +225,12 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
     }
 
     return (
-        <aside className={cn('relative h-screen bg-white border-r border-slate-200 shadow-sm flex flex-col transition-width duration-300 ease-in-out', isCollapsed ? 'w-[72px]' : 'w-64')}>
+        <aside className={cn('relative h-screen bg-background border-r border-slate-200 shadow-sm flex flex-col transition-width duration-300 ease-in-out', isCollapsed ? 'w-[72px]' : 'w-64')}>
             {sidebarContent}
             {isCollapsed && !isMobileView && (
                 <button
                     onClick={handleDesktopToggle}
-                    className="absolute left-full top-3 -translate-x-1/2 z-10 p-1 bg-white border border-slate-300 rounded-full shadow-md hover:bg-slate-50 text-slate-600 transition-all hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+                    className="absolute left-full top-3 -translate-x-1/2 z-10 p-1 bg-background border border-slate-300 rounded-full shadow-md hover:bg-slate-50 text-slate-600 transition-all hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
                     title="Expand sidebar"
                 >
                     <Menu size={16} />
