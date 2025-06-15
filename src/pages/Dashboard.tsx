@@ -1,13 +1,17 @@
+
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { MetricsOverview } from "@/components/dashboard/MetricsOverview";
 import { DashboardCard } from "@/components/dashboard/DashboardCard";
-import { Car, Fuel, Users } from "lucide-react";
+import { Car, Fuel } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { TripRequestsChart } from "@/components/dashboard/TripRequestsChart";
 import { FuelRequestsChart } from "@/components/dashboard/FuelRequestsChart";
+import { UserRolesChart } from "@/components/dashboard/UserRolesChart";
+import { RecentTrips } from "@/components/dashboard/RecentTrips";
+import { RecentFuels } from "@/components/dashboard/RecentFuels";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -17,8 +21,10 @@ export default function Dashboard() {
   const {
     vehiclesQuery,
     fuelRequestsQuery,
-    staffQuery,
+    usersQuery,
     tripRequestsQuery,
+    recentTripsQuery,
+    recentFuelRecordsQuery,
   } = useDashboardStats();
 
   useEffect(() => {
@@ -34,28 +40,34 @@ export default function Dashboard() {
   // Counts
   const vehicleCount = vehiclesQuery.data?.totalElements ?? 0;
   const fuelRequestCount = fuelRequestsQuery.data?.totalElements ?? 0;
-  const driversCount = staffQuery.data?.length ?? 0;
   const tripRequestCount = tripRequestsQuery.data?.totalElements ?? 0;
   const loading =
     vehiclesQuery.isLoading ||
     fuelRequestsQuery.isLoading ||
-    staffQuery.isLoading ||
+    usersQuery.isLoading ||
     tripRequestsQuery.isLoading;
 
-  // STEP 1: Map TripRequestDto[] -> TripRequest[] (convert id to string)
+  // Prepare chart data
   const tripRequestList =
     (tripRequestsQuery.data?.content ?? []).map((item) => ({
       ...item,
       id: String(item.id),
     }));
 
-  // STEP 2: Map FuelRequestDto[] -> FuelRequest[] (convert id to string, guarantee createdAt)
   const fuelRequestList =
     (fuelRequestsQuery.data?.content ?? []).map((item) => ({
       ...item,
       id: String(item.id),
       createdAt: item.createdAt ?? item.requestedAt, // fallback to requestedAt if createdAt missing
     }));
+
+  const userList = usersQuery.data ?? [];
+
+  // Recent records
+  const recentTrips = recentTripsQuery.data?.content ?? [];
+  const recentFuels = recentFuelRecordsQuery.data?.content ?? [];
+  const recentTripsLoading = recentTripsQuery.isLoading;
+  const recentFuelsLoading = recentFuelRecordsQuery.isLoading;
 
   return (
     <div className="w-full px-4 md:px-8 space-y-6">
@@ -68,17 +80,27 @@ export default function Dashboard() {
         vehicles={vehicleCount}
         tripRequests={tripRequestCount}
         fuelRequests={fuelRequestCount}
-        drivers={driversCount}
+        drivers={0} // No driver card anymore
         loading={loading}
       />
 
-      {/* Charts (2) */}
+      {/* Charts: Trip and Fuel Requests */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <TripRequestsChart tripRequests={tripRequestList} />
         <FuelRequestsChart fuelRequests={fuelRequestList} />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* User Roles Distribution Chart */}
+      <UserRolesChart users={userList} />
+
+      {/* Recent trips and recent fuels */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <RecentTrips records={recentTrips} loading={recentTripsLoading} />
+        <RecentFuels records={recentFuels} loading={recentFuelsLoading} />
+      </div>
+
+      {/* Old DashboardCards for navigation */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-3 gap-4">
         <DashboardCard
           title="Vehicles"
           value={String(vehicleCount)}
@@ -99,13 +121,6 @@ export default function Dashboard() {
           description="Total fuel requests"
           icon={<Fuel size={20} />}
           link="/fuel-management"
-        />
-        <DashboardCard
-          title="Drivers"
-          value={String(driversCount)}
-          description="Staff with driver role"
-          icon={<Users size={20} />}
-          link="/settings"
         />
       </div>
     </div>

@@ -2,6 +2,21 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/apiClient";
 
+// Add this constant for the role names (assuming 11 role names as required)
+export const ALL_ROLE_NAMES = [
+  "ADMIN",
+  "DRIVER",
+  "FLEET_MANAGER",
+  "FUEL_MANAGER",
+  "PROJECT_MANAGER",
+  "COLLEGE_MANAGER",
+  "MAINTENANCE_MANAGER",
+  "FINANCE_MANAGER",
+  "INSURANCE_MANAGER",
+  "INCIDENT_MANAGER",
+  "USER"
+];
+
 export function useDashboardStats() {
   // Total vehicles
   const vehiclesQuery = useQuery({
@@ -17,15 +32,10 @@ export function useDashboardStats() {
     refetchOnWindowFocus: false,
   });
 
-  // Users that are drivers
-  const staffQuery = useQuery({
-    queryKey: ["dashboard", "staff"],
-    queryFn: async () => {
-      const users = await apiClient.users.getAll();
-      return Array.isArray(users)
-        ? users.filter((u) => Array.isArray(u.roles) && u.roles.some((role) => role.name === "DRIVER"))
-        : [];
-    },
+  // All staff (to find role distribution)
+  const usersQuery = useQuery({
+    queryKey: ["dashboard", "users"],
+    queryFn: () => apiClient.users.getAll(),
     refetchOnWindowFocus: false,
   });
 
@@ -36,18 +46,26 @@ export function useDashboardStats() {
     refetchOnWindowFocus: false,
   });
 
-  // Optionally, recent trips (not used in summary cards—could be used for a small chart)
-  // const recentTripsQuery = useQuery({
-  //   queryKey: ["dashboard", "recentTrips"],
-  //   queryFn: () => apiClient.trips.requests.getAll({ size: 10, direction: "DESC" }),
-  //   refetchOnWindowFocus: false,
-  // });
+  // Recent trip records (latest 3)
+  const recentTripsQuery = useQuery({
+    queryKey: ["dashboard", "recentTrips"],
+    queryFn: () => apiClient.tripRecords.getAll({ size: 3, direction: "DESC", sortBy: "assignedAt" }),
+    refetchOnWindowFocus: false,
+  });
+
+  // Recent fuel records (latest 3)
+  const recentFuelRecordsQuery = useQuery({
+    queryKey: ["dashboard", "recentFuelRecords"],
+    queryFn: () => apiClient.fuel.records.getAll({ size: 3, direction: "DESC", sortBy: "issuedAt" }),
+    refetchOnWindowFocus: false,
+  });
 
   return {
     vehiclesQuery,
     fuelRequestsQuery,
-    staffQuery,
-    tripRequestsQuery
-    // recentTripsQuery,
+    usersQuery,
+    tripRequestsQuery,
+    recentTripsQuery,
+    recentFuelRecordsQuery,
   };
 }
