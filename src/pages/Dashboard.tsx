@@ -1,19 +1,25 @@
-
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { MetricsOverview } from "@/components/dashboard/MetricsOverview";
 import { DashboardCard } from "@/components/dashboard/DashboardCard";
-import { DashboardCharts } from "@/components/dashboard/DashboardCharts";
-import { Car, Fuel, Wrench, Users, Calendar, FileText } from "lucide-react";
+import { Car, Fuel, Wrench, Users } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { MaintenanceStatusChart } from "@/components/dashboard/MaintenanceStatusChart";
-import { FuelConsumptionChart } from "@/components/dashboard/FuelConsumptionChart";
+import { useDashboardStats } from "@/hooks/useDashboardStats";
 
 export default function Dashboard() {
   const { user } = useAuth();
   const location = useLocation();
   const state = location.state as { permissionDenied?: boolean; roleDenied?: boolean } | null;
+
+  const {
+    vehiclesQuery,
+    serviceRequestsQuery,
+    fuelRequestsQuery,
+    staffQuery,
+    fuelRecordsQuery,
+    maintenanceRequestsQuery,
+  } = useDashboardStats();
 
   useEffect(() => {
     // Show toast notifications for permission or role denial
@@ -27,6 +33,13 @@ export default function Dashboard() {
     }
   }, [state]);
 
+  // Counts
+  const vehicleCount = vehiclesQuery.data?.data?.totalElements || "...";
+  const maintenanceCount = serviceRequestsQuery.data?.data?.totalElements || "...";
+  const fuelRequestCount = fuelRequestsQuery.data?.data?.totalElements || "...";
+  const driversCount = staffQuery.data?.length ?? "...";
+  const loading = vehiclesQuery.isLoading || serviceRequestsQuery.isLoading || fuelRequestsQuery.isLoading || staffQuery.isLoading;
+
   return (
     <div className="w-full space-y-6">
       <div className="flex flex-col gap-2">
@@ -34,7 +47,13 @@ export default function Dashboard() {
         <p className="text-muted-foreground">Here's an overview of your fleet management system</p>
       </div>
       
-      <MetricsOverview />
+      <MetricsOverview
+        vehicles={vehicleCount}
+        serviceRequests={maintenanceCount}
+        fuelRequests={fuelRequestCount}
+        drivers={driversCount}
+        loading={loading}
+      />
       
       {/* Charts section */}
       <DashboardCharts />
@@ -48,57 +67,31 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <DashboardCard 
           title="Vehicle Status" 
-          value="32/40"
-          description="Active vehicles"
+          value={vehicleCount}
+          description="Total vehicles"
           icon={<Car size={20} />}
-          trend="up"
-          percentage={5}
           link="/vehicles"
         />
         <DashboardCard 
           title="Fuel Requests" 
-          value="12"
+          value={fuelRequestCount}
           description="Pending approvals"
           icon={<Fuel size={20} />}
-          trend="up"
-          percentage={18}
           link="/fuel-management"
         />
         <DashboardCard 
           title="Maintenance" 
-          value="7"
-          description="Vehicles in service"
+          value={maintenanceCount}
+          description="Open maintenance tickets"
           icon={<Wrench size={20} />}
-          trend="down"
-          percentage={3}
           link="/service-requests"
         />
         <DashboardCard 
-          title="Trip Requests" 
-          value="24"
-          description="Scheduled this month"
-          icon={<Calendar size={20} />}
-          trend="up"
-          percentage={12}
-          link="/trip-requests"
-        />
-        <DashboardCard 
           title="Staff" 
-          value="18"
-          description="Active drivers"
+          value={driversCount}
+          description="Staff with driver role"
           icon={<Users size={20} />}
-          trend="same"
-          percentage={0}
           link="/settings"
-        />
-        <DashboardCard 
-          title="Maintenance Requests" 
-          value="15"
-          description="8 approved, 5 pending, 2 rejected"
-          icon={<FileText size={20} />}
-          trend="up"
-          percentage={10}
-          link="/service-requests/maintenance"
         />
       </div>
     </div>
