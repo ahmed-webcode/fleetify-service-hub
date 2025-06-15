@@ -1,300 +1,462 @@
-import { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { ServiceRequestForm } from "@/components/services/ServiceRequestForm";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import {
-  PlusCircle,
-  ListFilter,
-  Clock,
-  Search,
-  Calendar,
-  Bell,
-  ChevronRight,
-} from "lucide-react";
+import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Plus, PlusCircle, AlertTriangle, BarChart } from "lucide-react";
+import { HasPermission } from "@/components/auth/HasPermission";
+import { FuelServiceRequestDialog } from "@/components/fuel/FuelServiceRequestDialog";
+import { FuelRequestForm } from "@/components/fuel/FuelRequestForm";
+import { FuelRequestsList } from "@/components/fuel/FuelRequestsList";
+import { useQuery } from "@tanstack/react-query";
+import { apiClient } from "@/lib/apiClient";
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
+import FuelRecordsTab from "@/components/fuel/FuelRecordsTab";
 
-const serviceTypes = ["Fuel", "Maintenance", "Fleet", "All"];
-
-const ServiceRequests = () => {
-  const [view, setView] = useState("new");
-  const location = useLocation();
-  const [activeTab, setActiveTab] = useState("all");
-  const [searchTerm, setSearchTerm] = useState("");
+export default function FuelManagement() {
   const { hasPermission } = useAuth();
-  const navigate = useNavigate();
+  
+  const [requestFuelOpen, setRequestFuelOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
+  const itemsPerPage = 10;
 
-  const canApproveRequests = () => {
-    return hasPermission("approve_maintenance");
-  };
+  // Fetch fuel requests with pagination
+  const {
+    data: fuelRequestsData,
+    isLoading,
+    isError,
+    refetch
+  } = useQuery({
+    queryKey: ["fuelRequests", currentPage, itemsPerPage],
+    queryFn: async () => {
+      return apiClient.fuel.requests.getAll({
+        page: currentPage,
+        size: itemsPerPage,
+        sortBy: "requestedAt",
+        direction: "DESC"
+      });
+    }
+  });
 
-  const getServiceTypeFromUrl = () => {
-    if (location.pathname.includes("/fleet")) return "fleet";
-    if (location.pathname.includes("/fuel")) return "fuel";
-    if (location.pathname.includes("/maintenance")) return "maintenance";
-    return "fleet";
-  };
+  // Filter requests by search query (client-side filtering)
+  const filteredRequests = fuelRequestsData?.content.filter(request => {
+    if (!searchQuery) return true;
+    
+    const searchLower = searchQuery.toLowerCase();
+    return (
+      request.requestedBy.toLowerCase().includes(searchLower) ||
+      request.levelName.toLowerCase().includes(searchLower) ||
+      (request.vehiclePlateNumber && request.vehiclePlateNumber.toLowerCase().includes(searchLower)) ||
+      request.fuelTypeName.toLowerCase().includes(searchLower)
+    );
+  }) || [];
 
-  const [selectedServiceType, setSelectedServiceType] = useState(
-    getServiceTypeFromUrl()
+  // Component that shows when user doesn't have access
+  const AccessRestricted = () => (
+    <div className="flex flex-col items-center justify-center py-12">
+      <div className="rounded-full bg-muted p-4 mb-4">
+        <AlertTriangle className="h-8 w-8 text-muted-foreground" />
+      </div>
+      <h3 className="text-lg font-medium mb-2">Access Restricted</h3>
+      <p className="text-muted-foreground text-center max-w-md">
+        You don't have permission to access the Fuel Management page.
+        Please contact your administrator for assistance.
+      </p>
+    </div>
   );
 
-  useEffect(() => {
-    setSelectedServiceType(getServiceTypeFromUrl());
-  }, [location.pathname]);
+  const renderPaginationItems = () => {
+    const items = [];
+    const totalPages = fuelRequestsData?.totalPages || 1;
+    
+    if (totalPages <= 7) {
+      // Show all pages if 7 or fewer
+      for (let i = 0; i < totalPages; i++) {
+        items.push(
+          <PaginationItem key={i}>
+            <PaginationLink 
+              isActive={i === currentPage}
+              onClick={() => setCurrentPage(i)}
+            >
+              {i + 1}
+            </PaginationLink>
+          </PaginationItem>
+        );
+      }
+    } else {
+      // Always show first page
+      items.push(
+        <PaginationItem key={0}>
+          <PaginationLink 
+            isActive={0 === currentPage}
+            onClick={() => setCurrentPage(0)}
+          >
+            1
+          </PaginationLink>
+        </PaginationItem>
+      );
+      
+      // Add ellipsis if current page is 4 or greater
+      if (currentPage > 3) {
+        items.push(
+          <PaginationItem key="ellipsis1">
+            <PaginationEllipsis />
+          </PaginationItem>
+        );
+      }
+      
+      // Show pages around current page
+      const startPage = Math.max(1, currentPage - 1);
+      const endPage = Math.min(totalPages - 2, currentPage + 1);
+      
+      for (let i = startPage; i <= endPage; i++) {
+        items.push(
+          <PaginationItem key={i}>
+            <PaginationLink 
+              isActive={i === currentPage}
+              onClick={() => setCurrentPage(i)}
+            >
+              {i + 1}
+            </PaginationLink>
+          </PaginationItem>
+        );
+      }
+      
+      // Add ellipsis if current page is totalPages-4 or less
+      if (currentPage < totalPages - 3) {
+        items.push(
+          <PaginationItem key="ellipsis2">
+            <PaginationEllipsis />
+          </PaginationItem>
+        );
+      }
+      
+      // Always show last page
+      items.push(
+        <PaginationItem key={totalPages - 1}>
+          <PaginationLink 
+            isActive={totalPages - 1 === currentPage}
+            onClick={() => setCurrentPage(totalPages - 1)}
+          >
+            {totalPages}
+          </PaginationLink>
+        </PaginationItem>
+      );
+    }
+    
+    return items;
+  };
 
   return (
-    <>
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Service Requests</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Fuel Management</h1>
           <p className="text-muted-foreground">
-            Submit and manage service requests for your fleet
+            Track and manage fuel consumption across your fleet
           </p>
         </div>
+
+        {/* Only users with permission to request fuel see the button */}
+        <HasPermission 
+          permission="request_fuel" 
+          fallback={null}
+        >
+          <Button className="gap-1.5" onClick={() => setRequestFuelOpen(true)}>
+            <Plus className="h-4 w-4" />
+            <span>Request Fuel</span>
+          </Button>
+        </HasPermission>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-        {serviceTypes.map((type, index) => (
-          <Card key={type}>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base font-medium">
-                {type} Requests
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{(index + 1) * 3 + 5}</div>
-              <p className="text-xs text-muted-foreground">
-                {index === 0 ? "2 pending approval" : "1 pending approval"}
-              </p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {/* Only users with view_fuel permission see the main content */}
+      {!hasPermission("view_fuel") ? (
+        <AccessRestricted />
+      ) : (
+        <>
+          {/* Stats Cards */}
+          {/* <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Total Consumption
+                </CardTitle>
+                <BarChart className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">1,248 L</div>
+                <p className="text-xs text-muted-foreground">
+                  +12% from last month
+                </p>
+              </CardContent>
+            </Card>
 
-      <Tabs
-        defaultValue="new"
-        value={view}
-        onValueChange={setView}
-        className="space-y-6"
-      >
-        <div className="flex justify-between items-center">
-          <TabsList>
-            <TabsTrigger value="new" className="gap-2">
-              <PlusCircle className="h-4 w-4" />
-              New Request
-            </TabsTrigger>
-            <TabsTrigger value="history" className="gap-2">
-              <Clock className="h-4 w-4" />
-              Request History
-            </TabsTrigger>
-          </TabsList>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Average Cost
+                </CardTitle>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  className="h-4 w-4 text-muted-foreground"
+                >
+                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                </svg>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">$1.73</div>
+                <p className="text-xs text-muted-foreground">
+                  Per liter in current month
+                </p>
+              </CardContent>
+            </Card>
 
-          {view === "history" && (
-            <Button variant="outline" size="sm" className="gap-2">
-              <ListFilter className="h-4 w-4" />
-              Filter
-            </Button>
-          )}
-        </div>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Pending Requests
+                </CardTitle>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  className="h-4 w-4 text-muted-foreground"
+                >
+                  <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                </svg>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{fuelRequestsData?.content.filter(r => r.status === 'PENDING').length || 0}</div>
+                <p className="text-xs text-muted-foreground">
+                  Awaiting approval
+                </p>
+              </CardContent>
+            </Card>
 
-        <TabsContent value="new" className="animate-fade-in">
-          <ServiceRequestForm defaultServiceType={selectedServiceType as any} />
-        </TabsContent>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Most Active Vehicle
+                </CardTitle>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  className="h-4 w-4 text-muted-foreground"
+                >
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 1 0 7h5" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M22 21v-2a4 4 0 0 1 0 7.75" />
+                </svg>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">Toyota Hiace</div>
+                <p className="text-xs text-muted-foreground">
+                  328 liters consumed
+                </p>
+              </CardContent>
+            </Card>
+          </div> */}
 
-        <TabsContent value="history" className="animate-fade-in">
-          <div className="bg-card rounded-md border border-border">
-            <div className="p-4 border-b border-border">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <h2 className="text-xl font-semibold">Recent Requests</h2>
-                <div className="relative w-full sm:w-64">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    type="search"
-                    placeholder="Search requests..."
-                    className="w-full pl-8 bg-background"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <Tabs
-              defaultValue="all"
-              value={activeTab}
-              onValueChange={setActiveTab}
-              className="w-full"
-            >
-              <div className="px-4 border-b border-border">
-                <TabsList className="h-12 w-full justify-start gap-x-4 rounded-none border-b-0 bg-transparent p-0">
-                  <TabsTrigger
-                    value="all"
-                    className="data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none rounded-none border-b-2 border-transparent px-2 sm:px-4 py-3 text-muted-foreground hover:text-foreground"
-                  >
-                    All
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="pending"
-                    className="data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none rounded-none border-b-2 border-transparent px-2 sm:px-4 py-3 text-muted-foreground hover:text-foreground"
-                  >
-                    Pending
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="approved"
-                    className="data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none rounded-none border-b-2 border-transparent px-2 sm:px-4 py-3 text-muted-foreground hover:text-foreground"
-                  >
-                    Approved
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="rejected"
-                    className="data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none rounded-none border-b-2 border-transparent px-2 sm:px-4 py-3 text-muted-foreground hover:text-foreground"
-                  >
-                    Rejected
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="completed"
-                    className="data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none rounded-none border-b-2 border-transparent px-2 sm:px-4 py-3 text-muted-foreground hover:text-foreground"
-                  >
-                    Completed
-                  </TabsTrigger>
-                </TabsList>
-              </div>
-
-              <TabsContent value="all" className="p-0">
-                <div className="divide-y divide-border">
-                  <div className="p-4 hover:bg-muted/50 transition-colors">
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                      <div className="flex items-center gap-4">
-                        <Bell className="h-9 w-9 text-primary bg-primary/10 p-2 rounded-full" />
-                        <div>
-                          <h3 className="font-semibold">
-                            Fuel Request - Toyota Landcruiser
-                          </h3>
-                          <div className="flex flex-col xs:flex-row xs:items-center gap-1 xs:gap-3 text-sm text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                              <Calendar className="h-3.5 w-3.5" />
-                              <span>23 Apr 2025</span>
-                            </span>
-                            <span className="hidden xs:inline">•</span>
-                            <span>40 liters requested</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3 self-end md:self-center">
-                        <Badge
-                          variant="outline"
-                          className="bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-700"
-                        >
-                          Pending
-                        </Badge>
-                        {canApproveRequests() && (
-                          <Button variant="outline" size="sm">
-                            Approve
-                          </Button>
-                        )}
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate('/service-requests/details/SR-DEMO-001')}>
-                          <ChevronRight className="h-4 w-4" />
+          {/* Fuel Management Tabs */}
+          <Tabs defaultValue="requests" className="space-y-4">
+            <TabsList>
+              <TabsTrigger value="consumption">Consumption</TabsTrigger>
+              <TabsTrigger value="requests">Requests</TabsTrigger>
+              <TabsTrigger value="records">Records</TabsTrigger>
+              <TabsTrigger value="reports">Reports</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="consumption" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Fuel Consumption History</CardTitle>
+                  <CardDescription>
+                    Monthly breakdown of fuel usage across all vehicles
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pl-2">
+                  {/* Placeholder for chart */}
+                  <div className="h-[300px] w-full rounded-md border border-dashed flex items-center justify-center">
+                    <p className="text-center text-muted-foreground">
+                      Fuel consumption chart will be displayed here
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="requests" className="space-y-4">
+              <Card>
+                <CardHeader className="pb-3">
+                  <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+                    <div>
+                      <CardTitle>Fuel Requests</CardTitle>
+                      <CardDescription>
+                        Manage and track fuel requests
+                      </CardDescription>
+                    </div>
+                    <div className="relative w-full sm:w-64">
+                      <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search requests..."
+                        className="pl-8"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {isLoading ? (
+                    <div className="flex justify-center p-8">
+                      <p>Loading fuel requests...</p>
+                    </div>
+                  ) : isError ? (
+                    <div className="bg-red-50 border-l-4 border-red-500 p-4">
+                      <p className="text-red-700">Error loading fuel requests. Please try again.</p>
+                    </div>
+                  ) : filteredRequests.length === 0 && !searchQuery ? (
+                    <div className="rounded-md border border-dashed p-8">
+                      <div className="flex flex-col items-center justify-center text-center">
+                        <PlusCircle className="h-12 w-12 text-muted-foreground opacity-50 mb-2" />
+                        <h3 className="text-lg font-medium mb-1">No requests yet</h3>
+                        <p className="text-sm text-muted-foreground mb-4">
+                          There are no fuel requests at the moment. Create one to get started.
+                        </p>
+                        <Button onClick={() => setRequestFuelOpen(true)}>
+                          <Plus className="mr-2 h-4 w-4" />
+                          New Fuel Request
                         </Button>
                       </div>
                     </div>
-                  </div>
-
-                  <div className="p-4 hover:bg-muted/50 transition-colors">
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                      <div className="flex items-center gap-4">
-                        <Bell className="h-9 w-9 text-blue-600 bg-blue-100 dark:text-blue-400 dark:bg-blue-900/30 p-2 rounded-full" />
-                        <div>
-                          <h3 className="font-semibold">
-                            Maintenance Request - Nissan Patrol
-                          </h3>
-                          <div className="flex flex-col xs:flex-row xs:items-center gap-1 xs:gap-3 text-sm text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                              <Calendar className="h-3.5 w-3.5" />
-                              <span>20 Apr 2025</span>
-                            </span>
-                            <span className="hidden xs:inline">•</span>
-                            <span>Oil change and brake inspection</span>
-                          </div>
+                  ) : filteredRequests.length === 0 ? (
+                    <div className="rounded-md border border-dashed p-8 text-center">
+                      <p className="text-muted-foreground">No matching fuel requests found</p>
+                    </div>
+                  ) : (
+                    <>
+                      <FuelRequestsList requests={filteredRequests} onRefresh={refetch} />
+                      
+                      {/* Pagination */}
+                      {fuelRequestsData && fuelRequestsData.totalPages > 1 && !searchQuery && (
+                        <div className="mt-6">
+                          <Pagination>
+                            <PaginationContent>
+                              <PaginationItem>
+                                <PaginationPrevious 
+                                  onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
+                                  aria-disabled={currentPage === 0}
+                                  className={currentPage === 0 ? "pointer-events-none opacity-50" : ""}
+                                />
+                              </PaginationItem>
+                              
+                              {renderPaginationItems()}
+                              
+                              <PaginationItem>
+                                <PaginationNext 
+                                  onClick={() => setCurrentPage(Math.min(fuelRequestsData.totalPages - 1, currentPage + 1))}
+                                  aria-disabled={currentPage === fuelRequestsData.totalPages - 1}
+                                  className={currentPage === fuelRequestsData.totalPages - 1 ? "pointer-events-none opacity-50" : ""}
+                                />
+                              </PaginationItem>
+                            </PaginationContent>
+                          </Pagination>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-3 self-end md:self-center">
-                        <Badge
-                          variant="outline"
-                          className="bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-700"
-                        >
-                          Approved
-                        </Badge>
-                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate('/service-requests/details/SR-DEMO-002')}>
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
-                      </div>
+                      )}
+                    </>
+                  )}
+                </CardContent>
+                <CardFooter className="border-t py-3 px-6">
+                  <p className="text-xs text-muted-foreground">
+                    {fuelRequestsData && (
+                      `Showing ${filteredRequests.length} of ${fuelRequestsData.totalElements} requests`
+                    )}
+                  </p>
+                </CardFooter>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="records" className="space-y-4">
+              <FuelRecordsTab />
+            </TabsContent>
+            
+            <TabsContent value="reports" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Fuel Reports</CardTitle>
+                  <CardDescription>
+                    Download and analyze fuel reports
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="rounded-md border p-4">
+                      <h3 className="font-medium mb-2">Monthly Consumption Report</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Detailed breakdown of fuel usage by vehicle for the current month
+                      </p>
+                      <Button variant="outline">Download Report</Button>
+                    </div>
+                    <div className="rounded-md border p-4">
+                      <h3 className="font-medium mb-2">Quarterly Cost Analysis</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Financial analysis of fuel expenses for the last quarter
+                      </p>
+                      <Button variant="outline">Download Report</Button>
                     </div>
                   </div>
-                  
-                  <div className="p-4 hover:bg-muted/50 transition-colors">
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                      <div className="flex items-center gap-4">
-                        <Bell className="h-9 w-9 text-purple-600 bg-purple-100 dark:text-purple-400 dark:bg-purple-900/30 p-2 rounded-full" />
-                        <div>
-                          <h3 className="font-semibold">
-                            Fleet Request - Student Field Trip
-                          </h3>
-                          <div className="flex flex-col xs:flex-row xs:items-center gap-1 xs:gap-3 text-sm text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                              <Calendar className="h-3.5 w-3.5" />
-                              <span>18 Apr 2025</span>
-                            </span>
-                            <span className="hidden xs:inline">•</span>
-                            <span>25 passengers</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3 self-end md:self-center">
-                        <Badge
-                          variant="outline"
-                          className="bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-900/30 dark:text-rose-400 dark:border-rose-700"
-                        >
-                          Rejected
-                        </Badge>
-                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate('/service-requests/details/SR-DEMO-003')}>
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </TabsContent>
+                </CardContent>
+                <CardFooter className="border-t px-6 py-4">
+                  <Button variant="outline" className="w-full">
+                    Generate Custom Report
+                  </Button>
+                </CardFooter>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </>
+      )}
 
-              <TabsContent value="pending" className="p-0">
-                <div className="p-4 text-center text-muted-foreground">
-                  Loading pending requests...
-                </div>
-              </TabsContent>
-              <TabsContent value="approved" className="p-0">
-                <div className="p-4 text-center text-muted-foreground">
-                  Loading approved requests...
-                </div>
-              </TabsContent>
-              <TabsContent value="rejected" className="p-0">
-                <div className="p-4 text-center text-muted-foreground">
-                  Loading rejected requests...
-                </div>
-              </TabsContent>
-              <TabsContent value="completed" className="p-0">
-                <div className="p-4 text-center text-muted-foreground">
-                  Loading completed requests...
-                </div>
-              </TabsContent>
-            </Tabs>
-          </div>
-        </TabsContent>
-      </Tabs>
-    </>
+      {/* Fuel Request Dialog */}
+      <Dialog open={requestFuelOpen} onOpenChange={setRequestFuelOpen}>
+        <DialogContent className="sm:max-w-2xl max-h-[95vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>New Fuel Request</DialogTitle>
+          </DialogHeader>
+          <FuelRequestForm 
+            onSuccess={() => {
+              setRequestFuelOpen(false);
+              refetch();
+            }}
+            onCancel={() => setRequestFuelOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
+    </div>
   );
-};
-
-export default ServiceRequests;
+}

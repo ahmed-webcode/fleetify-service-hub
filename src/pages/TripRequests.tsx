@@ -204,7 +204,7 @@ export default function TripManagement() {
                     </p>
                 </div>
 
-                <HasPermission permission="create_trip_request" fallback={null}>
+                <HasPermission permission="request_trip">
                     <Button className="gap-1.5" onClick={() => setRequestTripOpen(true)}>
                         <Plus className="h-4 w-4" />
                         <span>Request Trip</span>
@@ -331,7 +331,7 @@ export default function TripManagement() {
                                                     There are no trip requests at the moment.
                                                 </p>
                                                 <HasPermission
-                                                    permission="create_trip_request"
+                                                    permission="request_trip"
                                                     fallback={null}
                                                 >
                                                     <Button

@@ -35,6 +35,7 @@ import { UserDto, CreateUserDto, UpdateUserDto, Gender } from "@/types/user";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Search, Plus, Edit2, UserCircle, CheckSquare, XSquare } from "lucide-react";
+import { HasPermission } from "@/components/ui/hasPermission";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -544,7 +545,7 @@ export default function ManageUsers() {
         );
     }
 
-    if (!hasPermission("add_users")) {
+    if (!hasPermission("manage_user")) {
         return (
             <div className="py-12 text-center">
                 <UserCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />

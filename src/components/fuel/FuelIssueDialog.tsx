@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -35,7 +34,7 @@ export default function FuelIssueDialog({
   const { data: fuelTypes, isLoading: isLoadingFuelTypes } = useQuery({
     queryKey: ["allFuelTypes"],
     queryFn: async () =>
-      apiClient.fuel.types.getAll({ size: 100 }).then(res => res.content),
+      apiClient.fuel.getFuelTypes().then(res => res), // changed here!
   });
 
   const handleSubmit = async () => {

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,6 +30,7 @@ import {
 import { Plus, Search, Users, FileText, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth, MOCK_COLLEGES, MOCK_INSTITUTES, MOCK_CAMPUSES } from "@/contexts/AuthContext";
+import { HasPermission } from "@/components/ui/has-permission";
 
 const MOCK_DRIVERS = [
   {
@@ -154,12 +154,14 @@ const DriverManagement = () => {
               </p>
             </div>
 
-            {canAddDrivers && (
-              <Button className="gap-2" onClick={() => setAddDriverOpen(true)}>
-                <Plus className="h-4 w-4" />
-                Add Driver
-              </Button>
-            )}
+            <HasPermission permission="manage_user">
+              {canAddDrivers && (
+                <Button className="gap-2" onClick={() => setAddDriverOpen(true)}>
+                  <Plus className="h-4 w-4" />
+                  Add Driver
+                </Button>
+              )}
+            </HasPermission>
           </div>
 
           <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
