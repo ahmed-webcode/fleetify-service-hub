@@ -1,17 +1,23 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/apiClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { FileDown, FileSpreadsheet } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import * as XLSX from "xlsx";
-import { FuelRecordFullDto } from "@/types/fuel";
+import { FuelRecordFullDto, RecordType } from "@/types/fuel";
+import { toast } from "@/hooks/use-toast";
+import { Combobox } from "@/components/ui/combobox";
 
 export default function FuelReportsTab() {
   const [downloading, setDownloading] = useState(false);
+  // Filter state
+  const [fuelType, setFuelType] = useState<string | null>(null);
+  const [recordType, setRecordType] = useState<string | null>(null);
+  const [levelId, setLevelId] = useState<string | null>(null);
 
-  // Fetch all fuel records (let's use a high pageSize to get all),
-  // or in a real scenario, would do paging/download per filter.
+  // Fetch all fuel records (max 5000)
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["fuelRecords-report"],
     queryFn: () =>
@@ -23,17 +29,62 @@ export default function FuelReportsTab() {
       }),
   });
 
+  // Fetch fuel types & levels for filters
+  const { data: fuelTypesData } = useQuery({
+    queryKey: ["fuelTypes"],
+    queryFn: () => apiClient.fuel.types.getAll(),
+  });
+
+  const { data: levelsData } = useQuery({
+    queryKey: ["levels"],
+    queryFn: () => apiClient.levels.getAll(),
+  });
+
+  // Compute options for comboboxes, start with "All"
+  const fuelTypeOptions = [{ value: "", label: "All fuel types" }]
+    .concat(
+      fuelTypesData?.map((f: any) => ({
+        value: String(f.id),
+        label: f.name,
+      })) || []
+    );
+  const recordTypeOptions = [
+    { value: "", label: "All record types" },
+    { value: RecordType.QUOTA, label: "Quota" },
+    { value: RecordType.REQUEST, label: "Request" },
+    { value: RecordType.EXTERNAL, label: "External" },
+  ];
+  const levelOptions = [{ value: "", label: "All levels" }]
+    .concat(
+      levelsData?.map((lvl: any) => ({
+        value: String(lvl.id),
+        label: lvl.name,
+      })) || []
+    );
+
+  // Helper: filter records
+  const filteredRecords = useMemo(() => {
+    if (!data?.content) return [];
+    return data.content.filter((r: FuelRecordFullDto) => {
+      const matchFuelType =
+        !fuelType || fuelType === "" || String(r.fuelType?.id) === fuelType;
+      const matchRecordType =
+        !recordType || recordType === "" || r.recordType === recordType;
+      const matchLevel =
+        !levelId || levelId === "" || (r.level && String(r.level.id) === levelId);
+      return matchFuelType && matchRecordType && matchLevel;
+    });
+  }, [data, fuelType, recordType, levelId]);
+
   // Helper: format rows for Excel
   function formatRows(records: FuelRecordFullDto[]): any[] {
-    // Flatten the record fields as much as makes sense for Excel readability
     return records.map(r => ({
       "Record Type": r.recordType,
       "Fuel Type": r.fuelType?.name || "",
       "Vehicle Plate Number": r.vehicle?.plateNumber || "",
       "Level Name": r.level?.name || "",
-      "Requested By": r.fuelRequest?.id ? "" : (r.issuedBy?.firstName + " " + r.issuedBy?.lastName),
       "Issued Amount (L)": r.issuedAmount,
-      "Received Amount (L)": r.receivedAmount !== null && r.receivedAmount !== undefined ? r.receivedAmount : "",
+      "Received Amount (L)": r.receivedAmount ?? "",
       "Issued At": r.issuedAt ? new Date(r.issuedAt).toLocaleString() : "",
       "Received At": r.receivedAt ? new Date(r.receivedAt).toLocaleString() : "",
       "Issued By": r.issuedBy ? `${r.issuedBy.firstName} ${r.issuedBy.lastName}` : "",
@@ -42,14 +93,18 @@ export default function FuelReportsTab() {
   }
 
   function handleDownloadExcel() {
-    if (!data || !data.content) return;
+    if (!filteredRecords.length) {
+      toast({
+        title: "No records to export",
+        description: "There is no data to export with the selected filters.",
+      });
+      return;
+    }
     setDownloading(true);
-    // Data preparation
-    const rows = formatRows(data.content);
+    const rows = formatRows(filteredRecords);
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "FuelRecords");
-    // Download
     XLSX.writeFile(wb, "fuel-records-report.xlsx");
     setDownloading(false);
   }
@@ -57,18 +112,59 @@ export default function FuelReportsTab() {
   return (
     <Card>
       <CardHeader>
-        <div className="flex flex-row items-center justify-between">
+        <div className="flex flex-row items-center justify-between flex-wrap gap-4">
           <div>
             <CardTitle className="flex items-center gap-2">
               <FileSpreadsheet className="h-5 w-5 text-muted-foreground" />
               Fuel Reports
             </CardTitle>
             <CardDescription>
-              Download an Excel report of all fuel issue records (max 5000 rows).
+              Export Excel report for fuel records, filtered as needed (max 5000 rows).
             </CardDescription>
           </div>
           <Button onClick={() => refetch()} variant="outline" size="sm" disabled={isLoading}>
             Refresh
+          </Button>
+        </div>
+        {/* Filters */}
+        <div className="flex flex-wrap gap-3 mt-6">
+          <div className="w-[180px]">
+            <Combobox
+              options={fuelTypeOptions}
+              value={fuelType ?? ""}
+              onChange={setFuelType}
+              placeholder="Fuel type"
+              isLoading={false}
+              className="w-full"
+            />
+          </div>
+          <div className="w-[180px]">
+            <Combobox
+              options={recordTypeOptions}
+              value={recordType ?? ""}
+              onChange={setRecordType}
+              placeholder="Record type"
+              isLoading={false}
+              className="w-full"
+            />
+          </div>
+          <div className="w-[180px]">
+            <Combobox
+              options={levelOptions}
+              value={levelId ?? ""}
+              onChange={setLevelId}
+              placeholder="Level"
+              isLoading={false}
+              className="w-full"
+            />
+          </div>
+          <Button
+            onClick={handleDownloadExcel}
+            disabled={isLoading || downloading}
+            className="gap-2"
+          >
+            <FileDown className="h-4 w-4" />
+            Download Excel
           </Button>
         </div>
       </CardHeader>
@@ -78,22 +174,14 @@ export default function FuelReportsTab() {
             Error loading fuel records. Try refreshing.
           </div>
         )}
-        <div className="flex items-center gap-4 pb-6">
-          <Button
-            onClick={handleDownloadExcel}
-            disabled={isLoading || !data?.content?.length || downloading}
-            className="gap-2"
-          >
-            <FileDown className="h-4 w-4" />
-            Download Excel
-          </Button>
-          {isLoading && <span className="text-muted-foreground">Fetching fuel records…</span>}
-          {!isLoading && data?.content?.length === 0 && (
-            <span className="text-muted-foreground">No fuel records to download.</span>
-          )}
-        </div>
-        {!isLoading && data?.content?.length > 0 && (
-          <div className="overflow-x-auto max-h-[300px] border rounded">
+        {isLoading && (
+          <div className="text-muted-foreground">Fetching fuel records…</div>
+        )}
+        {!isLoading && (!data?.content || data.content.length === 0) && (
+          <span className="text-muted-foreground">No fuel records to download.</span>
+        )}
+        {!isLoading && filteredRecords.length > 0 && (
+          <div className="overflow-x-auto max-h-[300px] border rounded mt-4">
             <table className="min-w-full text-sm">
               <thead>
                 <tr className="bg-muted/50">
@@ -110,7 +198,7 @@ export default function FuelReportsTab() {
                 </tr>
               </thead>
               <tbody>
-                {data.content.slice(0, 10).map(r => (
+                {filteredRecords.slice(0, 10).map(r => (
                   <tr key={r.id} className="border-b last:border-0">
                     <td className="px-2 py-2">{r.recordType}</td>
                     <td className="px-2 py-2">{r.fuelType?.name || ""}</td>
@@ -127,9 +215,12 @@ export default function FuelReportsTab() {
               </tbody>
             </table>
             <div className="pt-1 text-xs text-right text-muted-foreground px-2">
-              Showing first 10 of {data.content.length} records for preview.
+              Showing first 10 of {filteredRecords.length} records for preview.
             </div>
           </div>
+        )}
+        {!isLoading && filteredRecords.length === 0 && data?.content?.length > 0 && (
+          <div className="pt-4 text-muted-foreground">No records match these filters.</div>
         )}
       </CardContent>
     </Card>
