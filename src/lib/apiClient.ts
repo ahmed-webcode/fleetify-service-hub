@@ -176,7 +176,7 @@ export const apiClient = {
             return fetchWithErrorHandling<import('@/types/user').UserFull>("/users/me");
         },
         changePassword: (data: import("@/types/user").ChangePasswordDto) => {
-            return fetchWithErrorHandling<void>("/user/change-password", {
+            return fetchWithErrorHandling<void>("/users/change-password", {
                 method: "POST",
                 body: JSON.stringify(data),
                 headers: {
