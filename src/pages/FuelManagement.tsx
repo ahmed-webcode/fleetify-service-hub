@@ -23,6 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import FuelRecordsTab from "@/components/fuel/FuelRecordsTab";
 import FuelList from "@/components/fuel/FuelList";
+import FuelReportsTab from "@/components/fuel/FuelReportsTab";
 
 export default function FuelManagement() {
   const { hasPermission } = useAuth();
@@ -292,6 +293,7 @@ export default function FuelManagement() {
               <HasPermission permission="view_fuel" fallback={null}>
                 <TabsTrigger value="fuels">Fuels</TabsTrigger>
               </HasPermission>
+              <TabsTrigger value="reports">Reports</TabsTrigger>
             </TabsList>
             
             <TabsContent value="requests" className="space-y-4">
@@ -391,6 +393,11 @@ export default function FuelManagement() {
 
             <TabsContent value="fuels" className="space-y-4">
               <FuelList />
+            </TabsContent>
+
+            <TabsContent value="reports" className="space-y-4">
+              {/* Fuel Reports Tab */}
+              <FuelReportsTab />
             </TabsContent>
           </Tabs>
         </>
