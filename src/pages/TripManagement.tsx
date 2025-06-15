@@ -40,6 +40,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
+import TripReportsExporter from "@/components/trips/TripReportsExporter";
 
 export default function TripManagement() {
     const { hasPermission } = useAuth();
@@ -255,78 +256,14 @@ export default function TripManagement() {
                 </HasPermission>
             </div>
 
-            {!hasPermission("view_trip_management") ? ( // Assuming this permission
+            {!hasPermission("view_trip_management") ? (
                 <AccessRestricted />
             ) : (
                 <>
-                    {/* Stats Cards - Adapt as needed */}
-                    {/* <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                        <Card>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">
-                                    Total Trips (Current View)
-                                </CardTitle>
-                                <Route className="h-4 w-4 text-muted-foreground" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">
-                                    {tripRequestsData?.totalElements || 0}
-                                </div>
-                                <p className="text-xs text-muted-foreground">
-                                    Overall trips in the system
-                                </p>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">
-                                    Pending Requests
-                                </CardTitle>
-                                <Clock className="h-4 w-4 text-muted-foreground" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">{pendingRequestsCount}</div>
-                                <p className="text-xs text-muted-foreground">Awaiting approval</p>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">
-                                    Approved Trips (Month)
-                                </CardTitle>
-                                <CalendarDays className="h-4 w-4 text-muted-foreground" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">N/A</div>
-                                <p className="text-xs text-muted-foreground">
-                                    Placeholder for monthly approved
-                                </p>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">
-                                    Active / Upcoming Trips
-                                </CardTitle>
-                                <UserCheck className="h-4 w-4 text-muted-foreground" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">N/A</div>
-                                <p className="text-xs text-muted-foreground">
-                                    Placeholder for active trips
-                                </p>
-                            </CardContent>
-                        </Card>
-                    </div> */}
-
                     <Tabs defaultValue="requests" className="space-y-4">
                         <TabsList>
                             <TabsTrigger value="requests">Trip Requests</TabsTrigger>
                             <TabsTrigger value="records">Trip Records</TabsTrigger>
-                            <TabsTrigger value="history">Trip History</TabsTrigger>
                             <TabsTrigger value="reports">Reports</TabsTrigger>
                         </TabsList>
 
@@ -539,69 +476,22 @@ export default function TripManagement() {
                             </Card>
                         </TabsContent>
 
-                        <TabsContent value="history" className="space-y-4">
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Trip History</CardTitle>
-                                    <CardDescription>
-                                        View completed and past trips. (Placeholder)
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent className="pl-2">
-                                    <div className="h-[300px] w-full rounded-md border border-dashed flex items-center justify-center">
-                                        <p className="text-center text-muted-foreground">
-                                            Trip history & analytics will be displayed here.
-                                        </p>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </TabsContent>
-
                         <TabsContent value="reports" className="space-y-4">
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Trip Reports</CardTitle>
+                                    <CardTitle>Trip & Assignment Reports</CardTitle>
                                     <CardDescription>
-                                        Generate and download trip reports. (Placeholder)
+                                        Generate Excel reports for trip requests and trip records with advanced filters.
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="space-y-4">
-                                        <div className="rounded-md border p-4">
-                                            <h3 className="font-medium mb-2">
-                                                Monthly Trip Summary
-                                            </h3>
-                                            <p className="text-sm text-muted-foreground mb-4">
-                                                Detailed breakdown of all trips for the current
-                                                month.
-                                            </p>
-                                            <Button variant="outline" disabled>
-                                                Download Report
-                                            </Button>
-                                        </div>
-                                    </div>
+                                    <TripReportsExporter />
                                 </CardContent>
                             </Card>
                         </TabsContent>
                     </Tabs>
                 </>
             )}
-
-            {/* Trip Request Dialog */}
-            <Dialog open={requestTripOpen} onOpenChange={setRequestTripOpen}>
-                <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
-                    <DialogHeader>
-                        <DialogTitle>New Trip Request</DialogTitle>
-                    </DialogHeader>
-                    <TripRequestForm
-                        onSuccess={() => {
-                            setRequestTripOpen(false);
-                            refetch(); // Refetch data after successful creation
-                        }}
-                        onCancel={() => setRequestTripOpen(false)}
-                    />
-                </DialogContent>
-            </Dialog>
         </div>
     );
 }
