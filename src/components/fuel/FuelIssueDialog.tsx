@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -6,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { apiClient } from "@/lib/apiClient";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { RecordType } from "@/types/fuel";
 
 /**
  * The Fuel Issue Dialog.
@@ -49,7 +49,7 @@ export default function FuelIssueDialog({
     setProcessing(true);
     try {
       await apiClient.fuel.records.issue({
-        recordType: "EXTERNAL",
+        recordType: RecordType.EXTERNAL,
         vehicleId: Number(vehicleId),
         fuelTypeId: Number(fuelTypeId),
         issuedAmount: Number(issuedAmount),
