@@ -101,7 +101,8 @@ export type Permission =
   | 'manage_fuel_requests'
   | 'manage_maintenance_requests'
   | 'add_vehicle'
-  | 'issue_fuel'; // NEW: Permission to issue fuel
+  | 'issue_fuel'
+  | 'view_maintenance_requests'; // <-- ADDED
 
 // Updated ROLE_PERMISSIONS to use new IDs as keys
 export const ROLE_PERMISSIONS: Record<number, Permission[]> = {
