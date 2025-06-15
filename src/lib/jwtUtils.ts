@@ -65,109 +65,7 @@ export function mapRoleNamesToRoles(roleNames: string[]): Role[] {
   });
 }
 
-/**
- * Permission mapping (backend | FE usage):
- * - VIEW_USER                => 'view_user'
- * - MANAGE_USER              => 'manage_user'
- * - MANAGE_POSITION          => 'manage_position'
- * - MANAGE_PROJECT           => 'manage_project'
- * - MANAGE_VEHICLE           => 'manage_vehicle'
- * - VIEW_VEHICLE             => 'view_vehicle'
- * - VIEW_VEHICLE_LIBRE       => 'view_vehicle_libre'
- * - VIEW_TRIP_REQUEST        => 'view_trip_request'
- * - MANAGE_TRIP_REQUEST      => 'manage_trip_request'
- * - REQUEST_TRIP             => 'request_trip'
- * - VIEW_FUEL_REQUEST        => 'view_fuel_request'
- * - MANAGE_FUEL_REQUEST      => 'manage_fuel_request'
- * - REQUEST_FUEL             => 'request_fuel'
- * - VIEW_MAINTENANCE_REQUEST => 'view_maintenance_request'
- * - MANAGE_MAINTENANCE_REQUEST => 'manage_maintenance_request'
- * - REQUEST_MAINTENANCE      => 'request_maintenance'
- * - VIEW_FUEL                => 'view_fuel'
- * - MANAGE_FUEL              => 'manage_fuel'
- * - ISSUE_FUEL               => 'issue_fuel'
- * - VIEW_ITEM                => 'view_item'
- * - MANAGE_ITEM              => 'manage_item'
- * - VIEW_INSURANCE           => 'view_insurance'
- * - MANAGE_INSURANCE         => 'manage_insurance'
- * - VIEW_INCIDENT            => 'view_incident'
- * - MANAGE_INCIDENT          => 'manage_incident'
- * - REPORT_INCIDENT          => 'report_incident'
- * - VIEW_MAINTENANCE         => 'view_maintenance'
- * - MANAGE_MAINTENANCE       => 'manage_maintenance'
- * - VIEW_TRIP                => 'view_trip'
- * - MANAGE_TRIP              => 'manage_trip'
- */
-
-// Permission type definition
-export type Permission =
-  | 'view_user'
-  | 'manage_user'
-  | 'manage_position'
-  | 'manage_project'
-  | 'manage_vehicle'
-  | 'view_vehicle'
-  | 'view_vehicle_libre'
-  | 'view_trip_request'
-  | 'manage_trip_request'
-  | 'request_trip'
-  | 'view_fuel_request'
-  | 'manage_fuel_request'
-  | 'request_fuel'
-  | 'view_maintenance_request'
-  | 'manage_maintenance_request'
-  | 'request_maintenance'
-  | 'view_fuel'
-  | 'manage_fuel'
-  | 'issue_fuel'
-  | 'view_item'
-  | 'manage_item'
-  | 'view_insurance'
-  | 'manage_insurance'
-  | 'view_incident'
-  | 'manage_incident'
-  | 'report_incident'
-  | 'view_maintenance'
-  | 'manage_maintenance'
-  | 'view_trip'
-  | 'manage_trip';
-
-// Update ROLE_PERMISSIONS to match backend mapping
-export const ROLE_PERMISSIONS: Record<number, Permission[]> = {
-  1: [
-    'view_user','manage_user','manage_position','manage_project','manage_vehicle','view_vehicle','view_vehicle_libre',
-    'view_trip_request','manage_trip_request','view_fuel_request','manage_fuel_request',
-    'view_maintenance_request','manage_maintenance_request','view_fuel','manage_fuel','view_item','manage_item',
-    'view_insurance','manage_insurance','view_incident','manage_incident','report_incident',
-    'view_maintenance','manage_maintenance','view_trip','manage_trip'
-  ], // Transport Director
-  2: [
-    'view_user','view_vehicle','view_trip_request','manage_trip_request','view_trip','manage_trip'
-  ], // Deployment Manager
-  3: [
-    'view_user','view_vehicle','view_fuel_request','manage_fuel_request','view_fuel','manage_fuel','issue_fuel'
-  ], // Fuel Manager
-  4: [
-    'view_user','view_vehicle','view_vehicle_libre','view_insurance','manage_insurance','view_incident','manage_incident','report_incident','view_maintenance'
-  ], // Insurance Manager
-  5: [
-    'view_user','view_vehicle','view_maintenance_request','manage_maintenance_request','view_fuel','view_item','view_insurance','view_incident','view_maintenance','manage_maintenance'
-  ], // Maintenance Manager
-  6: [
-    'view_user','view_item','manage_item'
-  ], // Store Manager
-  7: [
-    'view_user','view_vehicle','request_trip','request_fuel','view_fuel'
-  ], // Operational Director
-  8: [
-    'view_user','view_vehicle','view_fuel','issue_fuel'
-  ], // Fuel Attendant
-  9: [
-    'view_user','view_vehicle','request_fuel','request_maintenance','report_incident'
-  ], // Staff
-  // Add Driver, Mechanic, etc, if needed
-};
-
+// Updated ROLE_DETAILS for new backend mapping
 export const ROLE_DETAILS: Record<number, { name: string, description: string }> = {
   1: { name: 'Transport Director', description: 'Manages the transport department' },
   2: { name: 'Deployment Manager', description: 'Responsible for deploying the vehicle for trip' },
@@ -180,4 +78,43 @@ export const ROLE_DETAILS: Record<number, { name: string, description: string }>
   9: { name: 'Staff', description: 'General staff of the university' },
   10: { name: 'Driver', description: 'Responsible for driving the vehicle' },
   11: { name: 'Mechanic', description: 'Responsible for maintaining the vehicle' },
+};
+
+// Permission type definition
+export type Permission = 
+  | 'add_users'
+  | 'manage_drivers' 
+  | 'request_fleet'
+  | 'approve_fleet'
+  | 'approve_maintenance'
+  | 'request_maintenance'
+  | 'report_incidents'
+  | 'track_vehicles'
+  | 'view_reports'
+  | 'view_admin_section'
+  | 'view_trip_management'
+  | 'view_fuel_management'
+  | 'create_trip_request'
+  | 'create_maintenance_request'
+  | 'manage_users_section'
+  | 'manage_trip_requests'
+  | 'manage_fuel_requests'
+  | 'manage_maintenance_requests'
+  | 'add_vehicle'
+  | 'issue_fuel'
+  | 'view_maintenance_requests'; // <-- ADDED
+
+// Updated ROLE_PERMISSIONS to use new IDs as keys
+export const ROLE_PERMISSIONS: Record<number, Permission[]> = {
+  1: ['add_users', 'manage_drivers', 'approve_fleet', 'approve_maintenance', 'request_maintenance', 'report_incidents', 'track_vehicles', 'view_reports', 'add_vehicle', 'view_admin_section', 'manage_users_section', 'manage_trip_requests', 'manage_fuel_requests', 'manage_maintenance_requests', 'create_trip_request', 'create_maintenance_request'], // Transport Director (removed 'view_maintenance_management')
+  2: ['manage_drivers', 'request_fleet', 'approve_fleet', 'report_incidents', 'track_vehicles'], // Deployment Manager
+  3: ['request_maintenance', 'report_incidents', 'view_reports', 'issue_fuel'], // Fuel Manager (has issue_fuel)
+  4: ['view_reports'], // Insurance Manager
+  5: ['approve_maintenance', 'request_maintenance', 'report_incidents', 'view_reports'], // Maintenance Manager
+  6: ['request_maintenance', 'report_incidents'], // Store Manager
+  7: ['add_users', 'manage_drivers', 'request_fleet', 'approve_fleet', 'approve_maintenance', 'request_maintenance', 'report_incidents', 'track_vehicles', 'view_reports', 'add_vehicle'], // Operational Director (removed 'view_maintenance_management')
+  8: ['request_maintenance', 'report_incidents', 'issue_fuel'], // Fuel Attendant (has issue_fuel)
+  9: ['request_fleet'], // Staff
+  10: ['request_maintenance', 'report_incidents'], // Driver
+  11: ['request_maintenance', 'report_incidents'], // Mechanic
 };
