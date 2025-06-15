@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { UserCircle, Bell, Languages, Monitor } from "lucide-react";
+import { UserCircle, Bell, Languages, Monitor, Moon, Sun } from "lucide-react";
 import { toast } from "sonner";
 import ManageUsersPage from "./ManageUsers";
 
@@ -147,6 +147,28 @@ export default function Settings() {
 
     const handleSave = () => {
         toast.success("Settings saved successfully");
+    };
+
+    // Theme app settings state under Appearance
+    const [theme, setTheme] = useState<"light" | "dark">(
+        () =>
+            (localStorage.getItem("theme") as "light" | "dark") ||
+            (window.matchMedia &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches
+                ? "dark"
+                : "light")
+    );
+
+    useEffect(() => {
+        document.documentElement.classList.remove("light", "dark");
+        document.documentElement.classList.add(theme);
+        localStorage.setItem("theme", theme);
+    }, [theme]);
+
+    const handleThemeToggle = () => {
+        const newTheme = theme === "light" ? "dark" : "light";
+        setTheme(newTheme);
+        toast.success(`Theme set to ${newTheme === "dark" ? "Dark" : "Light"} mode`);
     };
 
     return (
@@ -419,56 +441,38 @@ export default function Settings() {
                 <TabsContent value="appearance" className="space-y-4 mt-4">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Interface Preferences</CardTitle>
+                            <CardTitle>Appearance</CardTitle>
                             <CardDescription>
-                                Customize the appearance of the application
+                                Set the application appearance.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-6">
                             <div className="space-y-4">
-                                <h3 className="text-lg font-medium">Display</h3>
+                                <h3 className="text-lg font-medium">Theme</h3>
                                 <div className="flex items-center justify-between">
                                     <div className="space-y-0.5">
-                                        <Label>Compact Mode</Label>
+                                        <Label>Theme</Label>
                                         <p className="text-sm text-muted-foreground">
-                                            Use a more compact interface layout
+                                            Toggle light or dark mode for the app.
                                         </p>
                                     </div>
-                                    <Switch />
+                                    <Button
+                                        onClick={handleThemeToggle}
+                                        variant="outline"
+                                        className="flex items-center gap-2"
+                                        type="button"
+                                    >
+                                        {theme === "dark" ? (
+                                            <>
+                                                <Moon className="h-4 w-4" /> Dark
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Sun className="h-4 w-4" /> Light
+                                            </>
+                                        )}
+                                    </Button>
                                 </div>
-                                <Separator />
-                                <div className="flex items-center justify-between">
-                                    <div className="space-y-0.5">
-                                        <Label>High Contrast</Label>
-                                        <p className="text-sm text-muted-foreground">
-                                            Increase contrast for better visibility
-                                        </p>
-                                    </div>
-                                    <Switch />
-                                </div>
-                            </div>
-
-                            <div className="space-y-4">
-                                <h3 className="text-lg font-medium">Language</h3>
-                                <div className="flex items-center justify-between">
-                                    <div className="space-y-0.5">
-                                        <Label>Primary Language</Label>
-                                        <p className="text-sm text-muted-foreground">
-                                            Select your preferred language
-                                        </p>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <Languages className="h-4 w-4 text-muted-foreground" />
-                                        <select className="border rounded p-1 text-sm">
-                                            <option>English</option>
-                                            <option>Amharic</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="flex justify-end">
-                                <Button onClick={handleSave}>Save Preferences</Button>
                             </div>
                         </CardContent>
                     </Card>
