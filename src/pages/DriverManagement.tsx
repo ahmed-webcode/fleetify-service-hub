@@ -30,7 +30,7 @@ import {
 import { Plus, Search, Users, FileText, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth, MOCK_COLLEGES, MOCK_INSTITUTES, MOCK_CAMPUSES } from "@/contexts/AuthContext";
-import { HasPermission } from "@/components/ui/has-permission";
+import { HasPermission } from "@/components/auth/HasPermission";
 
 const MOCK_DRIVERS = [
   {
@@ -97,7 +97,7 @@ const DriverManagement = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { hasPermission } = useAuth();
 
-  const canAddDrivers = hasPermission("add_users");
+  const canAddDrivers = hasPermission("manage_user");
 
   const filteredInstitutes = selectedCollege
     ? MOCK_INSTITUTES.filter((inst) => inst.collegeId === selectedCollege)

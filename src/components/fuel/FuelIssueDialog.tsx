@@ -34,7 +34,7 @@ export default function FuelIssueDialog({
   const { data: fuelTypes, isLoading: isLoadingFuelTypes } = useQuery({
     queryKey: ["allFuelTypes"],
     queryFn: async () =>
-      apiClient.fuel.getFuelTypes().then(res => res), // changed here!
+      apiClient.fuel.getFuelTypes().then(res => res as { id: number; name: string }[]),
   });
 
   const handleSubmit = async () => {

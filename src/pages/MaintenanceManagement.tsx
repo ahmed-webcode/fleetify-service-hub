@@ -55,7 +55,7 @@ export default function MaintenanceManagement() {
         direction: "DESC",
       };
       if (filterStatus !== "all") {
-        params.status = filterStatus;
+        (params as any).status = filterStatus;
       }
       return apiClient.maintenance.requests.getAll(params);
     },

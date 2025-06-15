@@ -204,7 +204,7 @@ export default function TripManagement() {
                     </p>
                 </div>
 
-                <HasPermission permission="request_trip">
+                <HasPermission permission="manage_trip">
                     <Button className="gap-1.5" onClick={() => setRequestTripOpen(true)}>
                         <Plus className="h-4 w-4" />
                         <span>Request Trip</span>

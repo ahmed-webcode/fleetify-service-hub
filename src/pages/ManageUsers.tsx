@@ -35,7 +35,7 @@ import { UserDto, CreateUserDto, UpdateUserDto, Gender } from "@/types/user";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Search, Plus, Edit2, UserCircle, CheckSquare, XSquare } from "lucide-react";
-import { HasPermission } from "@/components/ui/hasPermission";
+import { HasPermission } from "@/components/auth/HasPermission";
 
 const ITEMS_PER_PAGE = 10;
 

@@ -13,6 +13,7 @@ import { Plus, PlusCircle, AlertTriangle } from "lucide-react";
 import { HasPermission } from "@/components/auth/HasPermission";
 import { StaffList } from "@/components/staff/StaffList";
 import { AddStaffDialog } from "@/components/staff/AddStaffDialog";
+import { CardFooter } from "@/components/ui/card";
 
 export default function ManageStaff() {
   const { hasPermission } = useAuth();

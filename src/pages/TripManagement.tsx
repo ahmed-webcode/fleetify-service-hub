@@ -16,7 +16,16 @@ import { TripRequestForm } from "@/components/trips/TripRequestForm";
 import { TripRequestsList } from "@/components/trips/TripRequestsList";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/apiClient";
-import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { TripRequestDto, TripRequestQueryParams } from "@/types/trip";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
@@ -48,6 +57,8 @@ export default function TripManagement() {
     }
   });
 
+  const getValueOrDash = (val: any) => val !== undefined && val !== null ? val : "-";
+
   // Filter requests by search query (client-side filtering)
   const filteredRequests = tripRequestsData?.content.filter(request => {
     if (!searchQuery) return true;
@@ -55,9 +66,8 @@ export default function TripManagement() {
     const searchLower = searchQuery.toLowerCase();
     return (
       request.requestedBy.toLowerCase().includes(searchLower) ||
-      request.levelName.toLowerCase().includes(searchLower) ||
-      (request.vehiclePlateNumber && request.vehiclePlateNumber.toLowerCase().includes(searchLower)) ||
-      request.destination.toLowerCase().includes(searchLower)
+      getValueOrDash(request.levelName ?? request.purpose).toLowerCase().includes(searchLower) ||
+      getValueOrDash(request.destination ?? request.purpose).toLowerCase().includes(searchLower)
     );
   }) || [];
 
@@ -163,12 +173,15 @@ export default function TripManagement() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Trip Management</h1>
           <p className="text-muted-foreground">
-            Track and manage trip requests across your organization
+            Track and manage trip requests across your fleet
           </p>
         </div>
 
-        {/* Only users with permission to request trip see the button */}
-        <HasPermission permission="request_trip" fallback={null}>
+        {/* Only users with permission to request trips see the button */}
+        <HasPermission 
+          permission="request_trip" 
+          fallback={null}
+        >
           <Button className="gap-1.5" onClick={() => setRequestTripOpen(true)}>
             <Plus className="h-4 w-4" />
             <span>Request Trip</span>
@@ -176,109 +189,11 @@ export default function TripManagement() {
         </HasPermission>
       </div>
 
-      {/* Only users with view_trip_request permission see the main content */}
-      {!hasPermission("view_trip_request") ? (
+      {/* Only users with view_trip permission see the main content */}
+      {!hasPermission("view_trip") ? (
         <AccessRestricted />
       ) : (
         <>
-          {/* Stats Cards */}
-          {/* <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Total Trips
-                </CardTitle>
-                <BarChart className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">1,248</div>
-                <p className="text-xs text-muted-foreground">
-                  +12% from last month
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Average Distance
-                </CardTitle>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  className="h-4 w-4 text-muted-foreground"
-                >
-                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                </svg>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">1.73 km</div>
-                <p className="text-xs text-muted-foreground">
-                  Per trip in current month
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Pending Requests
-                </CardTitle>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  className="h-4 w-4 text-muted-foreground"
-                >
-                  <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-                </svg>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{tripRequestsData?.content.filter(r => r.status === 'PENDING').length || 0}</div>
-                <p className="text-xs text-muted-foreground">
-                  Awaiting approval
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Most Active Vehicle
-                </CardTitle>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  className="h-4 w-4 text-muted-foreground"
-                >
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 1 0 7h5" />
-                  <circle cx="9" cy="7" r="4" />
-                  <path d="M22 21v-2a4 4 0 0 1 0 7.75" />
-                </svg>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">Toyota Hiace</div>
-                <p className="text-xs text-muted-foreground">
-                  328 trips completed
-                </p>
-              </CardContent>
-            </Card>
-          </div> */}
-
           {/* Trip Management Tabs */}
           <Tabs defaultValue="requests" className="space-y-4">
             <TabsList>
@@ -379,7 +294,7 @@ export default function TripManagement() {
                 </CardFooter>
               </Card>
             </TabsContent>
-
+            
             <TabsContent value="records" className="space-y-4">
               <TripRecordsTab />
             </TabsContent>
@@ -402,9 +317,9 @@ export default function TripManagement() {
                       <Button variant="outline">Download Report</Button>
                     </div>
                     <div className="rounded-md border p-4">
-                      <h3 className="font-medium mb-2">Quarterly Distance Analysis</h3>
+                      <h3 className="font-medium mb-2">Quarterly Usage Analysis</h3>
                       <p className="text-sm text-muted-foreground mb-4">
-                        Analysis of distances traveled for the last quarter
+                        Analysis of vehicle usage for the last quarter
                       </p>
                       <Button variant="outline">Download Report</Button>
                     </div>
