@@ -1,4 +1,5 @@
 
+// Add the DashboardCharts import to the top (after React and hooks)
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { MetricsOverview } from "@/components/dashboard/MetricsOverview";
@@ -7,7 +8,7 @@ import { Car, Fuel, Wrench, Users } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
-import { DashboardCharts } from "@/components/dashboard/DashboardCharts";
+import { DashboardCharts } from "@/components/dashboard/DashboardCharts"; // <-- Make sure this import is present and at the top
 import { MaintenanceStatusChart } from "@/components/dashboard/MaintenanceStatusChart";
 import { FuelConsumptionChart } from "@/components/dashboard/FuelConsumptionChart";
 
