@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/apiClient";
 import { Button } from "@/components/ui/button";
@@ -30,10 +29,10 @@ export default function FuelReportsTab() {
   });
 
   // Fetch fuel types & levels for filters
-  const { data: fuelTypesData } = useQuery({
+  const { data: fuelTypesData } = useQuery<{ id: number; name: string }[]>({
     queryKey: ["fuelTypes"],
     // FIX: use getFuelTypes, not types.getAll
-    queryFn: () => apiClient.fuel.getFuelTypes(),
+    queryFn: () => apiClient.fuel.getFuelTypes() as Promise<{ id: number; name: string }[]>,
   });
 
   const { data: levelsData } = useQuery({
@@ -44,10 +43,10 @@ export default function FuelReportsTab() {
   // Compute options for comboboxes, start with "All"
   const fuelTypeOptions = [{ value: "", label: "All fuel types" }]
     .concat(
-      fuelTypesData?.map((f: any) => ({
+      (fuelTypesData?.map((f: any) => ({
         value: String(f.id),
         label: f.name,
-      })) || []
+      })) || [])
     );
   const recordTypeOptions = [
     { value: "", label: "All record types" },
