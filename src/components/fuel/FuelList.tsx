@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/apiClient";
@@ -6,6 +5,9 @@ import { FuelFull } from "@/types/fuel";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ArrowDown, ArrowUp, Fuel } from "lucide-react";
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
+import { Edit } from "lucide-react";
+import FuelUpdateDialog from "./FuelUpdateDialog";
+import { HasPermission } from "@/components/auth/HasPermission";
 
 // Inline spinner component
 const Spinner = () => (
@@ -43,12 +45,15 @@ function formatDate(iso: string) {
 }
 
 export default function FuelList() {
-    const { data, isLoading, isError } = useQuery({
+    const { data, isLoading, isError, refetch } = useQuery({
         queryKey: ["fuels"],
         queryFn: apiClient.fuel.listFuels
     });
 
     const [sort, setSort] = useState<{ key: SortKey, asc: boolean }>({ key: "fuelType", asc: true });
+
+    // Dialog state for editing
+    const [updateDialog, setUpdateDialog] = useState<{ open: boolean, fuel: FuelFull | null }>({ open: false, fuel: null });
 
     // Sorted fuels
     const fuels = useMemo(() => {
@@ -130,6 +135,9 @@ export default function FuelList() {
                                     ))}
                                     <TableHead>Created By</TableHead>
                                     <TableHead>Updated By</TableHead>
+                                    <HasPermission permission="manage_fuel">
+                                      <TableHead>Action</TableHead>
+                                    </HasPermission>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -148,6 +156,18 @@ export default function FuelList() {
                                             {fuel.updatedBy.firstName} {fuel.updatedBy.lastName} <br />
                                             <span className="text-xs text-muted-foreground">{fuel.updatedBy.email}</span>
                                         </TableCell>
+                                        <HasPermission permission="manage_fuel">
+                                          <TableCell>
+                                            <Button
+                                              size="icon"
+                                              variant="ghost"
+                                              aria-label="Edit"
+                                              onClick={() => setUpdateDialog({ open: true, fuel })}
+                                            >
+                                              <Edit className="h-4 w-4" />
+                                            </Button>
+                                          </TableCell>
+                                        </HasPermission>
                                     </TableRow>
                                 ))}
                             </TableBody>
@@ -160,6 +180,12 @@ export default function FuelList() {
                     </div>
                 )}
             </CardContent>
+            <FuelUpdateDialog
+                open={updateDialog.open}
+                onOpenChange={(open) => setUpdateDialog({ open, fuel: open ? updateDialog.fuel : null })}
+                fuel={updateDialog.fuel}
+                onSuccess={refetch}
+            />
         </Card>
     );
 }
