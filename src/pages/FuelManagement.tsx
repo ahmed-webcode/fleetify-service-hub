@@ -21,6 +21,7 @@ import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, Pagi
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
+import FuelRecordsTab from "@/components/fuel/FuelRecordsTab";
 
 export default function FuelManagement() {
   const { hasPermission } = useAuth();
@@ -285,6 +286,7 @@ export default function FuelManagement() {
             <TabsList>
               <TabsTrigger value="consumption">Consumption</TabsTrigger>
               <TabsTrigger value="requests">Requests</TabsTrigger>
+              <TabsTrigger value="records">Records</TabsTrigger>
               <TabsTrigger value="reports">Reports</TabsTrigger>
             </TabsList>
             
@@ -396,6 +398,10 @@ export default function FuelManagement() {
                   </p>
                 </CardFooter>
               </Card>
+            </TabsContent>
+            
+            <TabsContent value="records" className="space-y-4">
+              <FuelRecordsTab />
             </TabsContent>
             
             <TabsContent value="reports" className="space-y-4">
