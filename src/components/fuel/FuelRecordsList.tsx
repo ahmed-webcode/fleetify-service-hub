@@ -1,14 +1,16 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { FuelRecordFullDto, RecordType } from "@/types/fuel";
+import { FuelRecordFullDto } from "@/types/fuel";
 import { HasPermission } from "@/components/auth/HasPermission";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiClient } from "@/lib/apiClient";
 import { toast } from "sonner";
+import { Table, TableHeader, TableBody, TableRow, TableCell, TableHead } from "@/components/ui/table";
 
 interface FuelRecordsListProps {
     records: FuelRecordFullDto[];
@@ -25,98 +27,101 @@ export function FuelRecordsList({ records, total, page, pageSize, pageCount, onP
     const [receiveDialog, setReceiveDialog] = useState<{ open: boolean, record?: FuelRecordFullDto }>({ open: false });
     const [processing, setProcessing] = useState(false);
 
-    // Table rendering, with actions
     return (
         <Card>
-            <CardHeader>
-                <CardTitle>Fuel Records</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                    <CardTitle>Fuel Records</CardTitle>
+                    <CardDescription>Detailed history of all fuel issuances, receptions, and transactions.</CardDescription>
+                </div>
             </CardHeader>
             <CardContent className="overflow-x-auto px-0">
-                <table className="min-w-full divide-y">
-                    <thead>
-                        <tr className="text-xs text-muted-foreground">
-                            <th className="px-2 py-2 text-left font-semibold">#</th>
-                            <th className="px-2 py-2 text-left font-semibold">Type</th>
-                            <th className="px-2 py-2 text-left font-semibold">Vehicle</th>
-                            <th className="px-2 py-2 text-left font-semibold">Fuel Type</th>
-                            <th className="px-2 py-2 text-left font-semibold">Issued By</th>
-                            <th className="px-2 py-2 text-left font-semibold">Issued Amount</th>
-                            <th className="px-2 py-2 text-left font-semibold">Issued At</th>
-                            <th className="px-2 py-2 text-left font-semibold">Received By</th>
-                            <th className="px-2 py-2 text-left font-semibold">Received Amount</th>
-                            <th className="px-2 py-2 text-left font-semibold">Received At</th>
-                            <th className="px-2 py-2 text-left font-semibold">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {records.length === 0 && (
-                            <tr>
-                                <td colSpan={11} className="text-center text-muted-foreground py-6">
+                <Table>
+                    <TableHeader className="bg-muted/50">
+                        <TableRow>
+                            <TableHead>#</TableHead>
+                            <TableHead>Type</TableHead>
+                            <TableHead>Vehicle</TableHead>
+                            <TableHead>Fuel Type</TableHead>
+                            <TableHead>Issued By</TableHead>
+                            <TableHead>Issued Amount</TableHead>
+                            <TableHead>Issued At</TableHead>
+                            <TableHead>Received By</TableHead>
+                            <TableHead>Received Amount</TableHead>
+                            <TableHead>Received At</TableHead>
+                            <TableHead>Action</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {records.length === 0 ? (
+                            <TableRow>
+                                <TableCell colSpan={11} className="text-center py-6 text-muted-foreground">
                                     No fuel records found.
-                                </td>
-                            </tr>
+                                </TableCell>
+                            </TableRow>
+                        ) : (
+                            records.map((r, i) => (
+                                <TableRow key={r.id} className="text-sm">
+                                    <TableCell>{page * pageSize + i + 1}</TableCell>
+                                    <TableCell>{r.recordType}</TableCell>
+                                    <TableCell>{r.vehicle?.plateNumber || "-"}</TableCell>
+                                    <TableCell>{r.fuelType?.name || "-"}</TableCell>
+                                    <TableCell>{`${r.issuedBy.firstName} ${r.issuedBy.lastName}`}</TableCell>
+                                    <TableCell>{r.issuedAmount}</TableCell>
+                                    <TableCell>{r.issuedAt ? new Date(r.issuedAt).toLocaleString() : "-"}</TableCell>
+                                    <TableCell>{r.receivedBy ? `${r.receivedBy.firstName} ${r.receivedBy.lastName}` : "-"}</TableCell>
+                                    <TableCell>{r.receivedAmount ?? "-"}</TableCell>
+                                    <TableCell>{r.receivedAt ? new Date(r.receivedAt).toLocaleString() : "-"}</TableCell>
+                                    <TableCell>
+                                        {/* Show receive button if current user is receiver and not yet received */}
+                                        {!r.receivedAt && r.receivedBy && user && r.receivedBy.id === user.id && (
+                                            <Button size="sm" variant="outline" onClick={() => setReceiveDialog({ open: true, record: r })}>
+                                                Receive
+                                            </Button>
+                                        )}
+                                    </TableCell>
+                                </TableRow>
+                            ))
                         )}
-                        {records.map((r, i) => (
-                            <tr key={r.id} className="border-b hover:bg-muted/30 text-sm">
-                                <td className="px-2 py-2">{page * pageSize + i + 1}</td>
-                                <td className="px-2 py-2">{r.recordType}</td>
-                                <td className="px-2 py-2">{r.vehicle?.plateNumber || "-"}</td>
-                                <td className="px-2 py-2">{r.fuelType?.name || "-"}</td>
-                                <td className="px-2 py-2">{`${r.issuedBy.firstName} ${r.issuedBy.lastName}`}</td>
-                                <td className="px-2 py-2">{r.issuedAmount}</td>
-                                <td className="px-2 py-2">{r.issuedAt ? new Date(r.issuedAt).toLocaleString() : "-"}</td>
-                                <td className="px-2 py-2">{r.receivedBy ? `${r.receivedBy.firstName} ${r.receivedBy.lastName}` : "-"}</td>
-                                <td className="px-2 py-2">{r.receivedAmount ?? "-"}</td>
-                                <td className="px-2 py-2">{r.receivedAt ? new Date(r.receivedAt).toLocaleString() : "-"}</td>
-                                <td className="px-2 py-2">
-                                    {/* Show receive button if current user is receiver, and not yet received */}
-                                    {/* Fix: Compare user.id with receivedBy.id */}
-                                    {!r.receivedAt && r.receivedBy && user && r.receivedBy.id === user.id && (
-                                        <Button size="sm" variant="outline" onClick={() => setReceiveDialog({ open: true, record: r })}>
-                                            Receive
-                                        </Button>
-                                    )}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+                    </TableBody>
+                </Table>
             </CardContent>
-            {/* Pagination */}
-            <CardFooter>
-                <Pagination>
-                    <PaginationContent>
-                        <PaginationItem>
-                            <PaginationPrevious
-                                onClick={() => {
-                                    if (page > 0) onPageChange(page - 1);
-                                }}
-                                aria-disabled={page === 0}
-                                className={page === 0 ? "pointer-events-none opacity-50" : ""}
-                            />
-                        </PaginationItem>
-                        {Array.from({ length: pageCount }, (_, idx) => (
-                            <PaginationItem key={idx}>
-                                <PaginationLink
-                                    isActive={idx === page}
-                                    onClick={() => onPageChange(idx)}
-                                >
-                                    {idx + 1}
-                                </PaginationLink>
+            <CardFooter className="flex flex-col sm:flex-row sm:items-center">
+                <div className="flex-1">
+                    <Pagination>
+                        <PaginationContent>
+                            <PaginationItem>
+                                <PaginationPrevious
+                                    onClick={() => {
+                                        if (page > 0) onPageChange(page - 1);
+                                    }}
+                                    aria-disabled={page === 0}
+                                    className={page === 0 ? "pointer-events-none opacity-50" : ""}
+                                />
                             </PaginationItem>
-                        ))}
-                        <PaginationItem>
-                            <PaginationNext
-                                onClick={() => {
-                                    if (page < pageCount - 1) onPageChange(page + 1);
-                                }}
-                                aria-disabled={page === pageCount - 1 || pageCount === 0}
-                                className={page === pageCount - 1 || pageCount === 0 ? "pointer-events-none opacity-50" : ""}
-                            />
-                        </PaginationItem>
-                    </PaginationContent>
-                </Pagination>
-                <span className="ml-auto text-xs text-muted-foreground">
+                            {Array.from({ length: pageCount }, (_, idx) => (
+                                <PaginationItem key={idx}>
+                                    <PaginationLink
+                                        isActive={idx === page}
+                                        onClick={() => onPageChange(idx)}
+                                    >
+                                        {idx + 1}
+                                    </PaginationLink>
+                                </PaginationItem>
+                            ))}
+                            <PaginationItem>
+                                <PaginationNext
+                                    onClick={() => {
+                                        if (page < pageCount - 1) onPageChange(page + 1);
+                                    }}
+                                    aria-disabled={page === pageCount - 1 || pageCount === 0}
+                                    className={page === pageCount - 1 || pageCount === 0 ? "pointer-events-none opacity-50" : ""}
+                                />
+                            </PaginationItem>
+                        </PaginationContent>
+                    </Pagination>
+                </div>
+                <span className="ml-auto text-xs text-muted-foreground pt-2 sm:pt-0">
                     {`Showing ${records.length} of ${total} records`}
                 </span>
             </CardFooter>

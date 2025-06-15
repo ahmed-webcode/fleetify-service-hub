@@ -1,3 +1,4 @@
+
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/apiClient";
@@ -104,9 +105,11 @@ export default function FuelList() {
             <CardHeader className="flex flex-row items-center justify-between">
                 <div className="flex items-center gap-2">
                     <Fuel className="h-5 w-5 text-primary" />
-                    <CardTitle>Fuels</CardTitle>
+                    <div>
+                        <CardTitle>Fuels</CardTitle>
+                        <CardDescription>Overview of all fuel types and balances.</CardDescription>
+                    </div>
                 </div>
-                <CardDescription>Overview of all fuel records</CardDescription>
             </CardHeader>
             <CardContent>
                 {isLoading ? (
@@ -116,7 +119,7 @@ export default function FuelList() {
                 ) : (
                     <div className="overflow-x-auto">
                         <Table>
-                            <TableHeader>
+                            <TableHeader className="bg-muted/50">
                                 <TableRow>
                                     {HEADERS.map(h => (
                                         <TableHead
@@ -142,7 +145,13 @@ export default function FuelList() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {fuels.map(fuel => (
+                                {fuels.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell colSpan={HEADERS.length + 3} className="text-center py-8 text-muted-foreground">
+                                            No fuels found.
+                                        </TableCell>
+                                    </TableRow>
+                                ) : fuels.map(fuel => (
                                     <TableRow key={fuel.id}>
                                         <TableCell>{fuel.fuelType.name}</TableCell>
                                         <TableCell>{fuel.pricePerLiter.toFixed(2)}</TableCell>
@@ -173,11 +182,6 @@ export default function FuelList() {
                                 ))}
                             </TableBody>
                         </Table>
-                        {fuels.length === 0 && (
-                            <div className="text-center text-muted-foreground py-10">
-                                No fuels found.
-                            </div>
-                        )}
                     </div>
                 )}
             </CardContent>
