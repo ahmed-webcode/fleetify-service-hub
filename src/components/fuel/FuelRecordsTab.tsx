@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/apiClient";
@@ -7,7 +6,6 @@ import FuelRecordsList from "./FuelRecordsList";
 import { HasPermission } from "@/components/auth/HasPermission";
 import { PlusCircle } from "lucide-react";
 import FuelIssueDialog from "./FuelIssueDialog";
-import { Button } from "@/components/ui/button"; // <-- ADDED
 
 export default function FuelRecordsTab() {
     const [page, setPage] = useState(0);

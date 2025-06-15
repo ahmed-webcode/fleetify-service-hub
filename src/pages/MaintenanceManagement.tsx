@@ -200,7 +200,7 @@ export default function MaintenanceManagement() {
                 </HasPermission>
             </div>
 
-            {!hasPermission("view_maintenance_requests") ? (
+            {!hasPermission("view_maintenance_management") ? (
                 <AccessRestricted />
             ) : (
                 <>
