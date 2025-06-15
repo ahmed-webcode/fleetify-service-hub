@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { MetricsOverview } from "@/components/dashboard/MetricsOverview";
@@ -50,11 +49,12 @@ export default function Dashboard() {
       id: String(item.id),
     }));
 
-  // STEP 2: Map FuelRequestDto[] -> FuelRequest[] (convert id to string)
+  // STEP 2: Map FuelRequestDto[] -> FuelRequest[] (convert id to string, guarantee createdAt)
   const fuelRequestList =
     (fuelRequestsQuery.data?.content ?? []).map((item) => ({
       ...item,
       id: String(item.id),
+      createdAt: item.createdAt ?? item.requestedAt, // fallback to requestedAt if createdAt missing
     }));
 
   return (
@@ -111,4 +111,3 @@ export default function Dashboard() {
     </div>
   );
 }
-
