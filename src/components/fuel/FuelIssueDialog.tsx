@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -51,8 +50,7 @@ export default function FuelIssueDialog({
   // Fetch users for receiver
   const { data: users, isLoading: isLoadingUsers } = useQuery({
     queryKey: ["allUsers"],
-    queryFn: async () =>
-      apiClient.users.getAll({ size: 1000 }).then(res => res.content),
+    queryFn: async () => apiClient.users.getAll(),
   });
 
   // Fetch fuel requests for fuelRequestId field
