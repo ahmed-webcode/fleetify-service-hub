@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -17,8 +16,10 @@ import {
 interface AuthState {
   token: string | null;
   user: { 
+    id: number;
     username: string;
     fullName?: string; // Optional as it might not be in the JWT
+    email?: string;
   } | null;
   roles: Role[];
   selectedRole: Role | null;
@@ -52,34 +53,46 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // Initialize auth state from storage
   useEffect(() => {
-    const initializeAuth = () => {
+    const initializeAuth = async () => {
       const storedToken = localStorage.getItem("auth_token");
-      const storedUser = localStorage.getItem("auth_user");
       const storedSelectedRole = localStorage.getItem("selected_role");
       const storedRoles = localStorage.getItem("auth_roles");
-      
+
       if (storedToken && !isTokenExpired(storedToken)) {
-        const user = storedUser ? JSON.parse(storedUser) : null;
-        const roles = storedRoles ? JSON.parse(storedRoles) : [];
-        const selectedRole = storedSelectedRole ? JSON.parse(storedSelectedRole) : 
-                           (roles.length === 1 ? roles[0] : null);
-        
-        setAuthState({
-          token: storedToken,
-          user,
-          roles,
-          selectedRole,
-          isAuthenticated: true,
-          isLoading: false,
-        });
-      } else {
-        // Clear storage if token is expired or invalid
-        if (storedToken) {
+        // Fetch updated user profile from /users/me to get id
+        try {
+          const rawUser = await apiClient.users.getMe();
+          const roles = storedRoles ? JSON.parse(storedRoles) : [];
+          const selectedRole = storedSelectedRole ? JSON.parse(storedSelectedRole) : 
+                            (roles.length === 1 ? roles[0] : null);
+
+          setAuthState({
+            token: storedToken,
+            user: rawUser ? {
+              id: rawUser.id,
+              username: rawUser.username || rawUser.email,
+              fullName: rawUser.fullName || rawUser.name,
+              email: rawUser.email,
+            } : null,
+            roles,
+            selectedRole,
+            isAuthenticated: true,
+            isLoading: false,
+          });
+        } catch (err) {
+          // On error, clear everything
           localStorage.removeItem("auth_token");
           localStorage.removeItem("auth_user");
           localStorage.removeItem("selected_role");
           localStorage.removeItem("auth_roles");
+          setAuthState(prev => ({...prev, isLoading: false}));
         }
+      } else {
+        // Clear storage if token is expired or invalid
+        localStorage.removeItem("auth_token");
+        localStorage.removeItem("auth_user");
+        localStorage.removeItem("selected_role");
+        localStorage.removeItem("auth_roles");
         setAuthState(prev => ({...prev, isLoading: false}));
       }
     };
@@ -90,63 +103,45 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Login function
   const login = async (username: string, password: string): Promise<{success: boolean, multipleRoles: boolean}> => {
     try {
-      // Get JWT token from API
       const response = await apiClient.auth.login(username, password);
-      
-      if (!response || !response.token) {
-        throw new Error("Authentication failed");
-      }
-      
+      if (!response || !response.token) throw new Error("Authentication failed");
       const token = response.token;
-      
-      // Store token in localStorage
       localStorage.setItem("auth_token", token);
-      
-      // Extract user info from token
-      const payload = decodeJwt(token);
-      if (!payload) {
-        throw new Error("Invalid token format");
-      }
-      
-      // Map role names from response to Role objects
+
       const roles = mapRoleNamesToRoles(response.roles);
-      
-      // Store roles in localStorage
       localStorage.setItem("auth_roles", JSON.stringify(roles));
-      
-      // Store user info
-      const user = { 
-        username: payload.sub, 
-        fullName: payload.sub // Use username as fullName if not available in token
-      };
-      localStorage.setItem("auth_user", JSON.stringify(user));
-      
-      // Determine if we need role selection
+
+      // Fetch full user info from /users/me
+      let detailedUser: User | null = null;
+      try {
+        detailedUser = await apiClient.users.getMe();
+      } catch (e) {
+        detailedUser = null;
+      }
+      // Persist user
+      localStorage.setItem("auth_user", JSON.stringify(detailedUser));
       const multipleRoles = roles.length > 1;
-      
-      // If there's only one role, select it automatically
+
       if (roles.length === 1) {
         localStorage.setItem("selected_role", JSON.stringify(roles[0]));
         setAuthState({
           token,
-          user,
+          user: detailedUser,
           roles,
           selectedRole: roles[0],
           isAuthenticated: true,
           isLoading: false,
         });
       } else {
-        // Don't set selectedRole yet if multiple roles
         setAuthState({
           token,
-          user,
+          user: detailedUser,
           roles,
           selectedRole: null,
           isAuthenticated: true,
           isLoading: false,
         });
       }
-      
       return { success: true, multipleRoles };
     } catch (error) {
       toast.error("Login failed: " + (error as Error).message);
@@ -244,14 +239,11 @@ export type { Role, Permission };
 
 // Mock data for UI components that need it
 export interface User {
-  id: string;
+  id: number;
   username: string;
-  fullName: string;
-  role: UserRole;
+  fullName?: string; // Optional as it might not be in the JWT
   email?: string;
-  college?: string;
-  institute?: string;
-  campus?: string;
+  // ... other optional fields
 }
 
 export type UserRole = 'transport_director' | 'operational_director' | 'fotl' | 'ftl' | 'staff';
