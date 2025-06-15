@@ -6,6 +6,8 @@ import { Car, Fuel, Users } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
+import { TripRequestsChart } from "@/components/dashboard/TripRequestsChart";
+import { FuelRequestsChart } from "@/components/dashboard/FuelRequestsChart";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -40,6 +42,10 @@ export default function Dashboard() {
     staffQuery.isLoading ||
     tripRequestsQuery.isLoading;
 
+  // Get lists for charting if available
+  const tripRequestList = tripRequestsQuery.data?.content ?? [];
+  const fuelRequestList = fuelRequestsQuery.data?.content ?? [];
+
   return (
     <div className="w-full px-4 md:px-8 space-y-6">
       <div className="flex flex-col gap-2">
@@ -54,6 +60,12 @@ export default function Dashboard() {
         drivers={driversCount}
         loading={loading}
       />
+
+      {/* Charts (2) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <TripRequestsChart tripRequests={tripRequestList} />
+        <FuelRequestsChart fuelRequests={fuelRequestList} />
+      </div>
 
       {/* Cards below can be left or further reduced - only essentials */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
