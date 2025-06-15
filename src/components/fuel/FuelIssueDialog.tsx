@@ -93,7 +93,7 @@ export default function FuelIssueDialog({
                 <SelectValue placeholder={isLoadingVehicles ? "Loading vehicles..." : "Select vehicle"} />
               </SelectTrigger>
               <SelectContent>
-                {vehicles?.length
+                {vehicles && vehicles.length > 0
                   ? vehicles.map((v: any) => (
                       <SelectItem key={v.id} value={String(v.id)}>
                         {v.plateNumber
@@ -102,9 +102,9 @@ export default function FuelIssueDialog({
                       </SelectItem>
                     ))
                   : (
-                    <SelectItem value="" disabled>
-                      {isLoadingVehicles ? "Loading..." : "No vehicles found"}
-                    </SelectItem>
+                    isLoadingVehicles
+                      ? <SelectItem value="none" disabled>Loading...</SelectItem>
+                      : <SelectItem value="none" disabled>No vehicles found</SelectItem>
                   )}
               </SelectContent>
             </Select>
@@ -123,16 +123,16 @@ export default function FuelIssueDialog({
                 <SelectValue placeholder={isLoadingFuelTypes ? "Loading fuel types..." : "Select fuel type"} />
               </SelectTrigger>
               <SelectContent>
-                {fuelTypes?.length
+                {fuelTypes && fuelTypes.length > 0
                   ? fuelTypes.map((f: any) => (
                       <SelectItem key={f.id} value={String(f.id)}>
                         {f.name}
                       </SelectItem>
                     ))
                   : (
-                    <SelectItem value="" disabled>
-                      {isLoadingFuelTypes ? "Loading..." : "No fuel types found"}
-                    </SelectItem>
+                    isLoadingFuelTypes
+                      ? <SelectItem value="none" disabled>Loading...</SelectItem>
+                      : <SelectItem value="none" disabled>No fuel types found</SelectItem>
                   )}
               </SelectContent>
             </Select>
