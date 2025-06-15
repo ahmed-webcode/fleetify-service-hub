@@ -88,7 +88,7 @@ const Vehicles = () => {
     const itemsPerPage = 6;
 
     const { hasPermission } = useAuth();
-    const canAddVehicle = hasPermission("add_vehicle");
+    const canAddVehicle = hasPermission("manage_vehicle");
 
     const queryClient = useQueryClient();
 

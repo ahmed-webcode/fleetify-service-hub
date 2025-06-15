@@ -28,7 +28,7 @@ const ServiceRequests = () => {
   const navigate = useNavigate();
 
   const canApproveRequests = () => {
-    return hasPermission("approve_maintenance");
+    return hasPermission("manage_maintenance_request"); // closest match
   };
 
   const getServiceTypeFromUrl = () => {

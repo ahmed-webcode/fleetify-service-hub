@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -97,7 +96,7 @@ const DriverManagement = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { hasPermission } = useAuth();
 
-  const canAddDrivers = hasPermission("add_users");
+  const canAddDrivers = hasPermission("manage_user");
 
   const filteredInstitutes = selectedCollege
     ? MOCK_INSTITUTES.filter((inst) => inst.collegeId === selectedCollege)

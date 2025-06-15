@@ -192,7 +192,7 @@ export default function MaintenanceManagement() {
                     </p>
                 </div>
 
-                <HasPermission permission="create_maintenance_request" fallback={null}>
+                <HasPermission permission="view_maintenance_request" fallback={null}>
                     <Button className="gap-1.5" onClick={() => setRequestMaintenanceOpen(true)}>
                         <Plus className="h-4 w-4" />
                         <span>Request Maintenance</span>
@@ -200,7 +200,7 @@ export default function MaintenanceManagement() {
                 </HasPermission>
             </div>
 
-            {!hasPermission("view_maintenance_requests") ? (
+            {!hasPermission("view_maintenance_request") ? (
                 <AccessRestricted />
             ) : (
                 <>
@@ -323,7 +323,7 @@ export default function MaintenanceManagement() {
                                                     request.
                                                 </p>
                                                 <HasPermission
-                                                    permission="create_maintenance_request"
+                                                    permission="view_maintenance_request"
                                                     fallback={null}
                                                 >
                                                     <Button

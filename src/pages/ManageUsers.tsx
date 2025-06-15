@@ -544,7 +544,7 @@ export default function ManageUsers() {
         );
     }
 
-    if (!hasPermission("add_users")) {
+    if (!hasPermission("manage_user")) {
         return (
             <div className="py-12 text-center">
                 <UserCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />

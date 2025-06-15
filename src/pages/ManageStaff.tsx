@@ -93,7 +93,7 @@ const ManageStaff = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { hasPermission } = useAuth();
 
-  const canAddStaff = hasPermission("add_users");
+  const canAddStaff = hasPermission("manage_user");
 
   // Filter institutes based on selected college
   const filteredInstitutes = selectedCollege

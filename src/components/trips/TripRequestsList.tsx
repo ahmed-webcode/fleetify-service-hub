@@ -131,7 +131,7 @@ export function TripRequestsList({ requests, onRefresh }: TripRequestsListProps)
                                 <TableCell>{formatDate(request.requestedAt)}</TableCell>
                                 <TableCell className="text-right">
                                     <HasPermission
-                                        permission="manage_trip_requests"
+                                        permission="manage_trip_request"
                                         fallback={
                                             <Button
                                                 variant="ghost"
