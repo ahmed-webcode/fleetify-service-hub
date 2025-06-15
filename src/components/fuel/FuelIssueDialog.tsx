@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -9,9 +10,9 @@ import { RecordType } from "@/types/fuel";
 import { useQuery } from "@tanstack/react-query";
 
 const RECORD_TYPE_LABELS = {
-  [RecordType.EXTERNAL]: "External issue",
-  [RecordType.QUOTA]: "Quota issue",
-  [RecordType.REQUEST]: "Request issue",
+  [RecordType.EXTERNAL]: "External Issue",
+  [RecordType.QUOTA]: "Quota Issue",
+  [RecordType.REQUEST]: "Request Issue",
 };
 
 export default function FuelIssueDialog({
@@ -23,9 +24,11 @@ export default function FuelIssueDialog({
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
 }) {
+  // Auth context for current user (if needed later)
   const { user } = useAuth();
 
-  const [recordType, setRecordType] = useState<string>(RecordType.EXTERNAL);
+  // Form fields state
+  const [recordType, setRecordType] = useState<RecordType>(RecordType.EXTERNAL);
   const [vehicleId, setVehicleId] = useState<string>("");
   const [fuelTypeId, setFuelTypeId] = useState<string>("");
   const [receiverId, setReceiverId] = useState<string>("");
@@ -34,73 +37,104 @@ export default function FuelIssueDialog({
 
   const [processing, setProcessing] = useState(false);
 
-  // Fetch vehicles and fuel types
-  const { data: vehicles, isLoading: isLoadingVehicles } = useQuery({
+  // Data queries
+  const { data: vehicles = [], isLoading: isLoadingVehicles } = useQuery({
     queryKey: ["allVehicles"],
-    queryFn: async () =>
-      apiClient.vehicles.getAll({ size: 1000 }).then(res => res.content),
+    queryFn: async () => apiClient.vehicles.getAll({ size: 1000 }).then(res => res.content),
+    enabled: recordType === RecordType.QUOTA,
   });
 
-  const { data: fuelTypes, isLoading: isLoadingFuelTypes } = useQuery({
-    queryKey: ["allFuelTypes"],
-    queryFn: async () =>
-      apiClient.fuel.getFuelTypes().then(res => res as { id: number; name: string }[]),
-  });
-
-  // Fetch users for receiver
-  const { data: users, isLoading: isLoadingUsers } = useQuery({
+  const { data: users = [], isLoading: isLoadingUsers } = useQuery({
     queryKey: ["allUsers"],
     queryFn: async () => apiClient.users.getAll(),
+    enabled: recordType === RecordType.QUOTA || recordType === RecordType.EXTERNAL,
   });
 
-  // Fetch fuel requests for fuelRequestId field
-  const { data: fuelRequests, isLoading: isLoadingFuelRequests } = useQuery({
-    queryKey: ["allFuelRequests"],
-    queryFn: async () =>
-      apiClient.fuel.requests.getAll({ page: 0, size: 100, sortBy: "requestedAt", direction: "DESC" }).then(res => res.content),
+  const { data: fuelTypes = [], isLoading: isLoadingFuelTypes } = useQuery({
+    queryKey: ["allFuelTypes"],
+    queryFn: async () => apiClient.fuel.getFuelTypes().then(res => res as { id: number; name: string }[]),
+    enabled: recordType !== RecordType.REQUEST,
   });
+
+  const { data: fuelRequests = [], isLoading: isLoadingFuelRequests } = useQuery({
+    queryKey: ["allFuelRequests"],
+    queryFn: async () => apiClient.fuel.requests.getAll({ page: 0, size: 100, sortBy: "requestedAt", direction: "DESC" }).then(res => res.content),
+    enabled: recordType === RecordType.REQUEST,
+  });
+
+  // Autofill fuel type from request if REQUEST
+  const selectedRequest = useMemo(
+    () => fuelRequests.find((fr: any) => String(fr.id) === fuelRequestId),
+    [fuelRequests, fuelRequestId]
+  );
+
+  // Field visibility logic
+  const showVehicle = recordType === RecordType.QUOTA;
+  const showReceiver = recordType === RecordType.QUOTA;
+  const showFuelType = recordType !== RecordType.REQUEST;
+  const showFuelRequest = recordType === RecordType.REQUEST;
+
+  // Handle record type change (clear incompatible fields)
+  const handleRecordTypeChange = (val: RecordType) => {
+    setRecordType(val);
+    setVehicleId("");
+    setFuelTypeId("");
+    setReceiverId("");
+    setFuelRequestId("");
+  };
+
+  // If a request is chosen, fuelTypeId is forced from that request.
+  const getFuelTypeIdForRequest = () => selectedRequest ? String(selectedRequest.fuelTypeId || selectedRequest.fuelType?.id) : "";
+
+  // Compose the submission DTO according to backend rules
+  const buildDto = () => {
+    if (recordType === RecordType.REQUEST) {
+      if (!fuelRequestId || !issuedAmount) return null;
+      return {
+        recordType,
+        fuelRequestId: Number(fuelRequestId),
+        issuedAmount: Number(issuedAmount),
+        // Omitting vehicleId, fuelTypeId, receiverId (they're derived by the backend from request)
+      };
+    } else if (recordType === RecordType.QUOTA) {
+      if (!vehicleId || !fuelTypeId || !issuedAmount || !receiverId) return null;
+      return {
+        recordType,
+        vehicleId: Number(vehicleId),
+        fuelTypeId: Number(fuelTypeId),
+        issuedAmount: Number(issuedAmount),
+        receiverId: Number(receiverId),
+      }
+    } else if (recordType === RecordType.EXTERNAL) {
+      if (!fuelTypeId || !issuedAmount) return null;
+      // Receiver, vehicle, request are optional and not required
+      return {
+        recordType,
+        fuelTypeId: Number(fuelTypeId),
+        issuedAmount: Number(issuedAmount),
+        receiverId: receiverId ? Number(receiverId) : null,
+        vehicleId: vehicleId ? Number(vehicleId) : null,
+        fuelRequestId: fuelRequestId ? Number(fuelRequestId) : null,
+      }
+    }
+    return null;
+  };
 
   const handleSubmit = async () => {
-    if (!recordType || !fuelTypeId || !issuedAmount) {
+    const dto = buildDto();
+    if (!dto) {
       toast.error("Please fill all required fields.");
       return;
     }
-    if (isNaN(Number(issuedAmount))) {
-      toast.error("Amount must be a number.");
+    if (isNaN(Number(issuedAmount)) || Number(issuedAmount) <= 0) {
+      toast.error("Amount must be a number > 0.");
       return;
     }
-    if (Number(issuedAmount) <= 0) {
-      toast.error("Issued amount must be greater than 0.");
-      return;
-    }
-    if (vehicleId && isNaN(Number(vehicleId))) {
-      toast.error("Vehicle ID must be a number.");
-      return;
-    }
-    // Validate receiverId if selected
-    if (receiverId && isNaN(Number(receiverId))) {
-      toast.error("Receiver selection error.");
-      return;
-    }
-    // Validate fuelRequestId if selected
-    if (fuelRequestId && isNaN(Number(fuelRequestId))) {
-      toast.error("Fuel Request selection error.");
-      return;
-    }
-    // Compile DTO, using null for blanks
-    const dto = {
-      recordType: recordType as RecordType,
-      vehicleId: vehicleId ? Number(vehicleId) : null,
-      receiverId: receiverId ? Number(receiverId) : null,
-      fuelRequestId: fuelRequestId ? Number(fuelRequestId) : null,
-      fuelTypeId: Number(fuelTypeId),
-      issuedAmount: Number(issuedAmount),
-    };
-
     setProcessing(true);
     try {
       await apiClient.fuel.records.issue(dto);
       toast.success("Fuel issued successfully!");
+      // Reset all states
       setRecordType(RecordType.EXTERNAL);
       setVehicleId("");
       setFuelTypeId("");
@@ -130,7 +164,7 @@ export default function FuelIssueDialog({
             </label>
             <Select
               value={recordType}
-              onValueChange={setRecordType}
+              onValueChange={val => handleRecordTypeChange(val as RecordType)}
               disabled={processing}
             >
               <SelectTrigger id="recordType">
@@ -143,124 +177,134 @@ export default function FuelIssueDialog({
               </SelectContent>
             </Select>
           </div>
-          {/* Vehicle Select */}
-          <div>
-            <label htmlFor="vehicleId" className="block text-xs font-medium mb-1">
-              Vehicle
-            </label>
-            <Select
-              value={vehicleId}
-              onValueChange={setVehicleId}
-              disabled={processing || isLoadingVehicles}
-            >
-              <SelectTrigger id="vehicleId">
-                <SelectValue placeholder={isLoadingVehicles ? "Loading vehicles..." : "Select vehicle (optional)"} />
-              </SelectTrigger>
-              <SelectContent>
-                {vehicles && vehicles.length > 0
-                  ? vehicles.map((v: any) => (
-                      <SelectItem key={v.id} value={String(v.id)}>
-                        {v.plateNumber
-                          ? `${v.plateNumber}${v.model ? " - " + v.model : ""}`
-                          : `Vehicle #${v.id}`}
-                      </SelectItem>
-                    ))
-                  : (
-                    isLoadingVehicles
-                      ? <SelectItem value="none" disabled>Loading...</SelectItem>
-                      : <SelectItem value="none" disabled>No vehicles found</SelectItem>
-                  )}
-              </SelectContent>
-            </Select>
-            <span className="text-xs text-muted-foreground">(Optional)</span>
-          </div>
-          {/* Receiver Select */}
-          <div>
-            <label htmlFor="receiverId" className="block text-xs font-medium mb-1">
-              Receiver
-            </label>
-            <Select
-              value={receiverId}
-              onValueChange={setReceiverId}
-              disabled={processing || isLoadingUsers}
-            >
-              <SelectTrigger id="receiverId">
-                <SelectValue placeholder={isLoadingUsers ? "Loading users..." : "Select receiver (optional)"} />
-              </SelectTrigger>
-              <SelectContent>
-                {users && users.length > 0
-                  ? users.map((u: any) => (
-                      <SelectItem key={u.id} value={String(u.id)}>
-                        {u.firstName} {u.lastName} {u.email && <span className="text-xs text-muted-foreground">({u.email})</span>}
-                      </SelectItem>
-                    ))
-                  : (
-                    isLoadingUsers
-                      ? <SelectItem value="none" disabled>Loading...</SelectItem>
-                      : <SelectItem value="none" disabled>No users found</SelectItem>
-                  )}
-              </SelectContent>
-            </Select>
-            <span className="text-xs text-muted-foreground">(Optional)</span>
-          </div>
-          {/* Fuel Request Select */}
-          <div>
-            <label htmlFor="fuelRequestId" className="block text-xs font-medium mb-1">
-              Related Fuel Request
-            </label>
-            <Select
-              value={fuelRequestId}
-              onValueChange={setFuelRequestId}
-              disabled={processing || isLoadingFuelRequests}
-            >
-              <SelectTrigger id="fuelRequestId">
-                <SelectValue placeholder={isLoadingFuelRequests ? "Loading requests..." : "Select request (optional)"} />
-              </SelectTrigger>
-              <SelectContent>
-                {fuelRequests && fuelRequests.length > 0
-                  ? fuelRequests.map((fr: any) => (
-                      <SelectItem key={fr.id} value={String(fr.id)}>
-                        {/* Show fuel type, requestedBy, and vehicle or level name */}
-                        {fr.fuelTypeName} - {fr.requestedAmount}L for {fr.vehiclePlateNumber || fr.levelName} (by {fr.requestedBy})
-                      </SelectItem>
-                    ))
-                  : (
-                    isLoadingFuelRequests
-                      ? <SelectItem value="none" disabled>Loading...</SelectItem>
-                      : <SelectItem value="none" disabled>No requests found</SelectItem>
-                  )}
-              </SelectContent>
-            </Select>
-            <span className="text-xs text-muted-foreground">(Optional)</span>
-          </div>
-          {/* Fuel Type Select */}
-          <div>
-            <label htmlFor="fuelTypeId" className="block text-xs font-medium mb-1">
-              Fuel Type
-            </label>
-            <Select
-              value={fuelTypeId}
-              onValueChange={setFuelTypeId}
-              disabled={processing || isLoadingFuelTypes}
-            >
-              <SelectTrigger id="fuelTypeId">
-                <SelectValue placeholder={isLoadingFuelTypes ? "Loading fuel types..." : "Select fuel type"} />
-              </SelectTrigger>
-              <SelectContent>
-                {fuelTypes && fuelTypes.length > 0
-                  ? fuelTypes.map((f: any) => (
-                      <SelectItem key={f.id} value={String(f.id)}>
-                        {f.name}
-                      </SelectItem>
-                    ))
-                  : (
-                    isLoadingFuelTypes
-                      ? <SelectItem value="none" disabled>Loading...</SelectItem>
-                      : <SelectItem value="none" disabled>No fuel types found</SelectItem>
-                  )}
-              </SelectContent>
-            </Select>
-          </div>
+
+          {/* Fuel Request (if REQUEST) */}
+          {showFuelRequest && (
+            <div>
+              <label htmlFor="fuelRequestId" className="block text-xs font-medium mb-1">
+                Related Fuel Request
+              </label>
+              <Select
+                value={fuelRequestId}
+                onValueChange={setFuelRequestId}
+                disabled={processing || isLoadingFuelRequests}
+              >
+                <SelectTrigger id="fuelRequestId">
+                  <SelectValue placeholder={isLoadingFuelRequests ? "Loading requests..." : "Select request"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {fuelRequests.length > 0
+                    ? fuelRequests.map((fr: any) => (
+                        <SelectItem key={fr.id} value={String(fr.id)}>
+                          {fr.fuelTypeName} - {fr.requestedAmount}L for{" "}
+                          {fr.vehiclePlateNumber || fr.levelName} (by {fr.requestedBy})
+                        </SelectItem>
+                      ))
+                    : (
+                        isLoadingFuelRequests
+                        ? <SelectItem value="none" disabled>Loading...</SelectItem>
+                        : <SelectItem value="none" disabled>No requests found</SelectItem>
+                      )}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Vehicle (QUOTA only) */}
+          {showVehicle && (
+            <div>
+              <label htmlFor="vehicleId" className="block text-xs font-medium mb-1">
+                Vehicle
+              </label>
+              <Select
+                value={vehicleId}
+                onValueChange={setVehicleId}
+                disabled={processing || isLoadingVehicles}
+              >
+                <SelectTrigger id="vehicleId">
+                  <SelectValue placeholder={isLoadingVehicles ? "Loading vehicles..." : "Select vehicle"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {vehicles.length > 0
+                    ? vehicles.map((v: any) => (
+                        <SelectItem key={v.id} value={String(v.id)}>
+                          {v.plateNumber
+                            ? `${v.plateNumber}${v.model ? " - " + v.model : ""}`
+                            : `Vehicle #${v.id}`}
+                        </SelectItem>
+                      ))
+                    : (
+                        isLoadingVehicles
+                        ? <SelectItem value="none" disabled>Loading...</SelectItem>
+                        : <SelectItem value="none" disabled>No vehicles found</SelectItem>
+                      )}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Receiver (QUOTA/EXTERNAL) */}
+          {showReceiver && (
+            <div>
+              <label htmlFor="receiverId" className="block text-xs font-medium mb-1">
+                Receiver
+              </label>
+              <Select
+                value={receiverId}
+                onValueChange={setReceiverId}
+                disabled={processing || isLoadingUsers}
+              >
+                <SelectTrigger id="receiverId">
+                  <SelectValue placeholder={isLoadingUsers ? "Loading users..." : "Select receiver"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {users.length > 0
+                    ? users.map((u: any) => (
+                        <SelectItem key={u.id} value={String(u.id)}>
+                          {u.firstName} {u.lastName} {u.email && <span className="text-xs text-muted-foreground">({u.email})</span>}
+                        </SelectItem>
+                      ))
+                    : (
+                        isLoadingUsers
+                        ? <SelectItem value="none" disabled>Loading...</SelectItem>
+                        : <SelectItem value="none" disabled>No users found</SelectItem>
+                      )}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Fuel Type (not needed for REQUEST, it will be derived) */}
+          {showFuelType && (
+            <div>
+              <label htmlFor="fuelTypeId" className="block text-xs font-medium mb-1">
+                Fuel Type
+              </label>
+              <Select
+                value={fuelTypeId}
+                onValueChange={setFuelTypeId}
+                disabled={processing || isLoadingFuelTypes}
+              >
+                <SelectTrigger id="fuelTypeId">
+                  <SelectValue placeholder={isLoadingFuelTypes ? "Loading fuel types..." : "Select fuel type"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {fuelTypes.length > 0
+                    ? fuelTypes.map((f: any) => (
+                        <SelectItem key={f.id} value={String(f.id)}>
+                          {f.name}
+                        </SelectItem>
+                      ))
+                    : (
+                        isLoadingFuelTypes
+                        ? <SelectItem value="none" disabled>Loading...</SelectItem>
+                        : <SelectItem value="none" disabled>No fuel types found</SelectItem>
+                      )}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           {/* Amount */}
           <div>
             <label htmlFor="issuedAmount" className="block text-xs font-medium mb-1">
@@ -293,3 +337,4 @@ export default function FuelIssueDialog({
     </Dialog>
   );
 }
+// END

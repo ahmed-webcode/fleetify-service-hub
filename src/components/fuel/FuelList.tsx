@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/apiClient";
@@ -103,12 +102,9 @@ export default function FuelList() {
     return (
         <Card>
             <CardHeader className="flex flex-row items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <Fuel className="h-5 w-5 text-primary" />
-                    <div>
-                        <CardTitle>Fuels</CardTitle>
-                        <CardDescription>Overview of all fuel types and balances.</CardDescription>
-                    </div>
+                <div>
+                    <CardTitle>Fuels</CardTitle>
+                    <CardDescription>Overview of all fuel types and balances.</CardDescription>
                 </div>
             </CardHeader>
             <CardContent>
