@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -62,7 +61,7 @@ export default function FuelIssueDialog({
     enabled: recordType === RecordType.REQUEST,
   });
 
-  // Autofill fuel type from request if REQUEST
+  // Autofill logic - NO property access to fuelTypeId/fuelType on FuelRequestDto
   const selectedRequest = useMemo(
     () => fuelRequests.find((fr: any) => String(fr.id) === fuelRequestId),
     [fuelRequests, fuelRequestId]
@@ -94,7 +93,9 @@ export default function FuelIssueDialog({
         recordType,
         fuelRequestId: Number(fuelRequestId),
         issuedAmount: Number(issuedAmount),
-        // Omitting vehicleId, fuelTypeId, receiverId (they're derived by the backend from request)
+        // For validation: the backend ignores this for recordType == REQUEST,
+        // but it's required by our frontend type.
+        fuelTypeId: 0,
       };
     } else if (recordType === RecordType.QUOTA) {
       if (!vehicleId || !fuelTypeId || !issuedAmount || !receiverId) return null;
@@ -196,6 +197,7 @@ export default function FuelIssueDialog({
                   {fuelRequests.length > 0
                     ? fuelRequests.map((fr: any) => (
                         <SelectItem key={fr.id} value={String(fr.id)}>
+                          {/* Show what is available */}
                           {fr.fuelTypeName} - {fr.requestedAmount}L for{" "}
                           {fr.vehiclePlateNumber || fr.levelName} (by {fr.requestedBy})
                         </SelectItem>
@@ -207,6 +209,12 @@ export default function FuelIssueDialog({
                       )}
                 </SelectContent>
               </Select>
+              {/* Optionally show more info about selectedRequest */}
+              {selectedRequest && (
+                <div className="text-xs mt-1 text-muted-foreground">
+                  Requester: {selectedRequest.requestedBy} | Requested: {selectedRequest.requestedAmount}L | Fuel: {selectedRequest.fuelTypeName}
+                </div>
+              )}
             </div>
           )}
 
@@ -337,4 +345,3 @@ export default function FuelIssueDialog({
     </Dialog>
   );
 }
-// END
