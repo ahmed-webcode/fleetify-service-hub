@@ -71,7 +71,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             user: rawUser ? {
               id: rawUser.id,
               username: rawUser.username || rawUser.email,
-              fullName: rawUser.fullName || rawUser.name,
+              fullName: `${rawUser.firstName} ${rawUser.lastName}`, // Fixed: Construct full name
               email: rawUser.email,
             } : null,
             roles,
