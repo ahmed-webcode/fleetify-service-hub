@@ -19,6 +19,9 @@ import {
 } from "@/types/position";
 import { Level, LightLevelDto } from "@/types/level";
 import { CreateProjectDto, Project, ProjectQueryParams, UpdateProjectDto } from "@/types/project";
+import {
+    TripRecordCreateDto, TripRecordFullDto
+} from "@/types/trip";
 
 // Base URL configuration
 const API_BASE_URL = "http://localhost:8080/api";
@@ -379,6 +382,31 @@ export const apiClient = {
                     },
                 });
             },
+        },
+    },
+
+    tripRecords: {
+        getAll: (params?: { page?: number; size?: number; sortBy?: string; direction?: string }) => {
+            const queryString = params
+                ? `?${new URLSearchParams(
+                      Object.entries(params)
+                          .filter(([_, value]) => value !== undefined && value !== null)
+                          .map(([key, value]) => [key, String(value)])
+                  ).toString()}`
+                : "";
+            return fetchWithErrorHandling<PageResponse<TripRecordFullDto>>(
+                `/trip-records${queryString}`
+            );
+        },
+        getById: (id: number) => {
+            return fetchWithErrorHandling<TripRecordFullDto>(`/trip-records/${id}`);
+        },
+        create: (data: TripRecordCreateDto) => {
+            return fetchWithErrorHandling<TripRecordFullDto>(`/trip-records`, {
+                method: "POST",
+                body: JSON.stringify(data),
+                headers: { "Content-Type": "application/json" },
+            });
         },
     },
 

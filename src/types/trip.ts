@@ -1,4 +1,3 @@
-
 import { ActionType, RequestStatus } from "./common";
 
 export interface CreateTripRequestDto {
@@ -39,4 +38,41 @@ export interface TripRequestDto {
     driverName?: string;
     createdAt: string;
     updatedAt: string;
+}
+
+// DTOs for Trip Records
+
+export interface TripRecordCreateDto {
+    tripRequestId: number;
+    vehicleId: number;
+    driverId: number;
+}
+
+export interface TripRecordFullDto {
+    id: number;
+    level: {
+        id: number;
+        name: string;
+    };
+    tripRequest: {
+        id: number;
+        purpose: string;
+    };
+    vehicle: {
+        id: number;
+        plateNumber: string;
+    };
+    driver: {
+        id: number;
+        email: string;
+        firstName: string;
+        lastName: string;
+    };
+    assignedBy: {
+        id: number;
+        email: string;
+        firstName: string;
+        lastName: string;
+    };
+    assignedAt: string;
 }

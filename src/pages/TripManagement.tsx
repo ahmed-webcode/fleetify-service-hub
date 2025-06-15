@@ -22,10 +22,12 @@ import {
 import { HasPermission } from "@/components/auth/HasPermission";
 import { TripRequestForm } from "@/components/trips/TripRequestForm";
 import { TripRequestsList } from "@/components/trips/TripRequestsList";
+import { TripRecordsList } from "@/components/trips/TripRecordsList";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/apiClient";
 import { TripRequestDto } from "@/types/trip";
 import { RequestStatus } from "@/types/common";
+import { TripRecordFullDto } from "@/types/trip";
 import {
     Pagination,
     PaginationContent,
@@ -83,6 +85,24 @@ export default function TripManagement() {
                 request.status.toLowerCase().includes(searchLower)
             );
         }) || [];
+
+    const [recordsPage, setRecordsPage] = useState(0);
+    const [recordsPerPage] = useState(10);
+
+    const {
+        data: tripRecordsData,
+        isLoading: recordsLoading,
+        isError: recordsError,
+        refetch: refetchTripRecords,
+    } = useQuery({
+        queryKey: ["tripRecords", recordsPage, recordsPerPage],
+        queryFn: () => apiClient.tripRecords.getAll({
+            page: recordsPage,
+            size: recordsPerPage,
+            sortBy: "assignedAt",
+            direction: "DESC",
+        }),
+    });
 
     const AccessRestricted = () => (
         <div className="flex flex-col items-center justify-center py-12">
@@ -194,6 +214,29 @@ export default function TripManagement() {
     const pendingRequestsCount =
         tripRequestsData?.content.filter((r) => r.status === RequestStatus.PENDING).length || 0;
 
+    // For Trip Records pagination display
+    const renderTripRecordsPagination = () => {
+        const totalPages = tripRecordsData?.totalPages || 1;
+        const items = [];
+        for (let i = 0; i < totalPages; i++) {
+            items.push(
+                <PaginationItem key={i}>
+                    <PaginationLink
+                        href="#"
+                        isActive={i === recordsPage}
+                        onClick={e => {
+                            e.preventDefault();
+                            setRecordsPage(i);
+                        }}
+                    >
+                        {i + 1}
+                    </PaginationLink>
+                </PaginationItem>
+            );
+        }
+        return items;
+    };
+
     return (
         <div className="space-y-6 p-4 md:p-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -282,6 +325,7 @@ export default function TripManagement() {
                     <Tabs defaultValue="requests" className="space-y-4">
                         <TabsList>
                             <TabsTrigger value="requests">Trip Requests</TabsTrigger>
+                            <TabsTrigger value="records">Trip Records</TabsTrigger>
                             <TabsTrigger value="history">Trip History</TabsTrigger>
                             <TabsTrigger value="reports">Reports</TabsTrigger>
                         </TabsList>
@@ -422,6 +466,74 @@ export default function TripManagement() {
                                     <p className="text-xs text-muted-foreground">
                                         {tripRequestsData &&
                                             `Showing ${filteredRequests.length} of ${tripRequestsData.totalElements} requests`}
+                                    </p>
+                                </CardFooter>
+                            </Card>
+                        </TabsContent>
+
+                        <TabsContent value="records" className="space-y-4">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Trip Records</CardTitle>
+                                    <CardDescription>
+                                        List of resolved/assigned trip requests.
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    {recordsLoading ? (
+                                        <div className="flex justify-center p-8">
+                                            <p>Loading trip records...</p>
+                                        </div>
+                                    ) : recordsError ? (
+                                        <div className="bg-red-50 border-l-4 border-red-500 p-4">
+                                            <p className="text-red-700">Error loading trip records.</p>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <TripRecordsList records={tripRecordsData?.content || []} />
+                                            {tripRecordsData && tripRecordsData.totalPages > 1 && (
+                                                <div className="mt-6">
+                                                    <Pagination>
+                                                        <PaginationContent>
+                                                            <PaginationItem>
+                                                                <PaginationPrevious
+                                                                    href="#"
+                                                                    onClick={e => {
+                                                                        e.preventDefault();
+                                                                        setRecordsPage(Math.max(0, recordsPage - 1));
+                                                                    }}
+                                                                    aria-disabled={recordsPage === 0}
+                                                                    className={recordsPage === 0 ? "pointer-events-none opacity-50" : ""}
+                                                                />
+                                                            </PaginationItem>
+                                                            {renderTripRecordsPagination()}
+                                                            <PaginationItem>
+                                                                <PaginationNext
+                                                                    href="#"
+                                                                    onClick={e => {
+                                                                        e.preventDefault();
+                                                                        setRecordsPage(
+                                                                            Math.min(
+                                                                                tripRecordsData.totalPages - 1,
+                                                                                recordsPage + 1
+                                                                            )
+                                                                        );
+                                                                    }}
+                                                                    aria-disabled={recordsPage === tripRecordsData.totalPages - 1}
+                                                                    className={recordsPage === tripRecordsData.totalPages - 1 ? "pointer-events-none opacity-50" : ""}
+                                                                />
+                                                            </PaginationItem>
+                                                        </PaginationContent>
+                                                    </Pagination>
+                                                </div>
+                                            )}
+                                        </>
+                                    )}
+                                </CardContent>
+                                <CardFooter className="border-t py-3 px-6">
+                                    <p className="text-xs text-muted-foreground">
+                                        {tripRecordsData &&
+                                            `Showing ${tripRecordsData.content?.length || 0} of ${tripRecordsData.totalElements} records`}
                                     </p>
                                 </CardFooter>
                             </Card>
