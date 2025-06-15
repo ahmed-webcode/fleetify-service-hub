@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,7 +31,6 @@ import {
 import { Plus, Search, Users, FileText, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth, MOCK_COLLEGES, MOCK_INSTITUTES, MOCK_CAMPUSES } from "@/contexts/AuthContext";
-import { HasPermission } from "@/components/auth/HasPermission";
 
 const MOCK_DRIVERS = [
   {
@@ -97,7 +97,7 @@ const DriverManagement = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { hasPermission } = useAuth();
 
-  const canAddDrivers = hasPermission("manage_user");
+  const canAddDrivers = hasPermission("add_users");
 
   const filteredInstitutes = selectedCollege
     ? MOCK_INSTITUTES.filter((inst) => inst.collegeId === selectedCollege)
@@ -154,14 +154,12 @@ const DriverManagement = () => {
               </p>
             </div>
 
-            <HasPermission permission="manage_user">
-              {canAddDrivers && (
-                <Button className="gap-2" onClick={() => setAddDriverOpen(true)}>
-                  <Plus className="h-4 w-4" />
-                  Add Driver
-                </Button>
-              )}
-            </HasPermission>
+            {canAddDrivers && (
+              <Button className="gap-2" onClick={() => setAddDriverOpen(true)}>
+                <Plus className="h-4 w-4" />
+                Add Driver
+              </Button>
+            )}
           </div>
 
           <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">

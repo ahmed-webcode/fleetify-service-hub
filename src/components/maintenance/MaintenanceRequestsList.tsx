@@ -134,7 +134,7 @@ export function MaintenanceRequestsList({ requests, onRefresh }: MaintenanceRequ
                                 <TableCell>{formatDate(request.requestedAt)}</TableCell>
                                 <TableCell className="text-right">
                                     <HasPermission
-                                        permission="manage_maintenance_request"
+                                        permission="manage_maintenance_requests"
                                         fallback={
                                             <Button
                                                 variant="ghost"

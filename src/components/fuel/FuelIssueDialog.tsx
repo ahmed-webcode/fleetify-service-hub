@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -34,7 +35,7 @@ export default function FuelIssueDialog({
   const { data: fuelTypes, isLoading: isLoadingFuelTypes } = useQuery({
     queryKey: ["allFuelTypes"],
     queryFn: async () =>
-      apiClient.fuel.getFuelTypes().then(res => res as { id: number; name: string }[]),
+      apiClient.fuel.types.getAll({ size: 100 }).then(res => res.content),
   });
 
   const handleSubmit = async () => {
@@ -93,7 +94,7 @@ export default function FuelIssueDialog({
                 <SelectValue placeholder={isLoadingVehicles ? "Loading vehicles..." : "Select vehicle"} />
               </SelectTrigger>
               <SelectContent>
-                {vehicles && vehicles.length > 0
+                {vehicles?.length
                   ? vehicles.map((v: any) => (
                       <SelectItem key={v.id} value={String(v.id)}>
                         {v.plateNumber
@@ -102,9 +103,9 @@ export default function FuelIssueDialog({
                       </SelectItem>
                     ))
                   : (
-                    isLoadingVehicles
-                      ? <SelectItem value="none" disabled>Loading...</SelectItem>
-                      : <SelectItem value="none" disabled>No vehicles found</SelectItem>
+                    <SelectItem value="" disabled>
+                      {isLoadingVehicles ? "Loading..." : "No vehicles found"}
+                    </SelectItem>
                   )}
               </SelectContent>
             </Select>
@@ -123,16 +124,16 @@ export default function FuelIssueDialog({
                 <SelectValue placeholder={isLoadingFuelTypes ? "Loading fuel types..." : "Select fuel type"} />
               </SelectTrigger>
               <SelectContent>
-                {fuelTypes && fuelTypes.length > 0
+                {fuelTypes?.length
                   ? fuelTypes.map((f: any) => (
                       <SelectItem key={f.id} value={String(f.id)}>
                         {f.name}
                       </SelectItem>
                     ))
                   : (
-                    isLoadingFuelTypes
-                      ? <SelectItem value="none" disabled>Loading...</SelectItem>
-                      : <SelectItem value="none" disabled>No fuel types found</SelectItem>
+                    <SelectItem value="" disabled>
+                      {isLoadingFuelTypes ? "Loading..." : "No fuel types found"}
+                    </SelectItem>
                   )}
               </SelectContent>
             </Select>
