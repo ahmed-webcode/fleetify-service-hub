@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -24,10 +24,6 @@ export default function FuelUpdateDialog({
   const [pricePerLiter, setPricePerLiter] = useState<number | "">(fuel?.pricePerLiter ?? "");
   const [loading, setLoading] = useState(false);
 
-  // When dialog opens/closes, sync state with fuel
-  // or reset on close
-  // Only update when dialog is newly opened or fuel changes
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   React.useEffect(() => {
     setAmount(fuel?.amount ?? "");
     setPricePerLiter(fuel?.pricePerLiter ?? "");
@@ -112,7 +108,7 @@ export default function FuelUpdateDialog({
             >
               Cancel
             </Button>
-            <Button type="submit" loading={loading} disabled={loading}>
+            <Button type="submit" disabled={loading}>
               Update
             </Button>
           </DialogFooter>

@@ -316,7 +316,13 @@ export const apiClient = {
         listFuels: () => {
             return fetchWithErrorHandling<import('@/types/fuel').FuelFull[]>("/fuels");
         },
-
+        updateFuel: (id: number, update: { amount: number, pricePerLiter: number }) => {
+            return fetchWithErrorHandling<import('@/types/fuel').FuelFull>(`/fuels/${id}`, {
+                method: "PATCH",
+                body: JSON.stringify(update),
+                headers: { "Content-Type": "application/json" }
+            });
+        },
         // New fuel request endpoints
         requests: {
             getAll: (params?: RequestQueryParams) => {

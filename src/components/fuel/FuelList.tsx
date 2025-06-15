@@ -8,6 +8,7 @@ import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "@/com
 import { Edit } from "lucide-react";
 import FuelUpdateDialog from "./FuelUpdateDialog";
 import { HasPermission } from "@/components/auth/HasPermission";
+import { Button } from "@/components/ui/button";
 
 // Inline spinner component
 const Spinner = () => (
