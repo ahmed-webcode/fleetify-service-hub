@@ -65,7 +65,7 @@ export const TripRequestForm = ({ onSuccess, onCancel }: TripRequestFormProps) =
   };
 
   // Input style tweaks
-  const inputClass = "min-h-12 md:min-h-[52px] text-base px-4 py-3";
+  const inputClass = "min-h-8 text-base px-4 py-3";
   const labelClass = "block text-sm font-medium mb-2";
   const textareaClass = "resize-none min-h-[80px] text-base px-4 py-3 rounded-md";
 
@@ -121,7 +121,7 @@ export const TripRequestForm = ({ onSuccess, onCancel }: TripRequestFormProps) =
                 <Button
                   variant="outline"
                   className={cn(
-                    "w-full justify-start text-left font-normal min-h-12 md:min-h-[52px] px-4 py-3",
+                    "w-full justify-start text-left font-normal min-h-8 px-4 py-3",
                     !formData.startDateTime && "text-muted-foreground"
                   )}
                 >
@@ -165,7 +165,7 @@ export const TripRequestForm = ({ onSuccess, onCancel }: TripRequestFormProps) =
                 <Button
                   variant="outline"
                   className={cn(
-                    "w-full justify-start text-left font-normal min-h-12 md:min-h-[52px] px-4 py-3",
+                    "w-full justify-start text-left font-normal min-h-8 px-4 py-3",
                     !formData.endDateTime && "text-muted-foreground"
                   )}
                 >

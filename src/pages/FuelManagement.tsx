@@ -168,8 +168,9 @@ export default function FuelManagement() {
           </p>
         </div>
 
+        {/* Only users with permission to request fuel see the button */}
         <HasPermission 
-          permission="request_maintenance" 
+          permission="request_fuel" 
           fallback={null}
         >
           <Button className="gap-1.5" onClick={() => setRequestFuelOpen(true)}>
@@ -179,7 +180,8 @@ export default function FuelManagement() {
         </HasPermission>
       </div>
 
-      {!hasPermission("view_reports") ? (
+      {/* Only users with view_fuel permission see the main content */}
+      {!hasPermission("view_fuel") ? (
         <AccessRestricted />
       ) : (
         <>
@@ -267,7 +269,7 @@ export default function FuelManagement() {
                   strokeWidth="2"
                   className="h-4 w-4 text-muted-foreground"
                 >
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 1 0 7h5" />
                   <circle cx="9" cy="7" r="4" />
                   <path d="M22 21v-2a4 4 0 0 1 0 7.75" />
                 </svg>

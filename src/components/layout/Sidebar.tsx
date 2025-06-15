@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -75,13 +74,14 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
 
     const isTransportDirector = selectedRole?.id === 1; // TRANSPORT_DIRECTOR role ID
 
+    // Refactor sidebarItems to wrap nav link visibility in permission checks per new mapping
     const sidebarItems: SidebarItem[] = [
-        { name: 'Dashboard', icon: <BarChart size={20} />, path: '/dashboard', permission: null, exactMatch: true },
-        { name: 'Vehicles', icon: <Car size={20} />, path: '/vehicles', permission: null },
-        { name: 'Trip Management', icon: <MapPin size={20} />, path: '/trip-management', permission: null },
-        { name: 'Fuel Management', icon: <Fuel size={20} />, path: '/fuel-management', permission: null },
-        { name: 'Projects Management', icon: <School size={20} />, path: '/projects-management', permission: null, requiresTransportDirector: true },
-        { name: 'User Management', icon: <Users size={20} />, path: '/user-management', permission: null, requiresTransportDirector: true },
+        { name: 'Dashboard', icon: <BarChart size={20} />, path: '/dashboard', permission: 'view_user', exactMatch: true },
+        { name: 'Vehicles', icon: <Car size={20} />, path: '/vehicles', permission: 'view_vehicle' },
+        { name: 'Trip Management', icon: <MapPin size={20} />, path: '/trip-management', permission: 'view_trip_request' },
+        { name: 'Fuel Management', icon: <Fuel size={20} />, path: '/fuel-management', permission: 'view_fuel' },
+        { name: 'Projects Management', icon: <School size={20} />, path: '/projects-management', permission: 'manage_project', requiresTransportDirector: true },
+        { name: 'User Management', icon: <Users size={20} />, path: '/user-management', permission: 'manage_user', requiresTransportDirector: true },
         { name: 'Settings', icon: <Settings size={20} />, path: '/settings', permission: null },
     ];
 
@@ -92,8 +92,8 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
                 if (item.permission && !hasPermission(item.permission as Permission)) {
                     return false;
                 }
-                // Filter by Transport Director requirement
-                if (item.requiresTransportDirector && !isTransportDirector) {
+                // Transport Director specific filter
+                if (item.requiresTransportDirector && selectedRole?.id !== 1) {
                     return false;
                 }
                 return true;

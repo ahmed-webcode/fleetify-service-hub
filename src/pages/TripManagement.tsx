@@ -14,10 +14,6 @@ import {
     Plus,
     PlusCircle,
     AlertTriangle,
-    Route,
-    Clock,
-    CalendarDays,
-    UserCheck,
 } from "lucide-react";
 import { HasPermission } from "@/components/auth/HasPermission";
 import { TripRequestForm } from "@/components/trips/TripRequestForm";
@@ -25,9 +21,7 @@ import { TripRequestsList } from "@/components/trips/TripRequestsList";
 import { TripRecordsList } from "@/components/trips/TripRecordsList";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/apiClient";
-import { TripRequestDto } from "@/types/trip";
 import { RequestStatus } from "@/types/common";
-import { TripRecordFullDto } from "@/types/trip";
 import {
     Pagination,
     PaginationContent,
@@ -248,7 +242,7 @@ export default function TripManagement() {
                     </p>
                 </div>
 
-                <HasPermission permission="create_trip_request" fallback={null}>
+                <HasPermission permission="request_trip" fallback={null}>
                     <Button className="gap-1.5" onClick={() => setRequestTripOpen(true)}>
                         <Plus className="h-4 w-4" />
                         <span>Request Trip</span>
@@ -256,7 +250,7 @@ export default function TripManagement() {
                 </HasPermission>
             </div>
 
-            {!hasPermission("view_trip_management") ? (
+            {!hasPermission("manage_trip") ? (
                 <AccessRestricted />
             ) : (
                 <>
@@ -312,7 +306,7 @@ export default function TripManagement() {
                                                     There are no trip requests at the moment.
                                                 </p>
                                                 <HasPermission
-                                                    permission="create_trip_request"
+                                                    permission="request_trip"
                                                     fallback={null}
                                                 >
                                                     <Button
@@ -492,6 +486,22 @@ export default function TripManagement() {
                     </Tabs>
                 </>
             )}
+
+            {/* Trip Request Dialog */}
+            <Dialog open={requestTripOpen} onOpenChange={setRequestTripOpen}>
+                <DialogContent className="sm:max-w-2xl max-h-[95vh] overflow-y-auto">
+                <DialogHeader>
+                    <DialogTitle>New Trip Request</DialogTitle>
+                </DialogHeader>
+                <TripRequestForm 
+                    onSuccess={() => {
+                    setRequestTripOpen(false);
+                    refetch();
+                    }}
+                    onCancel={() => setRequestTripOpen(false)}
+                />
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
