@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -263,7 +262,6 @@ export function TripReportsExporter() {
                       <DatePicker
                         date={field.value}
                         onSelect={field.onChange}
-                        placeholder="Start Date"
                       />
                     </FormControl>
                   </FormItem>
@@ -281,7 +279,6 @@ export function TripReportsExporter() {
                       <DatePicker
                         date={field.value}
                         onSelect={field.onChange}
-                        placeholder="End Date"
                       />
                     </FormControl>
                   </FormItem>
