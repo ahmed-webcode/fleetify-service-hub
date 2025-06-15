@@ -32,7 +32,8 @@ export default function FuelReportsTab() {
   // Fetch fuel types & levels for filters
   const { data: fuelTypesData } = useQuery({
     queryKey: ["fuelTypes"],
-    queryFn: () => apiClient.fuel.types.getAll(),
+    // FIX: use getFuelTypes, not types.getAll
+    queryFn: () => apiClient.fuel.getFuelTypes(),
   });
 
   const { data: levelsData } = useQuery({
