@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -38,27 +39,36 @@ export default function FuelIssueDialog({
   });
 
   const handleSubmit = async () => {
-    if (!vehicleId || !fuelTypeId || !issuedAmount) {
-      toast.error("Please fill all fields.");
+    if (!fuelTypeId || !issuedAmount) {
+      toast.error("Please fill all required fields.");
       return;
     }
-    if (isNaN(Number(vehicleId)) || isNaN(Number(fuelTypeId)) || isNaN(Number(issuedAmount))) {
-      toast.error("IDs and amount must be numbers.");
+    if (isNaN(Number(issuedAmount))) {
+      toast.error("Amount must be a number.");
       return;
     }
     if (Number(issuedAmount) <= 0) {
       toast.error("Issued amount must be greater than 0.");
       return;
     }
+    // vehicleId is optional
+    if (vehicleId && isNaN(Number(vehicleId))) {
+      toast.error("Vehicle ID must be a number.");
+      return;
+    }
+    // Always send all DTO fields, set to null if not specified
+    const dto = {
+      recordType: RecordType.EXTERNAL,
+      vehicleId: vehicleId ? Number(vehicleId) : null,
+      receiverId: null,
+      fuelRequestId: null,
+      fuelTypeId: Number(fuelTypeId),
+      issuedAmount: Number(issuedAmount),
+    };
 
     setProcessing(true);
     try {
-      await apiClient.fuel.records.issue({
-        recordType: RecordType.EXTERNAL,
-        vehicleId: Number(vehicleId),
-        fuelTypeId: Number(fuelTypeId),
-        issuedAmount: Number(issuedAmount),
-      });
+      await apiClient.fuel.records.issue(dto);
       toast.success("Fuel issued successfully!");
       setVehicleId("");
       setFuelTypeId("");
@@ -90,7 +100,7 @@ export default function FuelIssueDialog({
               disabled={processing || isLoadingVehicles}
             >
               <SelectTrigger id="vehicleId">
-                <SelectValue placeholder={isLoadingVehicles ? "Loading vehicles..." : "Select vehicle"} />
+                <SelectValue placeholder={isLoadingVehicles ? "Loading vehicles..." : "Select vehicle (optional)"} />
               </SelectTrigger>
               <SelectContent>
                 {vehicles && vehicles.length > 0
@@ -108,6 +118,7 @@ export default function FuelIssueDialog({
                   )}
               </SelectContent>
             </Select>
+            <span className="text-xs text-muted-foreground">(Optional)</span>
           </div>
           {/* Fuel Type Select */}
           <div>
