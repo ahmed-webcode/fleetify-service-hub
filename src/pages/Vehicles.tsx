@@ -323,11 +323,12 @@ const Vehicles = () => {
     return (
         <>
             <div className="page-container">
-                <div className="page-title-container">
-                    <h1 className="page-title">Vehicles</h1>
-                    <p className="page-description">Manage and monitor your fleet</p>
+                <div className="page-title-container mb-6">
+                    <h1 className="page-title text-2xl font-bold tracking-tight">Vehicles</h1>
+                    <p className="page-description text-muted-foreground text-base mt-1">
+                        Manage and monitor your fleet
+                    </p>
                 </div>
-
                 <div className="card-uniform">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 md:mb-6 gap-4">
                         {canAddVehicle && (
