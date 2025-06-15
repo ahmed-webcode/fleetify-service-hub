@@ -80,7 +80,7 @@ export default function Dashboard() {
         vehicles={vehicleCount}
         tripRequests={tripRequestCount}
         fuelRequests={fuelRequestCount}
-        drivers={0} // No driver card anymore
+        drivers={usersQuery.data?.filter(user => user.roles.some(role => role.name === "Driver")).length || 0}
         loading={loading}
       />
 

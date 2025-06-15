@@ -4,17 +4,17 @@ import { apiClient } from "@/lib/apiClient";
 
 // Add this constant for the role names (assuming 11 role names as required)
 export const ALL_ROLE_NAMES = [
-  "ADMIN",
-  "DRIVER",
-  "FLEET_MANAGER",
-  "FUEL_MANAGER",
-  "PROJECT_MANAGER",
-  "COLLEGE_MANAGER",
-  "MAINTENANCE_MANAGER",
-  "FINANCE_MANAGER",
-  "INSURANCE_MANAGER",
-  "INCIDENT_MANAGER",
-  "USER"
+  "Transport Director",
+  "Deployment Manager",
+  "Fuel Manager",
+  "Insurance Manager",
+  "Maintenance Manager",
+  "Store Manager",
+  "Operational Director",
+  "Fuel Attendant",
+  "Staff",
+  "Driver",
+  "Mechanic"
 ];
 
 export function useDashboardStats() {
