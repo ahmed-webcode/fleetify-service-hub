@@ -159,7 +159,7 @@ export const apiClient = {
             });
         },
         update: (userData: UpdateUserDto) => {
-            return fetchWithErrorHandling<UserDto>(`/users`, {
+            return fetchWithErrorHandling<UserDto>(`/users/${userData.id}`, {
                 method: "PATCH",
                 body: JSON.stringify(userData),
                 headers: {
