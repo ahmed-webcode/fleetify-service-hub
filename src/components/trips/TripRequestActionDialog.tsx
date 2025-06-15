@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import {
     Dialog,
@@ -75,6 +76,7 @@ export function TripRequestActionDialog({
 
         setLoading(true);
         try {
+            // Step 1: Approve or Reject the trip request
             const actionData: TripRequestActionDto = {
                 action: action,
                 actionNote: reason || undefined,
@@ -82,11 +84,22 @@ export function TripRequestActionDialog({
                 driverId: driverId,
             };
             await apiClient.trips.requests.act(request.id, actionData);
-            toast.success(`Trip request ${action.toLowerCase()}ed successfully.`);
+
+            // Step 2: If approved, create the trip record
+            if (action === ActionType.APPROVE) {
+                await apiClient.tripRecords.create({
+                    tripRequestId: request.id,
+                    vehicleId: vehicleId!,
+                    driverId: driverId!,
+                });
+                toast.success("Trip request approved and trip record created!");
+            } else {
+                toast.success(`Trip request ${action.toLowerCase()}ed successfully.`);
+            }
             onActionComplete();
             handleClose();
         } catch (error: any) {
-            toast.error("Failed to process request: " + (error.message || "Unknown error"));
+            toast.error("Failed to process request or create trip record: " + (error.message || "Unknown error"));
         } finally {
             setLoading(false);
         }
