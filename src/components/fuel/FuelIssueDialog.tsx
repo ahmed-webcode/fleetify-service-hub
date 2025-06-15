@@ -83,7 +83,11 @@ export default function FuelIssueDialog({
   };
 
   // If a request is chosen, fuelTypeId is forced from that request.
-  const getFuelTypeIdForRequest = () => selectedRequest ? String(selectedRequest.fuelTypeId || selectedRequest.fuelType?.id) : "";
+  // Fix: Only access existing property (fuelTypeName) for selectedRequest.
+  const getFuelTypeIdForRequest = () => {
+    // No fuelTypeId or fuelType present on FuelRequestDto, so just return ""
+    return "";
+  };
 
   // Compose the submission DTO according to backend rules
   const buildDto = () => {

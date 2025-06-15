@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/apiClient";
 import { Button } from "@/components/ui/button";
@@ -68,7 +67,7 @@ export default function FuelReportsTab() {
               Download an Excel report of all fuel issue records (max 5000 rows).
             </CardDescription>
           </div>
-          <Button onClick={refetch} variant="outline" size="sm" disabled={isLoading}>
+          <Button onClick={() => refetch()} variant="outline" size="sm" disabled={isLoading}>
             Refresh
           </Button>
         </div>
@@ -136,4 +135,3 @@ export default function FuelReportsTab() {
     </Card>
   );
 }
-
