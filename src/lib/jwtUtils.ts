@@ -94,25 +94,25 @@ export type Permission =
   | 'view_admin_section'
   | 'view_trip_management'
   | 'view_fuel_management'
-  | 'view_maintenance_management'
   | 'create_trip_request'
   | 'create_maintenance_request'
   | 'manage_users_section'
   | 'manage_trip_requests'
   | 'manage_fuel_requests'
   | 'manage_maintenance_requests'
-  | 'add_vehicle';
+  | 'add_vehicle'
+  | 'issue_fuel'; // NEW: Permission to issue fuel
 
-// Update ROLE_PERMISSIONS to use new IDs as keys
+// Updated ROLE_PERMISSIONS to use new IDs as keys
 export const ROLE_PERMISSIONS: Record<number, Permission[]> = {
   1: ['add_users', 'manage_drivers', 'approve_fleet', 'approve_maintenance', 'request_maintenance', 'report_incidents', 'track_vehicles', 'view_reports', 'add_vehicle', 'view_admin_section', 'manage_users_section', 'view_trip_management', 'view_fuel_management', 'view_maintenance_management', 'manage_fuel_requests', 'manage_trip_requests', 'manage_maintenance_requests', 'create_trip_request', 'create_maintenance_request'], // Transport Director
   2: ['manage_drivers', 'request_fleet', 'approve_fleet', 'report_incidents', 'track_vehicles'], // Deployment Manager
-  3: ['request_maintenance', 'report_incidents', 'view_reports'], // Fuel Manager
+  3: ['request_maintenance', 'report_incidents', 'view_reports', 'issue_fuel'], // Fuel Manager (added issue_fuel)
   4: ['view_reports'], // Insurance Manager (customize as needed)
   5: ['approve_maintenance', 'request_maintenance', 'report_incidents', 'view_reports'], // Maintenance Manager
   6: ['request_maintenance', 'report_incidents'], // Store Manager (customize as needed)
   7: ['add_users', 'manage_drivers', 'request_fleet', 'approve_fleet', 'approve_maintenance', 'request_maintenance', 'report_incidents', 'track_vehicles', 'view_reports', 'add_vehicle'], // Operational Director
-  8: ['request_maintenance', 'report_incidents'], // Fuel Attendant
+  8: ['request_maintenance', 'report_incidents', 'issue_fuel'], // Fuel Attendant (added issue_fuel)
   9: ['request_fleet'], // Staff
   10: ['request_maintenance', 'report_incidents'], // Driver
   11: ['request_maintenance', 'report_incidents'], // Mechanic
