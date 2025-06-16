@@ -452,6 +452,13 @@ export default function VehicleDetail() {
                                         variant="outline"
                                         className="w-full"
                                         disabled={!vehicle.libreSrc}
+                                        onClick={() => {
+                                            if (vehicle.libreSrc) {
+                                                window.open(vehicle.libreSrc, "_blank");
+                                            } else {
+                                                toast.error("Libre document not available.");
+                                            }
+                                        }}
                                     >
                                         <Eye className="h-4 w-4 mr-2" /> View Libre Document
                                     </Button>

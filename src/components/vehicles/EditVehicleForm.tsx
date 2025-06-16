@@ -50,15 +50,6 @@ const editVehicleSchema = z.object({
 
 type EditVehicleValues = z.infer<typeof editVehicleSchema>;
 
-interface User {
-    id: number;
-    username: string;
-    firstName: string;
-    lastName: string;
-    canDrive: boolean;
-    roles: { id: number; name: string }[];
-}
-
 export function EditVehicleForm({ vehicle, onSubmit, onCancel }: EditVehicleFormProps) {
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [libreFile, setLibreFile] = useState<File | null>(null);
@@ -101,6 +92,10 @@ export function EditVehicleForm({ vehicle, onSubmit, onCancel }: EditVehicleForm
             if (vehicle.insuranceEndDate) setInsuranceEndDate(new Date(vehicle.insuranceEndDate));
             if (vehicle.boloEndDate) setBoloEndDate(new Date(vehicle.boloEndDate));
             if (vehicle.lastQuotaRefuel) setLastQuotaRefuel(new Date(vehicle.lastQuotaRefuel));
+            
+            // --- REMOVED INCORRECT LOGIC ---
+            // if (vehicle.imgSrc) setImageFile(new File([], vehicle.imgSrc));
+            // if (vehicle.libreSrc) setLibreFile(new File([], vehicle.libreSrc));
         }
     }, [vehicle, users, fuelTypes, form]);
 
@@ -121,30 +116,35 @@ export function EditVehicleForm({ vehicle, onSubmit, onCancel }: EditVehicleForm
 
     const handleSubmit = async (values: z.infer<typeof editVehicleSchema>) => {
         setUploading(true);
-        const formData = new FormData();
+        try {
+            const formData = new FormData();
 
-        Object.entries(values).forEach(([key, value]) => {
-            if (value !== undefined && value !== null && key !== "lastQuotaRefuel") {
-                formData.append(key, String(value));
+            Object.entries(values).forEach(([key, value]) => {
+                if (value !== undefined && value !== null && key !== "lastQuotaRefuel") {
+                    formData.append(key, String(value));
+                }
+            });
+            if (lastQuotaRefuel) {
+                formData.append("lastQuotaRefuel", format(lastQuotaRefuel, "yyyy-MM-dd"));
             }
-        });
-        // Add lastQuotaRefuel as formatted date if present
-        if (lastQuotaRefuel) {
-            formData.append("lastQuotaRefuel", format(lastQuotaRefuel, "yyyy-MM-dd"));
+            if (insuranceEndDate) {
+                formData.append("insuranceEndDate", format(insuranceEndDate, "yyyy-MM-dd"));
+            }
+            if (boloEndDate) {
+                formData.append("boloEndDate", format(boloEndDate, "yyyy-MM-dd"));
+            }
+            if (imageFile) formData.append("vehicleImg", imageFile);
+            if (libreFile) formData.append("libreImg", libreFile);
+            
+            if (vehicle?.id) {
+                await onSubmit(vehicle.id, formData);
+            }
+        } catch (error) {
+            console.error("Error submitting vehicle data:", error);
+            toast.error("Failed to save vehicle data. Please try again.");
+        } finally {
+            setUploading(false);
         }
-        if (insuranceEndDate) {
-            formData.append("insuranceEndDate", format(insuranceEndDate, "yyyy-MM-dd"));
-        }
-        if (boloEndDate) {
-            formData.append("boloEndDate", format(boloEndDate, "yyyy-MM-dd"));
-        }
-        if (imageFile) formData.append("vehicleImg", imageFile);
-        if (libreFile) formData.append("libreImg", libreFile);
-        
-        if (vehicle?.id) {
-           await onSubmit(vehicle.id, formData);
-        }
-        setUploading(false);
     };
 
     if (!vehicle) return <p>Loading vehicle data...</p>;
@@ -207,19 +207,16 @@ export function EditVehicleForm({ vehicle, onSubmit, onCancel }: EditVehicleForm
                 />
 
                 <h3 className="text-xl font-semibold border-b pb-2 pt-4">File Uploads</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                     <VehicleFileUploads
                         handleImageUpload={handleImageUpload}
                         handleLibreUpload={handleLibreUpload}
                         imageFile={imageFile}
                         libreFile={libreFile}
+                        // --- ADDED NEW PROPS ---
+                        initialImageUrl={vehicle.imgSrc}
+                        initialLibreUrl={vehicle.libreSrc}
                     />
-                    {vehicle.imgSrc && !imageFile && (
-                        <div className="space-y-2">
-                           <label className="text-sm font-medium">Current Image</label>
-                           <img src={vehicle.imgSrc} alt="Current vehicle" className="mt-2 h-20 w-auto rounded-md border" />
-                        </div>
-                    )}
                 </div>
 
                 <div className="flex justify-end gap-2 mt-6">
