@@ -23,6 +23,7 @@ export interface CreateUserDto {
     levelId?: number;
     positionId?: number;
     canDrive?: boolean;
+    roleIds: number[];
 }
 
 // DTO for updating a user (frontend version of UpdateUserDto)
@@ -38,6 +39,7 @@ export interface UpdateUserDto {
     positionId?: number;
     canDrive?: boolean;
     gender?: Gender;
+    roleIds?: number[];
 }
 
 // DTO for displaying a user (frontend version of UserDto)

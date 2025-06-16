@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useMemo, useCallback, memo } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,6 +31,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { ROLE_DETAILS } from "@/lib/jwtUtils";
+import { RoleSelection } from "@/components/forms/RoleSelection";
 
 // --- UserFormFields inline (copy of ManageUsers.tsx) ---
 interface UserFormFieldsProps {
@@ -38,6 +40,7 @@ interface UserFormFieldsProps {
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement>, formType: "new" | "edit") => void;
   handleCheckboxChange: (name: string, checked: boolean, formType: "new" | "edit") => void;
   handleSelectChange: (name: string, value: string, formType: "new" | "edit") => void;
+  handleRoleChange: (roleIds: number[], formType: "new" | "edit") => void;
   levels: Level[];
   positions: Position[];
 }
@@ -49,6 +52,7 @@ const UserFormFields: React.FC<UserFormFieldsProps> = memo(
     handleInputChange: parentHandleInputChange,
     handleCheckboxChange: parentHandleCheckboxChange,
     handleSelectChange: parentHandleSelectChange,
+    handleRoleChange: parentHandleRoleChange,
     levels,
     positions,
   }) => {
@@ -60,6 +64,8 @@ const UserFormFields: React.FC<UserFormFieldsProps> = memo(
       parentHandleSelectChange(name, value, formType);
     const handleCheckBoxFieldChange = (name: string, checked: boolean) =>
       parentHandleCheckboxChange(name, checked, formType);
+    const handleRoleFieldChange = (roleIds: number[]) =>
+      parentHandleRoleChange(roleIds, formType);
 
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
@@ -210,6 +216,10 @@ const UserFormFields: React.FC<UserFormFieldsProps> = memo(
             Can Drive
           </Label>
         </div>
+        <RoleSelection
+          selectedRoleIds={formState.roleIds || []}
+          onRoleChange={handleRoleFieldChange}
+        />
       </div>
     );
   }
@@ -280,6 +290,7 @@ const UserManagement = () => {
     gender: Gender.MALE,
     phoneNumber: "",
     canDrive: false,
+    roleIds: [],
   });
   const [editUser, setEditUser] = useState<Partial<UpdateUserDto>>({});
 
@@ -361,6 +372,17 @@ const UserManagement = () => {
     []
   );
 
+  const handleRoleChange = useCallback(
+    (roleIds: number[], formType: "new" | "edit") => {
+      if (formType === "new") {
+        setNewUser((prev) => ({ ...prev, roleIds }));
+      } else {
+        setEditUser((prev) => ({ ...prev, roleIds }));
+      }
+    },
+    []
+  );
+
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
       const matchesSearch =
@@ -392,10 +414,12 @@ const UserManagement = () => {
       !newUser.firstName ||
       !newUser.lastName ||
       !newUser.email ||
-      !newUser.universityId
+      !newUser.universityId ||
+      !newUser.roleIds ||
+      newUser.roleIds.length === 0
     ) {
       toast.error(
-        "Please fill all required fields: Username, Password, First Name, Last Name, Email, University ID."
+        "Please fill all required fields including at least one role."
       );
       return;
     }
@@ -419,6 +443,7 @@ const UserManagement = () => {
         canDrive: false,
         levelId: undefined,
         positionId: undefined,
+        roleIds: [],
       });
     } catch (error: any) {
       toast.error(`Failed to add user: ${error.message || "Unknown error"}`);
@@ -440,6 +465,7 @@ const UserManagement = () => {
       gender: user.gender,
       levelId: levels.find((l) => l.name === user.levelName)?.id,
       positionId: positions.find((p) => p.name === user.positionName)?.id,
+      roleIds: user.roles?.map(role => role.id) || [],
     });
     setIsEditUserOpen(true);
   };
@@ -451,6 +477,10 @@ const UserManagement = () => {
     }
     if (!editUser.email || !editUser.universityId) {
       toast.error("Email and University ID are required for update.");
+      return;
+    }
+    if (!editUser.roleIds || editUser.roleIds.length === 0) {
+      toast.error("At least one role must be selected.");
       return;
     }
 
@@ -469,6 +499,7 @@ const UserManagement = () => {
         "gender",
         "levelId",
         "positionId",
+        "roleIds",
       ];
 
       for (const key of editableProperties) {
@@ -486,6 +517,17 @@ const UserManagement = () => {
               (p) => p.name === originalUser.positionName
             )?.id;
             break;
+          case "roleIds":
+            originalComparableValue = originalUser.roles?.map(role => role.id) || [];
+            // Compare arrays
+            if (Array.isArray(currentValue) && Array.isArray(originalComparableValue)) {
+              const sortedCurrent = [...currentValue].sort();
+              const sortedOriginal = [...originalComparableValue].sort();
+              if (JSON.stringify(sortedCurrent) !== JSON.stringify(sortedOriginal)) {
+                (changedFields as any)[key] = currentValue;
+              }
+            }
+            continue;
           case "phoneNumber":
             originalComparableValue = originalUser.phoneNumber;
             break;
@@ -494,7 +536,7 @@ const UserManagement = () => {
             break;
         }
 
-        if (currentValue !== originalComparableValue) {
+        if (key !== "roleIds" && currentValue !== originalComparableValue) {
           (changedFields as any)[key] = currentValue;
         }
       }
@@ -728,6 +770,7 @@ const UserManagement = () => {
             handleInputChange={handleInputChange}
             handleCheckboxChange={handleCheckboxChange}
             handleSelectChange={handleSelectChange}
+            handleRoleChange={handleRoleChange}
             levels={nonStructuralLevels}
             positions={positions}
           />
@@ -759,6 +802,7 @@ const UserManagement = () => {
             handleInputChange={handleInputChange}
             handleCheckboxChange={handleCheckboxChange}
             handleSelectChange={handleSelectChange}
+            handleRoleChange={handleRoleChange}
             levels={nonStructuralLevels}
             positions={positions}
           />

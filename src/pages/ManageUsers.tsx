@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useMemo, useCallback, memo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -35,6 +36,7 @@ import { UserDto, CreateUserDto, UpdateUserDto, Gender } from "@/types/user";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Search, Plus, Edit2, UserCircle, CheckSquare, XSquare } from "lucide-react";
+import { RoleSelection } from "@/components/forms/RoleSelection";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -45,6 +47,7 @@ interface UserFormFieldsProps {
     handleInputChange: (e: React.ChangeEvent<HTMLInputElement>, formType: "new" | "edit") => void;
     handleCheckboxChange: (name: string, checked: boolean, formType: "new" | "edit") => void;
     handleSelectChange: (name: string, value: string, formType: "new" | "edit") => void;
+    handleRoleChange: (roleIds: number[], formType: "new" | "edit") => void;
     levels: Level[];
     positions: Position[];
 }
@@ -57,6 +60,7 @@ const UserFormFields: React.FC<UserFormFieldsProps> = memo(
         handleInputChange: parentHandleInputChange,
         handleCheckboxChange: parentHandleCheckboxChange,
         handleSelectChange: parentHandleSelectChange,
+        handleRoleChange: parentHandleRoleChange,
         levels,
         positions,
     }) => {
@@ -69,6 +73,8 @@ const UserFormFields: React.FC<UserFormFieldsProps> = memo(
             parentHandleSelectChange(name, value, formType);
         const handleCheckBoxFieldChange = (name: string, checked: boolean) =>
             parentHandleCheckboxChange(name, checked, formType);
+        const handleRoleFieldChange = (roleIds: number[]) =>
+            parentHandleRoleChange(roleIds, formType);
 
         return (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
@@ -219,6 +225,10 @@ const UserFormFields: React.FC<UserFormFieldsProps> = memo(
                         Can Drive
                     </Label>
                 </div>
+                <RoleSelection
+                    selectedRoleIds={formState.roleIds || []}
+                    onRoleChange={handleRoleFieldChange}
+                />
             </div>
         );
     }
@@ -248,6 +258,7 @@ export default function ManageUsers() {
         gender: Gender.MALE,
         phoneNumber: "",
         canDrive: false,
+        roleIds: [],
     });
 
     const [editUser, setEditUser] = useState<Partial<UpdateUserDto>>({});
@@ -335,6 +346,17 @@ export default function ManageUsers() {
         [setNewUser, setEditUser] // Dependencies for useCallback
     );
 
+    const handleRoleChange = useCallback(
+        (roleIds: number[], formType: "new" | "edit") => {
+            if (formType === "new") {
+                setNewUser((prev) => ({ ...prev, roleIds }));
+            } else {
+                setEditUser((prev) => ({ ...prev, roleIds }));
+            }
+        },
+        [setNewUser, setEditUser]
+    );
+
     const filteredUsers = useMemo(() => {
         return users.filter(
             (user) =>
@@ -360,10 +382,12 @@ export default function ManageUsers() {
             !newUser.firstName ||
             !newUser.lastName ||
             !newUser.email ||
-            !newUser.universityId
+            !newUser.universityId ||
+            !newUser.roleIds ||
+            newUser.roleIds.length === 0
         ) {
             toast.error(
-                "Please fill all required fields: Username, Password, First Name, Last Name, Email, University ID."
+                "Please fill all required fields including at least one role."
             );
             return;
         }
@@ -387,6 +411,7 @@ export default function ManageUsers() {
                 canDrive: false,
                 levelId: undefined,
                 positionId: undefined,
+                roleIds: [],
             });
         } catch (error: any) {
             toast.error(`Failed to add user: ${error.message || "Unknown error"}`);
@@ -408,6 +433,7 @@ export default function ManageUsers() {
             gender: user.gender,
             levelId: levels.find((l) => l.name === user.levelName)?.id,
             positionId: positions.find((p) => p.name === user.positionName)?.id,
+            roleIds: user.roles?.map(role => role.id) || [],
         });
         setIsEditUserOpen(true);
     };
@@ -419,6 +445,10 @@ export default function ManageUsers() {
         }
         if (!editUser.email || !editUser.universityId) {
             toast.error("Email and University ID are required for update.");
+            return;
+        }
+        if (!editUser.roleIds || editUser.roleIds.length === 0) {
+            toast.error("At least one role must be selected.");
             return;
         }
 
@@ -437,6 +467,7 @@ export default function ManageUsers() {
                 "gender",
                 "levelId",
                 "positionId",
+                "roleIds",
             ];
 
             for (const key of editableProperties) {
@@ -454,6 +485,17 @@ export default function ManageUsers() {
                             (p) => p.name === originalUser.positionName
                         )?.id;
                         break;
+                    case "roleIds":
+                        originalComparableValue = originalUser.roles?.map(role => role.id) || [];
+                        // Compare arrays
+                        if (Array.isArray(currentValue) && Array.isArray(originalComparableValue)) {
+                            const sortedCurrent = [...currentValue].sort();
+                            const sortedOriginal = [...originalComparableValue].sort();
+                            if (JSON.stringify(sortedCurrent) !== JSON.stringify(sortedOriginal)) {
+                                (changedFields as any)[key] = currentValue;
+                            }
+                        }
+                        continue;
                     case "phoneNumber":
                         originalComparableValue = originalUser.phoneNumber;
                         break;
@@ -462,7 +504,7 @@ export default function ManageUsers() {
                         break;
                 }
 
-                if (currentValue !== originalComparableValue) {
+                if (key !== "roleIds" && currentValue !== originalComparableValue) {
                     (changedFields as any)[key] = currentValue;
                 }
             }
@@ -717,6 +759,7 @@ export default function ManageUsers() {
                         handleInputChange={handleInputChange}
                         handleCheckboxChange={handleCheckboxChange}
                         handleSelectChange={handleSelectChange}
+                        handleRoleChange={handleRoleChange}
                         levels={levels}
                         positions={positions}
                     />
@@ -747,6 +790,7 @@ export default function ManageUsers() {
                         handleInputChange={handleInputChange}
                         handleCheckboxChange={handleCheckboxChange}
                         handleSelectChange={handleSelectChange}
+                        handleRoleChange={handleRoleChange}
                         levels={levels}
                         positions={positions}
                     />
