@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo, useCallback, memo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -457,6 +456,7 @@ export default function ManageUsers() {
             const formValues = editUser;
             const originalUser = selectedUser;
 
+            // Include roleIds in the editable properties
             const editableProperties: (keyof Omit<UpdateUserDto, "id" | "username">)[] = [
                 "firstName",
                 "lastName",
@@ -504,7 +504,7 @@ export default function ManageUsers() {
                         break;
                 }
 
-                if (key !== "roleIds" && currentValue !== originalComparableValue) {
+                if (currentValue !== originalComparableValue) {
                     (changedFields as any)[key] = currentValue;
                 }
             }

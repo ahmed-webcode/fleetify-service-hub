@@ -9,7 +9,12 @@ interface RoleSelectionProps {
 }
 
 export function RoleSelection({ selectedRoleIds, onRoleChange }: RoleSelectionProps) {
-    const allRoles = Object.values(ROLE_DETAILS);
+    // Convert ROLE_DETAILS object to array with proper id/name structure
+    const allRoles = Object.entries(ROLE_DETAILS).map(([id, details]) => ({
+        id: parseInt(id, 10),
+        name: details.name,
+        description: details.description
+    }));
 
     const handleRoleToggle = (roleId: number, checked: boolean) => {
         if (checked) {

@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo, useCallback, memo } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -489,6 +488,7 @@ const UserManagement = () => {
       const formValues = editUser;
       const originalUser = selectedUser;
 
+      // Include roleIds in the editable properties
       const editableProperties: (keyof Omit<UpdateUserDto, "id" | "username">)[] = [
         "firstName",
         "lastName",
@@ -536,7 +536,7 @@ const UserManagement = () => {
             break;
         }
 
-        if (key !== "roleIds" && currentValue !== originalComparableValue) {
+        if (currentValue !== originalComparableValue) {
           (changedFields as any)[key] = currentValue;
         }
       }
