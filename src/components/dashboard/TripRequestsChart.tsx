@@ -5,7 +5,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 type TripRequest = {
   id: string;
-  createdAt: string;
+  requestedAt: string;
   status?: string;
 };
 
@@ -17,7 +17,7 @@ function groupByMonth(requests: TripRequest[]) {
   // Group trips by year and month, get monthly counts
   const counts: Record<string, number> = {};
   requests.forEach(req => {
-    const date = new Date(req.createdAt);
+    const date = new Date(req.requestedAt);
     const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`; // e.g. "2024-06"
     counts[key] = (counts[key] || 0) + 1;
   });
