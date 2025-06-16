@@ -25,7 +25,7 @@ export function RoleSelection({ selectedRoleIds, onRoleChange }: RoleSelectionPr
     };
 
     return (
-        <div className="space-y-2 col-span-1 md:col-span-2">
+        <div className="space-y-2 col-span-1 md:col-span-4">
             <Label className="text-sm font-medium">Roles (select at least one)</Label>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3 p-3 border rounded-md">
                 {allRoles.map((role) => (

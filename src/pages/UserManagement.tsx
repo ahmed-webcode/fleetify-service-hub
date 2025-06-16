@@ -32,7 +32,6 @@ import { toast } from "sonner";
 import { ROLE_DETAILS } from "@/lib/jwtUtils";
 import { RoleSelection } from "@/components/forms/RoleSelection";
 
-// --- UserFormFields inline (copy of ManageUsers.tsx) ---
 interface UserFormFieldsProps {
   isEdit?: boolean;
   formState: Partial<CreateUserDto> | Partial<UpdateUserDto>;
@@ -67,7 +66,7 @@ const UserFormFields: React.FC<UserFormFieldsProps> = memo(
       parentHandleRoleChange(roleIds, formType);
 
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 py-4">
         <div className="space-y-2">
           <Label htmlFor="username">Username</Label>
           <Input
@@ -225,7 +224,6 @@ const UserFormFields: React.FC<UserFormFieldsProps> = memo(
 );
 UserFormFields.displayName = "UserFormFields";
 
-// Add this function back for badge styling by role name
 const getRoleBadgeVariant = (role: string) => {
   switch (role.toLowerCase()) {
     case "transport director":
@@ -248,7 +246,6 @@ const getRoleBadgeVariant = (role: string) => {
   }
 };
 
-// Dynamically generate role options from ROLE_DETAILS
 const allRoles = Object.values(ROLE_DETAILS).map((role) => ({
   value: role.name,
   label: role.name,
@@ -269,16 +266,13 @@ const UserManagement = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Add logic for add/edit modals and form states
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [isEditUserOpen, setIsEditUserOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserDto | null>(null);
 
-  // For positions and org levels
   const [levels, setLevels] = useState<Level[]>([]);
   const [positions, setPositions] = useState<Position[]>([]);
 
-  // User form states
   const [newUser, setNewUser] = useState<Partial<CreateUserDto>>({
     username: "",
     password: "",
@@ -405,7 +399,6 @@ const UserManagement = () => {
 
   const totalPages = Math.max(1, Math.ceil(filteredUsers.length / ITEMS_PER_PAGE));
 
-  // Modal logic for Add
   const handleAddUser = async () => {
     if (
       !newUser.username ||
@@ -445,7 +438,7 @@ const UserManagement = () => {
         roleIds: [],
       });
     } catch (error: any) {
-      toast.error(`Failed to add user: ${error.message || "Unknown error"}`);
+      // toast.error(`Failed to add user: ${error.message || "Unknown error"}`);
       console.error("Add user error:", error);
     }
   };
@@ -488,7 +481,6 @@ const UserManagement = () => {
       const formValues = editUser;
       const originalUser = selectedUser;
 
-      // Include roleIds in the editable properties
       const editableProperties: (keyof Omit<UpdateUserDto, "id" | "username">)[] = [
         "firstName",
         "lastName",
@@ -519,7 +511,6 @@ const UserManagement = () => {
             break;
           case "roleIds":
             originalComparableValue = originalUser.roles?.map(role => role.id) || [];
-            // Compare arrays
             if (Array.isArray(currentValue) && Array.isArray(originalComparableValue)) {
               const sortedCurrent = [...currentValue].sort();
               const sortedOriginal = [...originalComparableValue].sort();
@@ -550,6 +541,8 @@ const UserManagement = () => {
 
       const payload: Partial<UpdateUserDto> = {
         id: originalUser.id,
+        levelId: editUser.levelId,
+        positionId: editUser.positionId,
         ...changedFields,
       };
 
@@ -577,12 +570,11 @@ const UserManagement = () => {
       setIsEditUserOpen(false);
       setSelectedUser(null);
     } catch (error: any) {
-      toast.error(`Failed to update user: ${error.message || "Unknown error"}`);
+      // toast.error(`Failed to update user: ${error.message || "Unknown error"}`);
       console.error("Update user error:", error);
     }
   };
 
-  // Only non-structural levels
   const nonStructuralLevels = useMemo(
     () => levels.filter((lvl) => !lvl.isStructural),
     [levels]
@@ -754,16 +746,17 @@ const UserManagement = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Add User Modal */}
       <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
-        <DialogContent className="sm:max-w-[625px]">
+        <DialogContent
+          className="sm:max-w-4xl max-h-[90vh] overflow-y-auto"
+          onPointerDownOutside={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>Add New User</DialogTitle>
             <DialogDescription>
               Fill in the details below to create a new user account.
             </DialogDescription>
           </DialogHeader>
-          {/* Only pass non-structural levels */}
           <UserFormFields
             isEdit={false}
             formState={newUser}
@@ -786,16 +779,17 @@ const UserManagement = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      {/* Edit User Modal */}
       <Dialog open={isEditUserOpen} onOpenChange={setIsEditUserOpen}>
-        <DialogContent className="sm:max-w-[625px]">
+        <DialogContent
+          className="sm:max-w-4xl max-h-[90vh] overflow-y-auto"
+          onPointerDownOutside={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>Edit User: {selectedUser?.username}</DialogTitle>
             <DialogDescription>
               Update the details for this user account.
             </DialogDescription>
           </DialogHeader>
-          {/* Only pass non-structural levels */}
           <UserFormFields
             isEdit={true}
             formState={editUser}
