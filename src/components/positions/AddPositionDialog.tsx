@@ -96,7 +96,7 @@ export const AddPositionDialog = ({ open, onClose }: AddPositionDialogProps) => 
 
     return (
         <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-            <DialogContent className="sm:max-w-[600px]">
+            <DialogContent className="sm:max-w-[600px] max-h-[95vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>Add New Position</DialogTitle>
                 </DialogHeader>

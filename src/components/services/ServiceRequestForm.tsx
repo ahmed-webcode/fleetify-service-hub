@@ -408,7 +408,7 @@ export function ServiceRequestForm({
   if (isDialog) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-[550px] p-6">
+        <DialogContent className="sm:max-w-[550px] p-6 max-h-[95vh] overflow-y-auto">
           <DialogHeader className="flex items-center justify-between">
             <DialogTitle className="text-2xl font-bold">
               {serviceType === "fuel" && "New Fuel Request"}

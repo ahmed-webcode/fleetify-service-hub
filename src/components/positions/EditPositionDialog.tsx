@@ -128,7 +128,7 @@ export const EditPositionDialog = ({ open, onClose, position }: EditPositionDial
 
     return (
         <Dialog open={open} onOpenChange={(isOpenState) => !isOpenState && onClose()}>
-            <DialogContent className="sm:max-w-[600px]">
+            <DialogContent className="sm:max-w-[600px] max-h-[95vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>Edit Position</DialogTitle>
                 </DialogHeader>

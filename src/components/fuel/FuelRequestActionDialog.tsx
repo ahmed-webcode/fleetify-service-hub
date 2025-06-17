@@ -156,7 +156,7 @@ export function FuelRequestActionDialog({
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent className="sm:max-w-md max-h-[95vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>Review Fuel Request</DialogTitle>
                     <DialogDescription>

@@ -746,7 +746,7 @@ export default function ManageUsers() {
             </Card>
 
             <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
-                <DialogContent className="sm:max-w-[625px]">
+                <DialogContent className="sm:max-w-[625px] max-h-[95vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>Add New User</DialogTitle>
                         <DialogDescription>
@@ -777,7 +777,7 @@ export default function ManageUsers() {
             </Dialog>
 
             <Dialog open={isEditUserOpen} onOpenChange={setIsEditUserOpen}>
-                <DialogContent className="sm:max-w-[625px]">
+                <DialogContent className="sm:max-w-[625px] max-h-[95vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>Edit User: {selectedUser?.username}</DialogTitle>
                         <DialogDescription>
@@ -808,7 +808,7 @@ export default function ManageUsers() {
             </Dialog>
 
             <Dialog open={isDeleteUserOpen} onOpenChange={setIsDeleteUserOpen}>
-                <DialogContent className="sm:max-w-[425px]">
+                <DialogContent className="sm:max-w-[425px] max-h-[95vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>Delete User: {selectedUser?.username}</DialogTitle>
                         <DialogDescription>

@@ -319,7 +319,7 @@ export default function PositionsTab() {
 
         {/* Add Position Dialog */}
         <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-          <DialogContent className="sm:max-w-[700px]">
+          <DialogContent className="sm:max-w-[700px] max-h-[95vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Add Position</DialogTitle>
             </DialogHeader>
@@ -438,7 +438,7 @@ export default function PositionsTab() {
 
         {/* Edit Position Dialog */}
         <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-          <DialogContent className="sm:max-w-[700px]">
+          <DialogContent className="sm:max-w-[700px] max-h-[95vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Edit Position</DialogTitle>
             </DialogHeader>

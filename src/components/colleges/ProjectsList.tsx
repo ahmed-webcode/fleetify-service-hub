@@ -103,7 +103,7 @@ export function ProjectsList({ collegeId, collegeName }: ProjectsListProps) {
               Add Project
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-4xl">
+          <DialogContent className="max-w-4xl max-h-[95vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-xl">Add New Project for {collegeName}</DialogTitle>
             </DialogHeader>

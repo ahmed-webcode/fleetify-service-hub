@@ -70,7 +70,7 @@ export function FuelRecordForm({ isOpen, onClose }: FuelRecordFormProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[550px] p-6">
+      <DialogContent className="sm:max-w-[550px] p-6 max-h-[95vh] overflow-y-auto">
         <DialogHeader className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Fuel className="h-5 w-5" />

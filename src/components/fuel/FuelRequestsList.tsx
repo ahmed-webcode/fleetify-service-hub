@@ -143,9 +143,9 @@ export function FuelRequestsList({ requests, onRefresh }: FuelRequestsListProps)
                                 <TableCell>{request.requestedAmount} L</TableCell>
                                 <TableCell>{renderStatusBadge(request.status)}</TableCell>
                                 <TableCell>{formatDate(request.requestedAt)}</TableCell>
-                                <HasPermission permission="manage_fuel" fallback={null}>
-                                    <TableCell className="text-right">
+                                <TableCell className="text-right">
                                         {request.status === RequestStatus.PENDING && (
+                                        <HasPermission permission="manage_fuel" fallback={null}>
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
@@ -153,6 +153,7 @@ export function FuelRequestsList({ requests, onRefresh }: FuelRequestsListProps)
                                             >
                                                 Review
                                             </Button>
+                                        </HasPermission>
                                         )}
                                         {request.status !== RequestStatus.PENDING && (
                                             <Button
@@ -163,8 +164,7 @@ export function FuelRequestsList({ requests, onRefresh }: FuelRequestsListProps)
                                                 Details
                                             </Button>
                                         )}
-                                    </TableCell>
-                                </HasPermission>
+                                </TableCell>
                             </TableRow>
                         ))}
                     </TableBody>

@@ -30,7 +30,7 @@ export function Header({ toggleSidebar, sidebarOpen }: HeaderProps) {
     () =>
       (localStorage.getItem("theme") as "light" | "dark") ||
       (window.matchMedia &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches
+      window.matchMedia("(prefers-color-scheme: light)").matches
         ? "dark"
         : "light")
   );
