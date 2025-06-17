@@ -80,7 +80,7 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
 
     // Refactor sidebarItems to wrap nav link visibility in permission checks per new mapping
     const sidebarItems: SidebarItem[] = [
-        { name: 'Dashboard', icon: <BarChart size={20} />, path: '/dashboard', permission: 'view_user', exactMatch: true },
+        { name: 'Dashboard', icon: <BarChart size={20} />, path: '/dashboard', permission: 'view_user', requiresTransportDirector: true },
         { name: 'Vehicles', icon: <Car size={20} />, path: '/vehicles', permission: 'view_vehicle' },
         { name: 'Trip Management', icon: <MapPin size={20} />, path: '/trip-management', permission: 'view_trip_request' },
         { name: 'Fuel Management', icon: <Fuel size={20} />, path: '/fuel-management', permission: 'view_fuel' },

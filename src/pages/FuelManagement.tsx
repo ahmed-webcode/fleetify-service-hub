@@ -10,9 +10,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, PlusCircle, AlertTriangle, BarChart } from "lucide-react";
+import { Plus, PlusCircle, AlertTriangle } from "lucide-react";
 import { HasPermission } from "@/components/auth/HasPermission";
-import { FuelServiceRequestDialog } from "@/components/fuel/FuelServiceRequestDialog";
 import { FuelRequestForm } from "@/components/fuel/FuelRequestForm";
 import { FuelRequestsList } from "@/components/fuel/FuelRequestsList";
 import { useQuery } from "@tanstack/react-query";
@@ -287,14 +286,16 @@ export default function FuelManagement() {
 
           {/* Fuel Management Tabs */}
           <Tabs defaultValue="requests" className="space-y-4">
-            <TabsList>
-              <TabsTrigger value="requests">Requests</TabsTrigger>
-              <TabsTrigger value="records">Records</TabsTrigger>
-              <HasPermission permission="view_fuel" fallback={null}>
-                <TabsTrigger value="fuels">Fuels</TabsTrigger>
-              </HasPermission>
-              <TabsTrigger value="reports">Reports</TabsTrigger>
-            </TabsList>
+            <HasPermission permission="manage_fuel" fallback={null}>
+              <TabsList>
+                <TabsTrigger value="requests">Requests</TabsTrigger>
+                  <TabsTrigger value="records">Records</TabsTrigger>
+                  <HasPermission permission="view_fuel" fallback={null}>
+                    <TabsTrigger value="fuels">Fuels</TabsTrigger>
+                  </HasPermission>
+                <TabsTrigger value="reports">Reports</TabsTrigger>
+              </TabsList>
+            </HasPermission>
             
             <TabsContent value="requests" className="space-y-4">
               <Card>

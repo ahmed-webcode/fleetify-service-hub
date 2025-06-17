@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { FuelRequestDto } from "@/types/fuel";
 import { RequestStatus } from "@/types/common";
 import { format } from "date-fns";
+import { HasPermission } from "@/components/auth/HasPermission";
 import { FuelRequestActionDialog } from "./FuelRequestActionDialog";
 import { FuelRequestDetailsDialog } from "./FuelRequestDetailsDialog";
 
@@ -109,7 +110,9 @@ export function FuelRequestsList({ requests, onRefresh }: FuelRequestsListProps)
                             <TableHead>Amount</TableHead>
                             <TableHead>Status</TableHead>
                             <TableHead>Request Date</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
+                            <HasPermission permission="manage_fuel" fallback={null}>
+                                <TableHead className="text-right">Actions</TableHead>
+                            </HasPermission>
                         </TableRow>
                     </TableHeader>
                     <TableBody className="divide-y divide-border">
@@ -140,26 +143,28 @@ export function FuelRequestsList({ requests, onRefresh }: FuelRequestsListProps)
                                 <TableCell>{request.requestedAmount} L</TableCell>
                                 <TableCell>{renderStatusBadge(request.status)}</TableCell>
                                 <TableCell>{formatDate(request.requestedAt)}</TableCell>
-                                <TableCell className="text-right">
-                                    {request.status === RequestStatus.PENDING && (
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => handleAction(request)}
-                                        >
-                                            Review
-                                        </Button>
-                                    )}
-                                    {request.status !== RequestStatus.PENDING && (
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => handleViewDetails(request)}
-                                        >
-                                            Details
-                                        </Button>
-                                    )}
-                                </TableCell>
+                                <HasPermission permission="manage_fuel" fallback={null}>
+                                    <TableCell className="text-right">
+                                        {request.status === RequestStatus.PENDING && (
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => handleAction(request)}
+                                            >
+                                                Review
+                                            </Button>
+                                        )}
+                                        {request.status !== RequestStatus.PENDING && (
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => handleViewDetails(request)}
+                                            >
+                                                Details
+                                            </Button>
+                                        )}
+                                    </TableCell>
+                                </HasPermission>
                             </TableRow>
                         ))}
                     </TableBody>
