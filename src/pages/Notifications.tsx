@@ -12,7 +12,7 @@ import { apiClient } from "@/lib/apiClient";
 import { NotificationType } from "@/types/notification";
 
 // Define which tabs to show - easily configurable
-const shownTabs: (NotificationType | "ALL")[] = ["ALL", "TRIP", "FUEL", "MAINTENANCE", "INCIDENT"];
+const shownTabs: (NotificationType | "ALL")[] = ["ALL", "TRIP", "FUEL", "USER"];
 
 // Format date to relative time (e.g., "2 days ago")
 const formatRelativeTime = (dateString: string) => {
@@ -130,6 +130,7 @@ export default function Notifications() {
               size="sm" 
               onClick={handleMarkAllAsRead}
               disabled={markAllAsReadMutation.isPending}
+              title="Mark selected tab notifications as read"
             >
               <Check className="mr-2 h-4 w-4" />
               Mark all as read
@@ -173,7 +174,7 @@ export default function Notifications() {
             </Select>
           </div>
 
-          <div className="space-y-4">
+          <div className="gap-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {isLoading ? (
               <div className="text-center py-8">Loading notifications...</div>
             ) : error ? (
@@ -202,7 +203,7 @@ export default function Notifications() {
                             <span className="w-2 h-2 bg-blue-500 rounded-full inline-block"></span>
                           )}
                         </CardTitle>
-                        <CardDescription>{formatRelativeTime(notification.createdAt)}</CardDescription>
+                        <CardDescription title={new Date(notification.createdAt).toLocaleString()}>{formatRelativeTime(notification.createdAt)}</CardDescription>
                       </div>
                     </div>
                     <Badge variant={notification.isRead ? "secondary" : "default"}>

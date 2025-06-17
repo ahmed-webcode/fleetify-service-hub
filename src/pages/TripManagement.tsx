@@ -37,7 +37,7 @@ import { Search } from "lucide-react";
 import TripReportsExporter from "@/components/trips/TripReportsExporter";
 
 export default function TripManagement() {
-    const { hasPermission } = useAuth();
+    const { hasPermission, roles } = useAuth();
 
     const [requestTripOpen, setRequestTripOpen] = useState(false);
     const [currentPage, setCurrentPage] = useState(0);
@@ -56,12 +56,22 @@ export default function TripManagement() {
             // Note: The backend doesn't support search directly in the provided controller.
             // Client-side filtering will be applied after fetching all data for the current page.
             // If server-side search is implemented, pass searchQuery to apiClient.trips.requests.getAll
-            return apiClient.trips.requests.getAll({
-                page: currentPage,
-                size: itemsPerPage,
-                sortBy: "requestedAt", // Or "requestedAt" if more appropriate
-                direction: "DESC",
-            });
+            // Operational Director (id: 7) can only see their own requests
+            if (roles.map((role => role.id)).includes(7)){
+                return apiClient.trips.requests.getMy({
+                    page: currentPage,
+                    size: itemsPerPage,
+                    sortBy: "requestedAt", // Or "requestedAt" if more appropriate
+                    direction: "DESC",
+                });
+            } else {
+                return apiClient.trips.requests.getAll({
+                    page: currentPage,
+                    size: itemsPerPage,
+                    sortBy: "requestedAt", // Or "requestedAt" if more appropriate
+                    direction: "DESC",
+                });
+            }
         },
         // keepPreviousData: true, // Consider for smoother pagination
     });

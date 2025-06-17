@@ -181,7 +181,7 @@ const ProjectsManagement = () => {
         <>
             <div className="page-container">
                 <div className="page-title-container mb-6">
-                    <h1 className="page-title text-2xl font-bold tracking-tight">Projects Management</h1>
+                    <h1 className="text-3xl font-bold tracking-tight">Projects Management</h1>
                     <p className="page-description text-muted-foreground text-base mt-1">Manage and track all your projects</p>
                 </div>
                 <div className="card-uniform">

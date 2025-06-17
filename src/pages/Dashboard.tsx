@@ -72,7 +72,7 @@ export default function Dashboard() {
   return (
     <div className="w-full px-4 md:px-8 space-y-6">
       <div className="flex flex-col gap-2">
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Welcome, {user?.fullName || "User"}</h1>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Welcome, {user?.fullName || user.username}</h1>
         <p className="text-muted-foreground">Here's an overview of your fleet management system</p>
       </div>
 

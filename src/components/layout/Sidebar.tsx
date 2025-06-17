@@ -168,7 +168,7 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
                     >
                         <Bell size={19} className="text-slate-500 group-hover:text-slate-700 group-[.bg-blue-600]:text-white" />
                         {(!isCollapsed || isMobileView) && <span className="flex-1 truncate">Notifications</span>}
-                        {(!isCollapsed || isMobileView) && <span className="ml-auto bg-blue-500 text-white text-xs font-semibold px-1.5 py-0.5 rounded-full">3</span>}
+                        {/* {(!isCollapsed || isMobileView) && <span className="ml-auto bg-blue-500 text-white text-xs font-semibold px-1.5 py-0.5 rounded-full">3</span>} */}
                     </NavLink>
                 </div>
                 <div className={cn('p-3 border-t border-slate-200')}>

@@ -139,7 +139,7 @@ export const ROLE_PERMISSIONS: Record<number, Permission[]> = {
     'view_trip_request','manage_trip_request','view_fuel_request','manage_fuel_request',
     'view_maintenance_request','manage_maintenance_request','view_fuel','manage_fuel','view_item','manage_item',
     'view_insurance','manage_insurance','view_incident','manage_incident','report_incident',
-    'view_maintenance','manage_maintenance','view_trip','manage_trip', 'issue_fuel', 'request_trip'
+    'view_maintenance','manage_maintenance','view_trip','manage_trip', 'issue_fuel', 'request_trip', 'request_fuel'
   ], // Transport Director
   2: [
     'view_user','view_vehicle','view_trip_request','manage_trip_request','view_trip','manage_trip'
@@ -157,7 +157,7 @@ export const ROLE_PERMISSIONS: Record<number, Permission[]> = {
     'view_user','view_item','manage_item'
   ], // Store Manager
   7: [
-    'view_user','view_vehicle','request_trip','request_fuel','view_fuel'
+    'view_user','view_vehicle','request_trip','request_fuel','view_fuel', 'view_trip', 'view_trip_request', 'manage_trip'
   ], // Operational Director
   8: [
     'view_user','view_vehicle','view_fuel','issue_fuel'
