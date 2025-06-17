@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth, Permission } from '@/contexts/AuthContext';
 import {
@@ -13,7 +13,6 @@ import {
     Fuel,
     School,
     Bell,
-    HelpCircle,
     LogOut,
     Menu,
 } from 'lucide-react';
@@ -35,8 +34,8 @@ interface SidebarItem {
 }
 
 export function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobileOpen }: SidebarProps) {
-    const { user, hasPermission, selectedRole } = useAuth();
-    const location = useLocation();
+    const { user, hasPermission, selectedRole, logout } = useAuth();
+    const navigate = useNavigate();
     const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768);
 
     const handleResize = useCallback(() => {
@@ -71,6 +70,11 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
     const handleMobileToggle = () => {
         setIsMobileOpen?.(!isMobileOpen);
     };
+
+    const handleLogout = async () => {
+        logout();
+        navigate("/login");
+      };
 
     const isTransportDirector = selectedRole?.id === 1; // TRANSPORT_DIRECTOR role ID
 
@@ -181,7 +185,7 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
                                     <p className="text-xs text-slate-500 truncate">{getUserRoleDisplay()}</p>
                                 </div>
                             </NavLink>
-                            <button className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors shrink-0" title="Logout">
+                            <button onClick={handleLogout} className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors shrink-0" title="Logout">
                                 <LogOut size={18} />
                             </button>
                         </div>
@@ -212,7 +216,7 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
     }
 
     return (
-        <aside className={cn('relative h-screen bg-background border-r border-slate-200 shadow-sm flex flex-col transition-width duration-300 ease-in-out', isCollapsed ? 'w-[72px]' : 'w-64')}>
+        <aside className={cn('relative min-h-screen bg-background border-r border-slate-200 shadow-sm flex flex-col transition-width duration-300 ease-in-out', isCollapsed ? 'w-[72px]' : 'w-64')}>
             {sidebarContent}
             {isCollapsed && !isMobileView && (
                 <button

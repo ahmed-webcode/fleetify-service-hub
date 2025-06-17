@@ -123,7 +123,7 @@ export function Header({ toggleSidebar, sidebarOpen }: HeaderProps) {
             variant="ghost"
             size="icon"
             onClick={handleThemeToggle}
-            className="transition-all duration-300 hover:bg-secondary/60"
+            className="transition-all duration-300 hover:bg-secondary/60 hover:text-primary"
           >
             {theme === "dark" ? (
               <Sun className="h-5 w-5" />
@@ -136,11 +136,11 @@ export function Header({ toggleSidebar, sidebarOpen }: HeaderProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="relative transition-all duration-300 hover:bg-secondary/60"
+            className="relative transition-all duration-300 hover:bg-secondary/60 hover:text-primary"
             onClick={() => navigate('/notifications')}
           >
             <Bell className="h-5 w-5" />
-            <span className="absolute top-0 right-0 w-2 h-2 bg-primary rounded-full"></span>
+            {/* <span className="absolute top-0 right-0 w-2 h-2 bg-primary rounded-full"></span> */}
             <span className="sr-only">Notifications</span>
           </Button>
 
