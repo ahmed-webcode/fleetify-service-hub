@@ -9,6 +9,7 @@ import {
     TableCell,
 } from "@/components/ui/table";
 import { useNavigate } from "react-router-dom";
+import { HasPermission } from "../auth/HasPermission";
 
 interface Vehicle {
     id: string;
@@ -97,13 +98,15 @@ export function VehiclesList({ vehicles, resetFilters, onViewDetails, onEdit }: 
                                     Details
                                 </Button>
                                 {onEdit && (
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => onEdit(vehicle.id)}
-                                    >
-                                        Edit
-                                    </Button>
+                                    <HasPermission permission="manage_vehicle" fallback={null}>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => onEdit(vehicle.id)}
+                                        >
+                                            Edit
+                                        </Button>
+                                    </HasPermission>
                                 )}
                             </TableCell>
                         </TableRow>

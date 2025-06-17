@@ -145,7 +145,7 @@ export function FuelRequestsList({ requests, onRefresh }: FuelRequestsListProps)
                                 <TableCell>{formatDate(request.requestedAt)}</TableCell>
                                 <TableCell className="text-right">
                                         {request.status === RequestStatus.PENDING && (
-                                        <HasPermission permission="manage_fuel" fallback={null}>
+                                        <HasPermission permission="review_fuel" fallback={null}>
                                             <Button
                                                 variant="ghost"
                                                 size="sm"

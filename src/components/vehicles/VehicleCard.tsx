@@ -22,6 +22,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useNavigate } from "react-router-dom";
+import { HasPermission } from "../auth/HasPermission";
 
 interface VehicleCardProps {
     id: string;
@@ -127,16 +128,18 @@ export function VehicleCard({
                             <DropdownMenuItem onClick={handleViewDetails}>
                                 <Info className="mr-2 h-4 w-4" /> View Details
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => onEdit?.(id)}>
-                                <FileEdit className="mr-2 h-4 w-4" /> Edit Vehicle
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
+                            <HasPermission permission="manage_vehicle" fallback={null}>
+                                <DropdownMenuItem onClick={() => onEdit?.(id)}>
+                                    <FileEdit className="mr-2 h-4 w-4" /> Edit Vehicle
+                                </DropdownMenuItem>
+                            </HasPermission>
+                            {/* <DropdownMenuSeparator /> */}
+                            {/* <DropdownMenuItem
                                 className="text-red-600"
                                 onClick={() => onDelete?.(id)}
                             >
                                 <Trash2 className="mr-2 h-4 w-4" /> Delete Vehicle
-                            </DropdownMenuItem>
+                            </DropdownMenuItem> */}
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
@@ -185,10 +188,10 @@ export function VehicleCard({
                     >
                         Details
                     </Button>
-                    <Button variant="default" size="sm" className="flex-1">
+                    {/* <Button variant="default" size="sm" className="flex-1">
                         <ClipboardList className="h-4 w-4 mr-2" />
                         Service Log
-                    </Button>
+                    </Button> */}
                 </div>
             </CardContent>
         </Card>

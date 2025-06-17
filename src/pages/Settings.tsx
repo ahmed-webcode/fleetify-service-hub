@@ -181,12 +181,12 @@ export default function Settings() {
             </div>
 
             <Tabs defaultValue="profile">
-                <TabsList className="grid w-full grid-cols-1">
+                {/* <TabsList className="grid w-full grid-cols-1">
                     <TabsTrigger value="profile" className="flex items-center gap-2">
                         <UserCircle className="h-4 w-4" />
                         <span>Profile</span>
                     </TabsTrigger>
-                </TabsList>
+                </TabsList> */}
 
                 <TabsContent value="profile" className="space-y-4 mt-4">
                     <Card>

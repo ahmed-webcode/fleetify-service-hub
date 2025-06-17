@@ -25,7 +25,7 @@ import FuelList from "@/components/fuel/FuelList";
 import FuelReportsTab from "@/components/fuel/FuelReportsTab";
 
 export default function FuelManagement() {
-  const { hasPermission } = useAuth();
+  const { hasPermission, roles } = useAuth();
   
   const [requestFuelOpen, setRequestFuelOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
@@ -41,12 +41,22 @@ export default function FuelManagement() {
   } = useQuery({
     queryKey: ["fuelRequests", currentPage, itemsPerPage],
     queryFn: async () => {
-      return apiClient.fuel.requests.getAll({
-        page: currentPage,
-        size: itemsPerPage,
-        sortBy: "requestedAt",
-        direction: "DESC"
-      });
+      // Operational Director (id: 7) can only see their own requests
+      if (roles.map((role => role.id)).includes(7)){
+        return apiClient.fuel.requests.getMy({
+          page: currentPage,
+          size: itemsPerPage,
+          sortBy: "requestedAt",
+          direction: "DESC"
+        });
+      } else {
+        return apiClient.fuel.requests.getAll({
+          page: currentPage,
+          size: itemsPerPage,
+          sortBy: "requestedAt",
+          direction: "DESC"
+        });
+      }
     }
   });
 
@@ -290,10 +300,12 @@ export default function FuelManagement() {
               <TabsList>
                 <TabsTrigger value="requests">Requests</TabsTrigger>
                   <TabsTrigger value="records">Records</TabsTrigger>
-                  <HasPermission permission="view_fuel" fallback={null}>
+                  <HasPermission permission="manage_fuel_types" fallback={null}>
                     <TabsTrigger value="fuels">Fuels</TabsTrigger>
                   </HasPermission>
-                <TabsTrigger value="reports">Reports</TabsTrigger>
+                  <HasPermission permission="generate_fuel_report" fallback={null}>
+                    <TabsTrigger value="reports">Reports</TabsTrigger>
+                  </HasPermission>
               </TabsList>
             </HasPermission>
             

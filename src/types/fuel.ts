@@ -4,7 +4,6 @@ import { ActionType, RequestStatus, TargetType } from "./common";
 export interface CreateFuelRequestDto {
     requestType: TargetType;
     vehicleId?: number;
-    levelId?: number;
     fuelTypeId: number;
     requestNote?: string;
     requestedAmount: number;

@@ -339,6 +339,19 @@ export const apiClient = {
                     `/fuel-requests${queryString}`
                 );
             },
+            getMy: (params?: RequestQueryParams) => {
+                const queryString = params
+                    ? `?${new URLSearchParams(
+                          Object.entries(params)
+                              .filter(([_, value]) => value !== undefined && value !== null)
+                              .map(([key, value]) => [key, value.toString()])
+                      ).toString()}`
+                    : "";
+
+                return fetchWithErrorHandling<PageResponse<FuelRequestDto>>(
+                    `/fuel-requests/me${queryString}`
+                );
+            },
             getById: (id: number) => {
                 return fetchWithErrorHandling<FuelRequestDto>(`/fuel-requests/${id}`);
             },

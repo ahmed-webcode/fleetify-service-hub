@@ -102,6 +102,7 @@ export function mapRoleNamesToRoles(roleNames: string[]): Role[] {
 // Permission type definition
 export type Permission =
   | 'view_user'
+  | 'view_dashboard'
   | 'manage_user'
   | 'manage_position'
   | 'manage_project'
@@ -120,6 +121,9 @@ export type Permission =
   | 'view_fuel'
   | 'manage_fuel'
   | 'issue_fuel'
+  | 'manage_fuel_types'
+  | 'generate_fuel_report'
+  | 'review_fuel'
   | 'view_item'
   | 'manage_item'
   | 'view_insurance'
@@ -138,8 +142,8 @@ export const ROLE_PERMISSIONS: Record<number, Permission[]> = {
     'view_user','manage_user','manage_position','manage_project','manage_vehicle','view_vehicle','view_vehicle_libre',
     'view_trip_request','manage_trip_request','view_fuel_request','manage_fuel_request',
     'view_maintenance_request','manage_maintenance_request','view_fuel','manage_fuel','view_item','manage_item',
-    'view_insurance','manage_insurance','view_incident','manage_incident','report_incident',
-    'view_maintenance','manage_maintenance','view_trip','manage_trip', 'issue_fuel', 'request_trip', 'request_fuel'
+    'view_insurance','manage_insurance','view_incident','manage_incident','report_incident', 'review_fuel',
+    'view_maintenance','manage_maintenance','view_trip','manage_trip', 'issue_fuel', 'request_trip', 'request_fuel', 'view_dashboard', 'manage_fuel_types', 'generate_fuel_report'
   ], // Transport Director
   2: [
     'view_user','view_vehicle','view_trip_request','manage_trip_request','view_trip','manage_trip'
@@ -147,20 +151,20 @@ export const ROLE_PERMISSIONS: Record<number, Permission[]> = {
   3: [
     'view_user','view_vehicle','view_fuel_request','manage_fuel_request','view_fuel','manage_fuel','issue_fuel'
   ], // Fuel Manager
-  4: [
-    'view_user','view_vehicle','view_vehicle_libre','view_insurance','manage_insurance','view_incident','manage_incident','report_incident','view_maintenance'
-  ], // Insurance Manager
-  5: [
-    'view_user','view_vehicle','view_maintenance_request','manage_maintenance_request','view_fuel','view_item','view_insurance','view_incident','view_maintenance','manage_maintenance'
-  ], // Maintenance Manager
-  6: [
-    'view_user','view_item','manage_item'
-  ], // Store Manager
+  // 4: [
+  //   'view_user','view_vehicle','view_vehicle_libre','view_insurance','manage_insurance','view_incident','manage_incident','report_incident','view_maintenance'
+  // ], // Insurance Manager
+  // 5: [
+  //   'view_user','view_vehicle','view_maintenance_request','manage_maintenance_request','view_fuel','view_item','view_insurance','view_incident','view_maintenance','manage_maintenance'
+  // ], // Maintenance Manager
+  // 6: [
+  //   'view_user','view_item','manage_item'
+  // ], // Store Manager
   7: [
-    'view_user','view_vehicle','request_trip','request_fuel','view_fuel', 'view_trip', 'view_trip_request', 'manage_trip'
+    'view_user','view_vehicle','request_trip','request_fuel','view_fuel', 'view_trip', 'view_trip_request', 'manage_trip', 'manage_fuel', 'generate_fuel_report'
   ], // Operational Director
   8: [
-    'view_user','view_vehicle','view_fuel','issue_fuel'
+    'view_user','view_fuel','issue_fuel', 'manage_fuel'
   ], // Fuel Attendant
   9: [
     'view_user', 'view_fuel', 'request_fuel','request_maintenance','report_incident'

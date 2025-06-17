@@ -1,8 +1,6 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import {
     Select,
@@ -32,7 +30,6 @@ import { useQuery } from '@tanstack/react-query';
 const formSchema = z.object({
     targetType: z.nativeEnum(TargetType),
     vehicleId: z.number().optional().nullable(),
-    levelId: z.number().optional().nullable(),
     fuelTypeId: z.number({ required_error: 'Fuel type is required.' }),
     requestNote: z.string().optional(),
     requestedAmount: z
@@ -65,12 +62,6 @@ export function FuelRequestForm({ onSuccess, onCancel }: FuelRequestFormProps) {
         enabled: targetType === 'VEHICLE',
     });
 
-    const { data: levelsData, isLoading: isLoadingLevels } = useQuery({
-        queryKey: ['levels', 'all'],
-        queryFn: () => apiClient.levels.getAll(),
-        enabled: targetType === 'GENERATOR',
-    });
-
     const { data: fuelTypes, isLoading: isLoadingFuelTypes } = useQuery({
         queryKey: ['fuelTypes'],
         queryFn: () => apiClient.fuel.getFuelTypes() as any,
@@ -80,11 +71,7 @@ export function FuelRequestForm({ onSuccess, onCancel }: FuelRequestFormProps) {
     useEffect(() => {
         setTargetType(watchedTargetType as TargetType);
         form.setValue('vehicleId', null);
-        form.setValue('levelId', null);
     }, [watchedTargetType, form]);
-
-    // Filter non-structural levels for generator
-    const filteredLevels = (levelsData ?? []).filter((level: any) => level.isStructural === false);
 
     const onSubmit = async (data: FuelFormValues) => {
         try {
@@ -104,13 +91,6 @@ export function FuelRequestForm({ onSuccess, onCancel }: FuelRequestFormProps) {
                     return;
                 }
                 requestData.vehicleId = data.vehicleId;
-            } else {
-                if (!data.levelId) {
-                    toast.error('Level/Office is required for non-vehicle targets.');
-                    setLoading(false);
-                    return;
-                }
-                requestData.levelId = data.levelId;
             }
 
             await apiClient.fuel.requests.create(requestData);
@@ -181,43 +161,14 @@ export function FuelRequestForm({ onSuccess, onCancel }: FuelRequestFormProps) {
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    <FormDescription>Select the vehicle requiring fuel</FormDescription>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                    ) : (
-                        <FormField
-                            control={form.control}
-                            name="levelId"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Level/Office</FormLabel>
-                                    <Select
-                                        onValueChange={(value) => field.onChange(parseInt(value))}
-                                        disabled={isLoadingLevels}
-                                    >
-                                        <FormControl>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select a level/office" />
-                                            </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            {filteredLevels.map((level: any) => (
-                                                <SelectItem key={level.id} value={level.id.toString()}>
-                                                    {level.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
                                     <FormDescription>
-                                        Select the level/office requiring fuel
+                                        Select the vehicle requiring fuel
                                     </FormDescription>
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
-                    )}
+                    ) : null}
 
                     <FormField
                         control={form.control}

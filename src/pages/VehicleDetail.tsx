@@ -34,6 +34,7 @@ import { apiClient } from "@/lib/apiClient";
 import { VehicleStatus, VehicleDetail as VehicleDetailType } from "@/types/vehicle";
 import { useQuery } from "@tanstack/react-query";
 import { format, parseISO } from "date-fns";
+import { HasPermission } from "@/components/auth/HasPermission";
 
 const getStatusColor = (status: string) => {
     switch (status) {
@@ -133,13 +134,15 @@ export default function VehicleDetail() {
                         </div>
                     </div>
                     <div className="flex gap-2">
-                        <Button
-                            variant="outline"
-                            onClick={() => navigate(`/vehicles?edit=${vehicle.id}`)}
-                        >
-                            Edit Vehicle
-                        </Button>
-                        <Button>Service Log</Button>
+                        <HasPermission permission="manage_vehicle" fallback={null}>
+                            <Button
+                                variant="outline"
+                                onClick={() => navigate(`/vehicles?edit=${vehicle.id}`)}
+                            >
+                                Edit Vehicle
+                            </Button>
+                        </HasPermission>
+                        {/* <Button>Service Log</Button> */}
                     </div>
                 </div>
             </div>

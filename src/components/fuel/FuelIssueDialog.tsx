@@ -4,14 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { apiClient } from "@/lib/apiClient";
 import { toast } from "sonner";
-import { useAuth } from "@/contexts/AuthContext";
 import { RecordType } from "@/types/fuel";
 import { useQuery } from "@tanstack/react-query";
 
 const RECORD_TYPE_LABELS = {
-  [RecordType.EXTERNAL]: "External Issue",
-  [RecordType.QUOTA]: "Quota Issue",
   [RecordType.REQUEST]: "Request Issue",
+  [RecordType.QUOTA]: "Quota Issue",
+  [RecordType.EXTERNAL]: "External Issue",
 };
 
 export default function FuelIssueDialog({
@@ -23,11 +22,9 @@ export default function FuelIssueDialog({
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
 }) {
-  // Auth context for current user (if needed later)
-  const { user } = useAuth();
 
   // Form fields state
-  const [recordType, setRecordType] = useState<RecordType>(RecordType.EXTERNAL);
+  const [recordType, setRecordType] = useState<RecordType>(RecordType.REQUEST);
   const [vehicleId, setVehicleId] = useState<string>("");
   const [fuelTypeId, setFuelTypeId] = useState<string>("");
   const [receiverId, setReceiverId] = useState<string>("");
