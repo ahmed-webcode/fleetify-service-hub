@@ -176,23 +176,15 @@ export default function Settings() {
             <div className="flex flex-col gap-2">
                 <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
                 <p className="text-muted-foreground">
-                    Manage your account and application settings
+                    Manage your account settings
                 </p>
             </div>
 
             <Tabs defaultValue="profile">
-                <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
+                <TabsList className="grid w-full grid-cols-1">
                     <TabsTrigger value="profile" className="flex items-center gap-2">
                         <UserCircle className="h-4 w-4" />
                         <span>Profile</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="notifications" className="flex items-center gap-2">
-                        <Bell className="h-4 w-4" />
-                        <span>Notifications</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="appearance" className="flex items-center gap-2">
-                        <Monitor className="h-4 w-4" />
-                        <span>Appearance</span>
                     </TabsTrigger>
                 </TabsList>
 
@@ -329,150 +321,6 @@ export default function Settings() {
                                 >
                                     {passwordLoading ? "Updating..." : "Update Password"}
                                 </Button>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                <TabsContent value="notifications" className="space-y-4 mt-4">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Notification Settings</CardTitle>
-                            <CardDescription>Manage how you receive notifications</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                            <div className="space-y-4">
-                                <h3 className="text-lg font-medium">Notification Channels</h3>
-                                <div className="flex items-center justify-between">
-                                    <div className="space-y-0.5">
-                                        <Label>Email Notifications</Label>
-                                        <p className="text-sm text-muted-foreground">
-                                            Receive notifications via email
-                                        </p>
-                                    </div>
-                                    <Switch
-                                        checked={notifications.email}
-                                        onCheckedChange={(checked) =>
-                                            setNotifications({ ...notifications, email: checked })
-                                        }
-                                    />
-                                </div>
-                                <Separator />
-                                <div className="flex items-center justify-between">
-                                    <div className="space-y-0.5">
-                                        <Label>Browser Notifications</Label>
-                                        <p className="text-sm text-muted-foreground">
-                                            Show notifications in browser
-                                        </p>
-                                    </div>
-                                    <Switch
-                                        checked={notifications.browser}
-                                        onCheckedChange={(checked) =>
-                                            setNotifications({ ...notifications, browser: checked })
-                                        }
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="space-y-4">
-                                <h3 className="text-lg font-medium">Notification Types</h3>
-                                <div className="flex items-center justify-between">
-                                    <div className="space-y-0.5">
-                                        <Label>Fuel Request Approvals</Label>
-                                        <p className="text-sm text-muted-foreground">
-                                            Notifications about fuel approvals
-                                        </p>
-                                    </div>
-                                    <Switch
-                                        checked={notifications.fuelApprovals}
-                                        onCheckedChange={(checked) =>
-                                            setNotifications({
-                                                ...notifications,
-                                                fuelApprovals: checked,
-                                            })
-                                        }
-                                    />
-                                </div>
-                                <Separator />
-                                <div className="flex items-center justify-between">
-                                    <div className="space-y-0.5">
-                                        <Label>Fleet Request Approvals</Label>
-                                        <p className="text-sm text-muted-foreground">
-                                            Notifications about fleet approvals
-                                        </p>
-                                    </div>
-                                    <Switch
-                                        checked={notifications.fleetApprovals}
-                                        onCheckedChange={(checked) =>
-                                            setNotifications({
-                                                ...notifications,
-                                                fleetApprovals: checked,
-                                            })
-                                        }
-                                    />
-                                </div>
-                                <Separator />
-                                <div className="flex items-center justify-between">
-                                    <div className="space-y-0.5">
-                                        <Label>System Updates</Label>
-                                        <p className="text-sm text-muted-foreground">
-                                            Notifications about system updates
-                                        </p>
-                                    </div>
-                                    <Switch
-                                        checked={notifications.systemUpdates}
-                                        onCheckedChange={(checked) =>
-                                            setNotifications({
-                                                ...notifications,
-                                                systemUpdates: checked,
-                                            })
-                                        }
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="flex justify-end">
-                                <Button onClick={handleSave}>Save Preferences</Button>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                <TabsContent value="appearance" className="space-y-4 mt-4">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Appearance</CardTitle>
-                            <CardDescription>
-                                Set the application appearance.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                            <div className="space-y-4">
-                                <h3 className="text-lg font-medium">Theme</h3>
-                                <div className="flex items-center justify-between">
-                                    <div className="space-y-0.5">
-                                        <Label>Theme</Label>
-                                        <p className="text-sm text-muted-foreground">
-                                            Toggle light or dark mode for the app.
-                                        </p>
-                                    </div>
-                                    <Button
-                                        onClick={handleThemeToggle}
-                                        variant="outline"
-                                        className="flex items-center gap-2"
-                                        type="button"
-                                    >
-                                        {theme === "dark" ? (
-                                            <>
-                                                <Moon className="h-4 w-4" /> Dark
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Sun className="h-4 w-4" /> Light
-                                            </>
-                                        )}
-                                    </Button>
-                                </div>
                             </div>
                         </CardContent>
                     </Card>

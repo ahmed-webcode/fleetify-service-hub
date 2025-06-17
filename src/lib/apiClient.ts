@@ -22,6 +22,7 @@ import { CreateProjectDto, Project, ProjectQueryParams, UpdateProjectDto } from 
 import {
     TripRecordCreateDto, TripRecordFullDto
 } from "@/types/trip";
+import { NotificationFull, NotificationUpdate, NotificationQueryParams } from "@/types/notification";
 
 // Base URL configuration
 const API_BASE_URL = "http://localhost:8080/api";
@@ -403,6 +404,18 @@ export const apiClient = {
                     `/trip-requests${queryString}`
                 );
             },
+            getMy: (params?: RequestQueryParams) => {
+                const queryString = params
+                    ? `?${new URLSearchParams(
+                          Object.entries(params)
+                              .filter(([_, value]) => value !== undefined && value !== null)
+                              .map(([key, value]) => [key, String(value)])
+                      ).toString()}`
+                    : "";
+                return fetchWithErrorHandling<PageResponse<TripRequestDto>>(
+                    `/trip-requests/me${queryString}`
+                );
+            },
             getById: (id: number) => {
                 return fetchWithErrorHandling<TripRequestDto>(`/trip-requests/${id}`);
             },
@@ -545,6 +558,31 @@ export const apiClient = {
             return fetchWithErrorHandling<Project>(`/projects/${id}`, {
                 method: "PATCH",
                 body: JSON.stringify(projectData),
+            });
+        },
+    },
+
+    // Add notifications endpoints
+    notifications: {
+        getAll: (params?: NotificationQueryParams) => {
+            const queryString = params
+                ? `?${new URLSearchParams(
+                      Object.entries(params)
+                          .filter(([_, value]) => value !== undefined && value !== null)
+                          .map(([key, value]) => [key, String(value)])
+                  ).toString()}`
+                : "";
+            return fetchWithErrorHandling<PageResponse<NotificationFull>>(
+                `/notifications${queryString}`
+            );
+        },
+        markAsRead: (id: number, update: NotificationUpdate) => {
+            return fetchWithErrorHandling<NotificationFull>(`/notifications/${id}`, {
+                method: "PATCH",
+                body: JSON.stringify(update),
+                headers: {
+                    "Content-Type": "application/json",
+                },
             });
         },
     },

@@ -1,8 +1,8 @@
+
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Bell, Menu, Search, X, Settings, LogOut } from "lucide-react";
+import { Bell, Menu, Settings, LogOut, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -21,11 +21,20 @@ interface HeaderProps {
 
 export function Header({ toggleSidebar, sidebarOpen }: HeaderProps) {
   const [scrolled, setScrolled] = useState(false);
-  const [searchVisible, setSearchVisible] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   
+  // Theme state
+  const [theme, setTheme] = useState<"light" | "dark">(
+    () =>
+      (localStorage.getItem("theme") as "light" | "dark") ||
+      (window.matchMedia &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light")
+  );
+
   useEffect(() => {
     const handleScroll = () => {
       const isScrolled = window.scrollY > 10;
@@ -35,6 +44,17 @@ export function Header({ toggleSidebar, sidebarOpen }: HeaderProps) {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    document.documentElement.classList.remove("light", "dark");
+    document.documentElement.classList.add(theme);
+    localStorage.setItem("theme", theme);
+  }, [theme]);
+
+  const handleThemeToggle = () => {
+    const newTheme = theme === "light" ? "dark" : "light";
+    setTheme(newTheme);
+  };
 
   const pageTitle = () => {
     const path = location.pathname;
@@ -99,34 +119,19 @@ export function Header({ toggleSidebar, sidebarOpen }: HeaderProps) {
         </div>
 
         <div className="flex items-center gap-2">
-          {searchVisible ? (
-            <div className="relative animate-fade-in w-full max-w-[200px] sm:max-w-[300px]">
-              <Input
-                placeholder="Search..."
-                className="pr-8 bg-secondary/80 backdrop-blur-md"
-                autoFocus
-              />
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute right-0 top-0"
-                onClick={() => setSearchVisible(false)}
-              >
-                <X className="h-4 w-4" />
-                <span className="sr-only">Close search</span>
-              </Button>
-            </div>
-          ) : (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setSearchVisible(true)}
-              className="transition-all duration-300 hover:bg-secondary/60"
-            >
-              <Search className="h-5 w-5" />
-              <span className="sr-only">Search</span>
-            </Button>
-          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleThemeToggle}
+            className="transition-all duration-300 hover:bg-secondary/60"
+          >
+            {theme === "dark" ? (
+              <Sun className="h-5 w-5" />
+            ) : (
+              <Moon className="h-5 w-5" />
+            )}
+            <span className="sr-only">Toggle theme</span>
+          </Button>
 
           <Button
             variant="ghost"

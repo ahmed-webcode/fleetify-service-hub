@@ -170,24 +170,11 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
                         {(!isCollapsed || isMobileView) && <span className="flex-1 truncate">Notifications</span>}
                         {(!isCollapsed || isMobileView) && <span className="ml-auto bg-blue-500 text-white text-xs font-semibold px-1.5 py-0.5 rounded-full">3</span>}
                     </NavLink>
-                    <NavLink
-                        to="/help-support"
-                        className={({ isActive }) => cn(
-                            'flex items-center gap-3 px-3 py-2 rounded-md text-sm text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-colors group',
-                            isActive && 'bg-blue-600 text-white hover:bg-blue-700 hover:text-white font-medium',
-                            isCollapsed && !isMobileView && 'p-2.5 justify-center'
-                        )}
-                        title={isCollapsed && !isMobileView ? 'Help & Support' : undefined}
-                        onClick={() => { if (isMobileView && setIsMobileOpen) setIsMobileOpen(false); }}
-                    >
-                        <HelpCircle size={19} className="text-slate-500 group-hover:text-slate-700 group-[.bg-blue-600]:text-white" />
-                        {(!isCollapsed || isMobileView) && <span className="truncate">Help & Support</span>}
-                    </NavLink>
                 </div>
                 <div className={cn('p-3 border-t border-slate-200')}>
                     {(!isCollapsed || isMobileView) ? (
                         <div className="flex items-center justify-between">
-                            <NavLink to="/profile" className="flex items-center gap-2.5 group min-w-0" onClick={() => { if (isMobileView && setIsMobileOpen) setIsMobileOpen(false); }}>
+                            <NavLink to="/settings" className="flex items-center gap-2.5 group min-w-0" onClick={() => { if (isMobileView && setIsMobileOpen) setIsMobileOpen(false); }}>
                                 <User size={36} className="rounded-full text-slate-500 bg-slate-100 p-1.5 group-hover:bg-slate-200 transition-colors shrink-0" />
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm font-medium text-slate-800 truncate group-hover:text-blue-600 transition-colors">{getUserDisplayName()}</p>
@@ -199,7 +186,7 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
                             </button>
                         </div>
                     ) : (
-                        <NavLink to="/profile" className="p-2 flex justify-center items-center text-slate-500 hover:text-blue-600 hover:bg-slate-100 rounded-md transition-colors" title={getUserDisplayName()}>
+                        <NavLink to="/settings" className="p-2 flex justify-center items-center text-slate-500 hover:text-blue-600 hover:bg-slate-100 rounded-md transition-colors" title={getUserDisplayName()}>
                             <User size={20} />
                         </NavLink>
                     )}
