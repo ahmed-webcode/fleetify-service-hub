@@ -90,7 +90,7 @@ export function VehicleBasicInfo({ control, fuelTypes }: VehicleBasicInfoProps) 
                     <FormItem>
                         <FormLabel>License Plate</FormLabel>
                         <FormControl>
-                            <Input placeholder="e.g. AAU-1234" {...field} />
+                            <Input placeholder="e.g. AA-2-A-33273" {...field} />
                         </FormControl>
                         <FormMessage />
                     </FormItem>

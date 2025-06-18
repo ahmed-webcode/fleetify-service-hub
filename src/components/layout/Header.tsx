@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Bell, Menu, Settings, LogOut, Moon, Sun } from "lucide-react";
@@ -16,21 +15,19 @@ import {
 
 interface HeaderProps {
   toggleSidebar: () => void;
-  sidebarOpen?: boolean;
 }
 
-export function Header({ toggleSidebar, sidebarOpen }: HeaderProps) {
+export function Header({ toggleSidebar }: HeaderProps) {
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, selectedRole, logout } = useAuth(); // Combined selectedRole here
   
-  // Theme state
   const [theme, setTheme] = useState<"light" | "dark">(
     () =>
       (localStorage.getItem("theme") as "light" | "dark") ||
       (window.matchMedia &&
-      window.matchMedia("(prefers-color-scheme: light)").matches
+      window.matchMedia("(prefers-color-scheme: dark)").matches
         ? "dark"
         : "light")
   );
@@ -52,8 +49,7 @@ export function Header({ toggleSidebar, sidebarOpen }: HeaderProps) {
   }, [theme]);
 
   const handleThemeToggle = () => {
-    const newTheme = theme === "light" ? "dark" : "light";
-    setTheme(newTheme);
+    setTheme(theme === "light" ? "dark" : "light");
   };
 
   const pageTitle = () => {
@@ -74,33 +70,20 @@ export function Header({ toggleSidebar, sidebarOpen }: HeaderProps) {
     navigate("/login");
   };
 
-  // These helper functions safely access user properties
   const getUserInitials = () => {
     if (user?.fullName) {
-      return user.fullName.split(" ")
-        .map((n: string) => n[0])
-        .join("")
-        .slice(0, 2);
+      return user.fullName.split(" ").map((n: string) => n[0]).join("").slice(0, 2);
     }
     return user?.username.substring(0, 2).toUpperCase() || "U";
   };
 
-  const getUserName = () => {
-    if (user?.fullName) {
-      return user.fullName;
-    }
-    return user?.username || "User";
-  };
-
-  const getUserRole = () => {
-    const { selectedRole } = useAuth();
-    return selectedRole?.name || "User";
-  };
+  const getUserName = () => user?.fullName || user?.username || "User";
+  const getUserRole = () => selectedRole?.name || "User";
 
   return (
     <header
       className={cn(
-        "sticky top-0 z-40 w-full bg-background/80 backdrop-blur-md border-b transition-shadow duration-200",
+        "sticky top-0 z-30 w-full bg-background/80 backdrop-blur-md border-b transition-shadow duration-200",
         scrolled ? "shadow-sm" : ""
       )}
     >
@@ -109,7 +92,7 @@ export function Header({ toggleSidebar, sidebarOpen }: HeaderProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="md:flex lg:hidden"
+            className="md:hidden" // Show on mobile, hide on medium screens and up
             onClick={toggleSidebar}
           >
             <Menu className="h-5 w-5" />
@@ -140,7 +123,6 @@ export function Header({ toggleSidebar, sidebarOpen }: HeaderProps) {
             onClick={() => navigate('/notifications')}
           >
             <Bell className="h-5 w-5" />
-            {/* <span className="absolute top-0 right-0 w-2 h-2 bg-primary rounded-full"></span> */}
             <span className="sr-only">Notifications</span>
           </Button>
 

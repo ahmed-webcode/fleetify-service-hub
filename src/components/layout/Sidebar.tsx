@@ -1,4 +1,3 @@
-import { useState, useEffect, useCallback } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth, Permission } from '@/contexts/AuthContext';
@@ -20,8 +19,9 @@ import {
 interface SidebarProps {
     isCollapsed: boolean;
     setIsCollapsed: (collapsed: boolean) => void;
-    isMobileOpen?: boolean;
-    setIsMobileOpen?: (open: boolean) => void;
+    isMobile: boolean;
+    isMobileOpen: boolean;
+    setIsMobileOpen: (open: boolean) => void;
 }
 
 interface SidebarItem {
@@ -33,33 +33,9 @@ interface SidebarItem {
     requiresTransportDirector?: boolean;
 }
 
-export function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobileOpen }: SidebarProps) {
+export function Sidebar({ isCollapsed, setIsCollapsed, isMobile, isMobileOpen, setIsMobileOpen }: SidebarProps) {
     const { user, hasPermission, selectedRole, logout } = useAuth();
     const navigate = useNavigate();
-    const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768);
-
-    const handleResize = useCallback(() => {
-        const mobile = window.innerWidth < 768;
-        setIsMobileView(mobile);
-        if (!mobile && setIsMobileOpen) {
-            setIsMobileOpen(false);
-        }
-    }, [setIsMobileOpen]);
-
-    useEffect(() => {
-        window.addEventListener('resize', handleResize);
-        handleResize();
-        return () => window.removeEventListener('resize', handleResize);
-    }, [handleResize]);
-
-    useEffect(() => {
-        if (!isMobileView) {
-            const savedState = localStorage.getItem('sidebarCollapsedState');
-            if (savedState) {
-                setIsCollapsed(savedState === 'true');
-            }
-        }
-    }, [setIsCollapsed, isMobileView]);
 
     const handleDesktopToggle = () => {
         const newState = !isCollapsed;
@@ -68,7 +44,7 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
     };
 
     const handleMobileToggle = () => {
-        setIsMobileOpen?.(!isMobileOpen);
+        setIsMobileOpen(!isMobileOpen);
     };
 
     const handleLogout = async () => {
@@ -76,9 +52,8 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
         navigate("/login");
       };
 
-    const isTransportDirector = selectedRole?.id === 1; // TRANSPORT_DIRECTOR role ID
+    const isTransportDirector = selectedRole?.id === 1;
 
-    // Refactor sidebarItems to wrap nav link visibility in permission checks per new mapping
     const sidebarItems: SidebarItem[] = [
         { name: 'Dashboard', icon: <BarChart size={20} />, path: '/dashboard', permission: 'view_user', requiresTransportDirector: true },
         { name: 'Vehicles', icon: <Car size={20} />, path: '/vehicles', permission: 'view_vehicle' },
@@ -92,45 +67,41 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
     const renderSidebarItems = (items: SidebarItem[]): React.ReactNode[] => {
         return items
             .filter(item => {
-                // Filter by permission
                 if (item.permission && !hasPermission(item.permission as Permission)) {
                     return false;
                 }
-                // Transport Director specific filter
                 if (item.requiresTransportDirector && selectedRole?.id !== 1) {
                     return false;
                 }
                 return true;
             })
-            .map((item) => {
-                return (
-                    <NavLink
-                        key={item.path}
-                        to={item.path}
-                        end={item.exactMatch || item.path === '/'}
-                        className={({ isActive }) =>
-                            cn(
-                                'flex items-center gap-3 text-sm rounded-md transition-colors duration-150 ease-in-out group',
-                                'focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1',
-                                'px-3 py-2.5 text-slate-700 hover:bg-slate-100 hover:text-slate-900',
-                                isActive && 'bg-blue-600 text-white hover:bg-blue-600 hover:text-white font-medium',
-                                isCollapsed && !isMobileView && 'justify-center p-2.5'
-                            )
+            .map((item) => (
+                <NavLink
+                    key={item.path}
+                    to={item.path}
+                    end={item.exactMatch || item.path === '/'}
+                    className={({ isActive }) =>
+                        cn(
+                            'flex items-center gap-3 text-sm rounded-md transition-colors duration-150 ease-in-out group',
+                            'focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1',
+                            'px-3 py-2.5 text-slate-700 hover:bg-slate-100 hover:text-slate-900',
+                            isActive && 'bg-blue-600 text-white hover:bg-blue-600 hover:text-white font-medium',
+                            isCollapsed && !isMobile && 'justify-center p-2.5'
+                        )
+                    }
+                    title={isCollapsed && !isMobile ? item.name : undefined}
+                    onClick={() => {
+                        if (isMobile) {
+                            setIsMobileOpen(false);
                         }
-                        title={isCollapsed && !isMobileView ? item.name : undefined}
-                        onClick={() => {
-                            if (isMobileView && setIsMobileOpen) {
-                                setIsMobileOpen(false);
-                            }
-                        }}
-                    >
-                        <span className={cn('text-slate-500 group-hover:text-slate-700', 'group-[.bg-blue-600]:text-white')}>
-                            {item.icon}
-                        </span>
-                        {(!isCollapsed || isMobileView) && <span className="truncate">{item.name}</span>}
-                    </NavLink>
-                );
-            });
+                    }}
+                >
+                    <span className={cn('text-slate-500 group-hover:text-slate-700', 'group-[.bg-blue-600]:text-white')}>
+                        {item.icon}
+                    </span>
+                    {(!isCollapsed || isMobile) && <span className="truncate">{item.name}</span>}
+                </NavLink>
+            ));
     };
 
     const getUserDisplayName = () => user?.fullName || user?.username || 'User';
@@ -138,12 +109,12 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
 
     const sidebarContent = (
         <>
-            <div className={cn('flex items-center h-16 px-4 border-b border-slate-200 shrink-0', isCollapsed && !isMobileView ? 'justify-center' : 'justify-between')}>
+            <div className={cn('flex items-center h-16 px-4 border-b border-slate-200 shrink-0', isCollapsed && !isMobile ? 'justify-center' : 'justify-between')}>
                 <NavLink to="/dashboard" className="flex items-center gap-2" title="AAU Fleet Management System Dashboard">
-                    <img src="aau-logo.png" alt="AAU Logo" className={isCollapsed && !isMobileView ? "h-9 w-9" : "h-8 w-8"} style={{ borderRadius: "50%", background: "white" }} />
-                    {(!isCollapsed || isMobileView) && <span className="text-xl font-semibold text-slate-800 tracking-tight">AAU FMS</span>}
+                    <img src="aau-logo.png" alt="AAU Logo" className={isCollapsed && !isMobile ? "h-9 w-9" : "h-8 w-8"} style={{ borderRadius: "50%", background: "white" }} />
+                    {(!isCollapsed || isMobile) && <span className="text-xl font-semibold text-slate-800 tracking-tight">AAU FMS</span>}
                 </NavLink>
-                {isMobileView ? (
+                {isMobile ? (
                      <button onClick={handleMobileToggle} className="p-1.5 rounded-md hover:bg-slate-100 text-slate-500 hover:text-slate-700 md:hidden" title="Close menu">
                         <ChevronLeft size={18} />
                     </button>
@@ -165,20 +136,19 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
                         className={({ isActive }) => cn(
                             'flex items-center gap-3 px-3 py-2 rounded-md text-sm text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-colors group',
                             isActive && 'bg-blue-600 text-white hover:bg-blue-700 hover:text-white font-medium',
-                            isCollapsed && !isMobileView && 'p-2.5 justify-center'
+                            isCollapsed && !isMobile && 'p-2.5 justify-center'
                         )}
-                        title={isCollapsed && !isMobileView ? 'Notifications' : undefined}
-                        onClick={() => { if (isMobileView && setIsMobileOpen) setIsMobileOpen(false); }}
+                        title={isCollapsed && !isMobile ? 'Notifications' : undefined}
+                        onClick={() => { if (isMobile) setIsMobileOpen(false); }}
                     >
                         <Bell size={19} className="text-slate-500 group-hover:text-slate-700 group-[.bg-blue-600]:text-white" />
-                        {(!isCollapsed || isMobileView) && <span className="flex-1 truncate">Notifications</span>}
-                        {/* {(!isCollapsed || isMobileView) && <span className="ml-auto bg-blue-500 text-white text-xs font-semibold px-1.5 py-0.5 rounded-full">3</span>} */}
+                        {(!isCollapsed || isMobile) && <span className="flex-1 truncate">Notifications</span>}
                     </NavLink>
                 </div>
                 <div className={cn('p-3 border-t border-slate-200')}>
-                    {(!isCollapsed || isMobileView) ? (
+                    {(!isCollapsed || isMobile) ? (
                         <div className="flex items-center justify-between">
-                            <NavLink to="/settings" className="flex items-center gap-2.5 group min-w-0" onClick={() => { if (isMobileView && setIsMobileOpen) setIsMobileOpen(false); }}>
+                            <NavLink to="/settings" className="flex items-center gap-2.5 group min-w-0" onClick={() => { if (isMobile) setIsMobileOpen(false); }}>
                                 <User size={36} className="rounded-full text-slate-500 bg-slate-100 p-1.5 group-hover:bg-slate-200 transition-colors shrink-0" />
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm font-medium text-slate-800 truncate group-hover:text-blue-600 transition-colors">{getUserDisplayName()}</p>
@@ -199,7 +169,8 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
         </>
     );
 
-    if (isMobileView) {
+    // Mobile View (Overlay)
+    if (isMobile) {
         return (
             <>
                 {isMobileOpen && <div className="fixed inset-0 z-30 bg-black/30 backdrop-blur-sm md:hidden" onClick={handleMobileToggle} aria-hidden="true" />}
@@ -215,10 +186,15 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
         );
     }
 
+    // Desktop View (Sticky)
     return (
-        <aside className={cn('relative min-h-screen bg-background border-r border-slate-200 shadow-sm flex flex-col transition-width duration-300 ease-in-out', isCollapsed ? 'w-[72px]' : 'w-64')}>
+        <aside className={cn(
+            'hidden md:flex flex-col sticky top-16 bg-background border-r border-slate-200 shadow-sm transition-all duration-300 ease-in-out',
+            'h-[calc(100vh-4rem)]',
+            isCollapsed ? 'w-[72px]' : 'w-64'
+        )}>
             {sidebarContent}
-            {isCollapsed && !isMobileView && (
+            {isCollapsed && (
                 <button
                     onClick={handleDesktopToggle}
                     className="absolute left-full top-3 -translate-x-1/2 z-10 p-1 bg-background border border-slate-300 rounded-full shadow-md hover:bg-slate-50 text-slate-600 transition-all hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"

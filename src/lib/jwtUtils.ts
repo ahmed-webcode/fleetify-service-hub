@@ -143,13 +143,13 @@ export const ROLE_PERMISSIONS: Record<number, Permission[]> = {
     'view_trip_request','manage_trip_request','view_fuel_request','manage_fuel_request',
     'view_maintenance_request','manage_maintenance_request','view_fuel','manage_fuel','view_item','manage_item',
     'view_insurance','manage_insurance','view_incident','manage_incident','report_incident', 'review_fuel',
-    'view_maintenance','manage_maintenance','view_trip','manage_trip', 'issue_fuel', 'request_trip', 'request_fuel', 'view_dashboard', 'manage_fuel_types', 'generate_fuel_report'
+    'view_maintenance','manage_maintenance','view_trip','manage_trip', 'view_dashboard', 'manage_fuel_types', 'generate_fuel_report'
   ], // Transport Director
   2: [
     'view_user','view_vehicle','view_trip_request','manage_trip_request','view_trip','manage_trip'
   ], // Deployment Manager
   3: [
-    'view_user','view_vehicle','view_fuel_request','manage_fuel_request','view_fuel','manage_fuel','issue_fuel'
+    'view_user','view_vehicle','view_fuel_request','manage_fuel_request','view_fuel', 'manage_fuel_types', 'manage_fuel', 'issue_fuel', 'generate_fuel_report'
   ], // Fuel Manager
   // 4: [
   //   'view_user','view_vehicle','view_vehicle_libre','view_insurance','manage_insurance','view_incident','manage_incident','report_incident','view_maintenance'

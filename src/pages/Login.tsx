@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle } from "lucide-react";
+import { Car, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
 import type { Role } from "@/contexts/AuthContext";
@@ -67,12 +67,10 @@ export default function Login() {
       <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 flex items-center justify-center p-4">
         <div className="w-full max-w-3xl">
           <div className="text-center mb-8">
-            <img
-              src="aau-logo.png"
-              alt="AAU Logo"
-              className="mx-auto w-16 h-16 rounded-full bg-white mb-4"
-            />
-            <h1 className="text-3xl font-bold">AAU Fleet Management System</h1>
+            <div className="mx-auto size-24 bg-primary rounded-full flex items-center justify-center mb-4">
+              <img src="aau-logo.png" alt="AAU Logo" className="size-full" />
+            </div>
+            <h1 className="text-3xl font-bold">FMS</h1>
             <p className="text-slate-600">Addis Ababa University Fleet Management</p>
           </div>
           
@@ -123,13 +121,11 @@ export default function Login() {
     <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <img
-            src="aau-logo.png"
-            alt="AAU Logo"
-            className="mx-auto w-16 h-16 rounded-full bg-white mb-4"
-          />
-          <h1 className="text-3xl font-bold">AAU Fleet Management System</h1>
-          <p className="text-slate-600">Addis Ababa University Fleet Management</p>
+          <div className="mx-auto size-24 bg-primary rounded-full flex items-center justify-center mb-4">
+            <img src="aau-logo.png" alt="AAU Logo" className="size-full" />
+          </div>
+          <p className="text-slate-600">Addis Ababa University</p>
+          <h1 className="text-3xl font-bold">Fleet Management System</h1>
         </div>
 
         <Card className="border-0 shadow-lg">
@@ -167,7 +163,7 @@ export default function Login() {
                 <Input
                   id="password"
                   type="password"
-                  placeholder="••••••••"
+                  placeholder="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   autoComplete="current-password"
@@ -189,11 +185,12 @@ export default function Login() {
             </form>
           </CardContent>
           <CardFooter>
-            {/* Demo account text removed as requested */}
+            <div className="w-full text-xs text-slate-500 text-center">
+              <p>© {new Date().getFullYear()} Addis Ababa University</p>
+            </div>
           </CardFooter>
         </Card>
       </div>
     </div>
   );
 }
-
