@@ -22,14 +22,12 @@ export function Header({ toggleSidebar }: HeaderProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, selectedRole, logout } = useAuth(); // Combined selectedRole here
-  
+
+  // --- FIX: Updated theme initialization logic ---
+  // The app will now check localStorage first, and if no theme is set,
+  // it will default to 'light' mode, ignoring the system preference.
   const [theme, setTheme] = useState<"light" | "dark">(
-    () =>
-      (localStorage.getItem("theme") as "light" | "dark") ||
-      (window.matchMedia &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light")
+    () => (localStorage.getItem("theme") as "light" | "dark") || "light"
   );
 
   useEffect(() => {

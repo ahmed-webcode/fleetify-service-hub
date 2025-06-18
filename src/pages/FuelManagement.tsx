@@ -25,7 +25,7 @@ import FuelList from "@/components/fuel/FuelList";
 import FuelReportsTab from "@/components/fuel/FuelReportsTab";
 
 export default function FuelManagement() {
-  const { hasPermission, roles } = useAuth();
+  const { hasPermission, selectedRole } = useAuth();
   
   const [requestFuelOpen, setRequestFuelOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
@@ -42,7 +42,7 @@ export default function FuelManagement() {
     queryKey: ["fuelRequests", currentPage, itemsPerPage],
     queryFn: async () => {
       // Operational Director (id: 7) can only see their own requests
-      if (roles.map((role => role.id)).includes(7)){
+      if (selectedRole && selectedRole.id === 7) {
         return apiClient.fuel.requests.getMy({
           page: currentPage,
           size: itemsPerPage,

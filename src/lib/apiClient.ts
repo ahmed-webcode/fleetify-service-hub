@@ -382,6 +382,18 @@ export const apiClient = {
                     `/fuel/records${queryString}`
                 );
             },
+            getMy: (params?: { page?: number; size?: number; sortBy?: string; direction?: string }) => {
+                const queryString = params
+                    ? `?${new URLSearchParams(
+                          Object.entries(params)
+                              .filter(([_, value]) => value !== undefined && value !== null)
+                              .map(([key, value]) => [key, String(value)])
+                      ).toString()}`
+                    : "";
+                return fetchWithErrorHandling<PageResponse<import('@/types/fuel').FuelRecordFullDto>>(
+                    `/fuel/receipts${queryString}`
+                );
+            },
             issue: (data: import('@/types/fuel').FuelIssueDto) => {
                 return fetchWithErrorHandling<import('@/types/fuel').FuelRecordFullDto>(
                     "/fuel/issues", {

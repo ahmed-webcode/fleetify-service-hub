@@ -245,31 +245,3 @@ export interface User {
   email?: string;
   // ... other optional fields
 }
-
-export type UserRole = 'transport_director' | 'operational_director' | 'fotl' | 'ftl' | 'staff';
-
-export const AVAILABLE_ROLES: UserRole[] = [
-  'transport_director',
-  'operational_director',
-  'fotl',
-  'ftl',
-  'staff'
-];
-
-export const MOCK_COLLEGES = [
-  { id: '1', name: 'College of Natural and Social Sciences' },
-  { id: '2', name: 'College of Business and Economics' },
-  { id: '3', name: 'College of Health Sciences' }
-];
-
-export const MOCK_INSTITUTES = [
-  { id: '1', name: 'Institute of Technology', collegeId: '1' },
-  { id: '2', name: 'Institute of Management', collegeId: '2' },
-  { id: '3', name: 'Institute of Medicine', collegeId: '3' }
-];
-
-export const MOCK_CAMPUSES = [
-  { id: '1', name: 'Main Campus', instituteId: '1' },
-  { id: '2', name: 'Commerce Campus', instituteId: '2' },
-  { id: '3', name: 'Black Lion Campus', instituteId: '3' }
-];

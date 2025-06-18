@@ -167,7 +167,7 @@ export const ROLE_PERMISSIONS: Record<number, Permission[]> = {
     'view_user','view_fuel','issue_fuel', 'manage_fuel'
   ], // Fuel Attendant
   9: [
-    'view_user', 'view_fuel', 'request_fuel','request_maintenance','report_incident'
+    'view_user', 'view_fuel', 'request_fuel','request_maintenance','report_incident', 'manage_fuel'
   ], // Staff
   // Add Driver, Mechanic, etc, if needed
 };
