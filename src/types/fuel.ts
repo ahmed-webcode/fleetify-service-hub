@@ -21,7 +21,7 @@ export interface FuelRequestDto {
     vehiclePlateNumber?: string;
     levelName: string;
     fuelTypeName: string;
-    status: RequestStatus;
+    status: FuelRequestStatus;
     requestedBy: string;
     requestedAmount: number;
     requestNote?: string;
@@ -119,4 +119,13 @@ export interface FuelFull {
         firstName: string;
         lastName: string;
     };
+}
+
+export enum FuelRequestStatus {
+    APPROVED = "APPROVED",
+    APPROVED_WITH_MODIFICATION = "APPROVED_WITH_MODIFICATION",
+    PENDING = "PENDING",
+    REJECTED = "REJECTED",
+    CANCELLED = "CANCELLED",
+    COMPLETED = "COMPLETED",
 }

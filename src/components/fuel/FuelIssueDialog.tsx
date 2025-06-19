@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { apiClient } from "@/lib/apiClient";
 import { toast } from "sonner";
-import { RecordType } from "@/types/fuel";
+import { FuelRequestStatus, RecordType } from "@/types/fuel";
 import { useQuery } from "@tanstack/react-query";
 
 const RECORD_TYPE_LABELS = {
@@ -42,7 +42,10 @@ export default function FuelIssueDialog({
 
   const { data: users = [], isLoading: isLoadingUsers } = useQuery({
     queryKey: ["allUsers"],
-    queryFn: async () => apiClient.users.getAll(),
+    queryFn: async () => {
+      const users = await apiClient.users.getAll();
+      return users.filter((user) => user.roles.map((role) => role.id).includes(9)); // only have staff (role_id=9) users
+    },
     enabled: recordType === RecordType.QUOTA || recordType === RecordType.EXTERNAL,
   });
 
@@ -54,7 +57,10 @@ export default function FuelIssueDialog({
 
   const { data: fuelRequests = [], isLoading: isLoadingFuelRequests } = useQuery({
     queryKey: ["allFuelRequests"],
-    queryFn: async () => apiClient.fuel.requests.getAll({ page: 0, size: 100, sortBy: "requestedAt", direction: "DESC" }).then(res => res.content),
+    queryFn: async () => {
+      const requests = await apiClient.fuel.requests.getAll({ page: 0, size: 100, sortBy: "requestedAt", direction: "DESC" }).then(res => res.content);
+      return requests.filter((req)=>req.status === FuelRequestStatus.APPROVED);
+    },
     enabled: recordType === RecordType.REQUEST,
   });
 
@@ -77,13 +83,6 @@ export default function FuelIssueDialog({
     setFuelTypeId("");
     setReceiverId("");
     setFuelRequestId("");
-  };
-
-  // If a request is chosen, fuelTypeId is forced from that request.
-  // Fix: Only access existing property (fuelTypeName) for selectedRequest.
-  const getFuelTypeIdForRequest = () => {
-    // No fuelTypeId or fuelType present on FuelRequestDto, so just return ""
-    return "";
   };
 
   // Compose the submission DTO according to backend rules

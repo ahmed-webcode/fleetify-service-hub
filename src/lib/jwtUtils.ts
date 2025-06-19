@@ -122,6 +122,7 @@ export type Permission =
   | 'manage_fuel'
   | 'issue_fuel'
   | 'manage_fuel_types'
+  | 'view_only_fuel_records'
   | 'generate_fuel_report'
   | 'review_fuel'
   | 'view_item'
@@ -149,7 +150,7 @@ export const ROLE_PERMISSIONS: Record<number, Permission[]> = {
     'view_user','view_vehicle','view_trip_request','manage_trip_request','view_trip','manage_trip'
   ], // Deployment Manager
   3: [
-    'view_user','view_vehicle','view_fuel_request','manage_fuel_request','view_fuel', 'manage_fuel_types', 'manage_fuel', 'issue_fuel', 'generate_fuel_report'
+    'view_user','view_vehicle','view_fuel_request','manage_fuel_request','view_fuel', 'manage_fuel_types', 'manage_fuel', 'review_fuel', 'issue_fuel', 'generate_fuel_report'
   ], // Fuel Manager
   // 4: [
   //   'view_user','view_vehicle','view_vehicle_libre','view_insurance','manage_insurance','view_incident','manage_incident','report_incident','view_maintenance'
@@ -164,7 +165,7 @@ export const ROLE_PERMISSIONS: Record<number, Permission[]> = {
     'view_user','view_vehicle','request_trip','request_fuel','view_fuel', 'view_trip', 'view_trip_request', 'manage_trip', 'manage_fuel', 'generate_fuel_report'
   ], // Operational Director
   8: [
-    'view_user','view_fuel','issue_fuel', 'manage_fuel'
+    'view_user','view_fuel','issue_fuel', 'view_only_fuel_records'
   ], // Fuel Attendant
   9: [
     'view_user', 'view_fuel', 'request_fuel','request_maintenance','report_incident', 'manage_fuel'

@@ -41,8 +41,8 @@ export default function FuelManagement() {
   } = useQuery({
     queryKey: ["fuelRequests", currentPage, itemsPerPage],
     queryFn: async () => {
-      // Operational Director (id: 7) can only see their own requests
-      if (selectedRole && selectedRole.id === 7) {
+      // Operational Director (id: 7) or staff (id: 9) can only see their own requests
+      if (selectedRole && selectedRole.id === 7 || selectedRole.id === 9) {
         return apiClient.fuel.requests.getMy({
           page: currentPage,
           size: itemsPerPage,
@@ -295,10 +295,10 @@ export default function FuelManagement() {
           </div> */}
 
           {/* Fuel Management Tabs */}
-          <Tabs defaultValue="requests" className="space-y-4">
+          <Tabs defaultValue={hasPermission("view_only_fuel_records") ? "records" : "requests"} className="space-y-4">
             <HasPermission permission="manage_fuel" fallback={null}>
               <TabsList>
-                <TabsTrigger value="requests">Requests</TabsTrigger>
+                  <TabsTrigger value="requests">Requests</TabsTrigger>
                   <TabsTrigger value="records">Records</TabsTrigger>
                   <HasPermission permission="manage_fuel_types" fallback={null}>
                     <TabsTrigger value="fuels">Fuels</TabsTrigger>

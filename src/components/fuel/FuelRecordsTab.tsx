@@ -72,11 +72,13 @@ export default function FuelRecordsTab() {
             />
 
             {/* The issue dialog */}
-            <FuelIssueDialog
-                open={issueDialogOpen}
-                onOpenChange={setIssueDialogOpen}
-                onSuccess={refetch}
-            />
+            <HasPermission permission='issue_fuel' fallback={null}>
+                <FuelIssueDialog
+                    open={issueDialogOpen}
+                    onOpenChange={setIssueDialogOpen}
+                    onSuccess={refetch}
+                />
+            </HasPermission>
         </div>
     );
 }

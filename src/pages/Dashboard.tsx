@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -9,7 +9,6 @@ import { NotificationType } from "@/types/notification";
 
 // UI Components
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 // Dashboard-specific Components
@@ -141,13 +140,10 @@ function DashboardFallback({ user }) {
 }
 
 
-// --- Main Dashboard Component ---
-
-export default function Dashboard() {
-  const { user } = useAuth();
-  const location = useLocation();
-  const state = location.state as { permissionDenied?: boolean; roleDenied?: boolean } | null;
-
+// --- New Component for the Full Dashboard View ---
+// This component contains the useDashboardStats hook. It will only be mounted (and thus the hook will only run)
+// if the user has the correct role and permissions.
+function FullDashboard({ user }) {
   const {
     vehiclesQuery,
     fuelRequestsQuery,
@@ -156,16 +152,6 @@ export default function Dashboard() {
     recentTripsQuery,
     recentFuelRecordsQuery,
   } = useDashboardStats();
-
-  useEffect(() => {
-    if (state?.permissionDenied) {
-      toast.error("You don't have permission to access that page");
-      window.history.replaceState({}, document.title);
-    } else if (state?.roleDenied) {
-      toast.error("This page is restricted to specific roles");
-      window.history.replaceState({}, document.title);
-    }
-  }, [state]);
 
   const vehicleCount = vehiclesQuery.data?.totalElements ?? 0;
   const fuelRequestCount = fuelRequestsQuery.data?.totalElements ?? 0;
@@ -178,41 +164,74 @@ export default function Dashboard() {
   const recentFuels = recentFuelRecordsQuery.data?.content ?? [];
   const recentTripsLoading = recentTripsQuery.isLoading;
   const recentFuelsLoading = recentFuelRecordsQuery.isLoading;
+  
+  return (
+    <div className="w-full px-4 md:px-8 space-y-6">
+      <div className="flex flex-col gap-2">
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Welcome, {user?.fullName || user?.username}</h1>
+        <p className="text-muted-foreground">Here's an overview of your fleet management system</p>
+      </div>
 
+      <MetricsOverview
+        vehicles={vehicleCount}
+        tripRequests={tripRequestCount}
+        fuelRequests={fuelRequestCount}
+        drivers={usersQuery.data?.filter(user => user.roles.some(role => role.name === "Driver")).length || 0}
+        loading={loading}
+      />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <TripRequestsChart tripRequests={tripRequestList} />
+        <FuelRequestsChart fuelRequests={fuelRequestList} />
+      </div>
+
+      <UserRolesChart users={userList} />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <RecentTrips records={recentTrips} loading={recentTripsLoading} />
+        <RecentFuels records={recentFuels} loading={recentFuelsLoading} />
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-3 gap-4">
+        <DashboardCard title="Vehicles" value={String(vehicleCount)} description="Total vehicles" icon={<Car size={20} />} link="/vehicles" />
+        <DashboardCard title="Trip Requests" value={String(tripRequestCount)} description="Requests for trips" icon={<Car size={20} />} link="/trip-management" />
+        <DashboardCard title="Fuel Requests" value={String(fuelRequestCount)} description="Total fuel requests" icon={<Fuel size={20} />} link="/fuel-management" />
+      </div>
+    </div>
+  );
+}
+
+
+// --- Main Dashboard Component (Modified) ---
+// This component now acts as a dispatcher, deciding whether to show the full dashboard or the fallback.
+export default function Dashboard() {
+  const { user, selectedRole } = useAuth();
+  const location = useLocation();
+  const state = location.state as { permissionDenied?: boolean; roleDenied?: boolean } | null;
+
+  useEffect(() => {
+    if (state?.permissionDenied) {
+      toast.error("You don't have permission to access that page");
+      window.history.replaceState({}, document.title);
+    } else if (state?.roleDenied) {
+      toast.error("This page is restricted to specific roles");
+      window.history.replaceState({}, document.title);
+    }
+  }, [state]);
+
+  // First, check the role ID. If it's not 1, show the fallback immediately.
+  // This prevents the FullDashboard component from ever being rendered,
+  // and thus the useDashboardStats hook will not be executed.
+  if (selectedRole?.id !== 1) {
+    return <DashboardFallback user={user} />;
+  }
+
+  // If the role is 1, we then defer to the HasPermission component.
+  // It will render FullDashboard only if the user has the required permission.
+  // Otherwise, it will render the fallback.
   return (
     <HasPermission permission="view_dashboard" fallback={<DashboardFallback user={user} />}>
-      <div className="w-full px-4 md:px-8 space-y-6">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Welcome, {user?.fullName || user?.username}</h1>
-          <p className="text-muted-foreground">Here's an overview of your fleet management system</p>
-        </div>
-
-        <MetricsOverview
-          vehicles={vehicleCount}
-          tripRequests={tripRequestCount}
-          fuelRequests={fuelRequestCount}
-          drivers={usersQuery.data?.filter(user => user.roles.some(role => role.name === "Driver")).length || 0}
-          loading={loading}
-        />
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <TripRequestsChart tripRequests={tripRequestList} />
-          <FuelRequestsChart fuelRequests={fuelRequestList} />
-        </div>
-
-        <UserRolesChart users={userList} />
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <RecentTrips records={recentTrips} loading={recentTripsLoading} />
-          <RecentFuels records={recentFuels} loading={recentFuelsLoading} />
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-3 gap-4">
-          <DashboardCard title="Vehicles" value={String(vehicleCount)} description="Total vehicles" icon={<Car size={20} />} link="/vehicles" />
-          <DashboardCard title="Trip Requests" value={String(tripRequestCount)} description="Requests for trips" icon={<Car size={20} />} link="/trip-management" />
-          <DashboardCard title="Fuel Requests" value={String(fuelRequestCount)} description="Total fuel requests" icon={<Fuel size={20} />} link="/fuel-management" />
-        </div>
-      </div>
+      <FullDashboard user={user} />
     </HasPermission>
   );
 }

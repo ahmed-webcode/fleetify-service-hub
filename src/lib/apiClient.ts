@@ -66,6 +66,9 @@ const handleHttpError = (error: any): never => {
         message = error.message;
     }
 
+    if (message === "No response received from server. Check network connection."){
+        window.location.href = "/login"; // Redirect to login if no response
+    }
     console.error("API Error:", error);
     toast.error(`API Error: ${message}`);
     throw error;
@@ -379,7 +382,7 @@ export const apiClient = {
                       ).toString()}`
                     : "";
                 return fetchWithErrorHandling<PageResponse<import('@/types/fuel').FuelRecordFullDto>>(
-                    `/fuel/records${queryString}`
+                    `/fuel-records${queryString}`
                 );
             },
             getMy: (params?: { page?: number; size?: number; sortBy?: string; direction?: string }) => {
@@ -391,12 +394,12 @@ export const apiClient = {
                       ).toString()}`
                     : "";
                 return fetchWithErrorHandling<PageResponse<import('@/types/fuel').FuelRecordFullDto>>(
-                    `/fuel/receipts${queryString}`
+                    `/fuel-records/me${queryString}`
                 );
             },
             issue: (data: import('@/types/fuel').FuelIssueDto) => {
                 return fetchWithErrorHandling<import('@/types/fuel').FuelRecordFullDto>(
-                    "/fuel/issues", {
+                    "/fuel-records", {
                         method: "POST",
                         body: JSON.stringify(data),
                         headers: { "Content-Type": "application/json" }
@@ -405,7 +408,7 @@ export const apiClient = {
             },
             receive: (id: number, data: import('@/types/fuel').FuelReceiveDto) => {
                 return fetchWithErrorHandling<import('@/types/fuel').FuelRecordFullDto>(
-                    `/fuel/records/${id}`, {
+                    `/fuel-records/${id}`, {
                         method: "PATCH",
                         body: JSON.stringify(data),
                         headers: { "Content-Type": "application/json" }
