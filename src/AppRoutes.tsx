@@ -12,6 +12,7 @@ import ProjectsManagement from './pages/ProjectsManagement';
 import TripManagement from "./pages/TripManagement";
 import UserManagement from "./pages/UserManagement";
 import MaintenanceManagement from "./pages/MaintenanceManagement";
+import InsuranceManagement from "./pages/InsuranceManagement";
 
 // Update role IDs in ROLES to reflect new backend order:
 const ROLES = {
@@ -72,6 +73,12 @@ export function AppRoutes() {
             </ProtectedRoute>
             } />
 
+            <Route path="/insurance-management" element={
+            <ProtectedRoute requiredRoleId={ROLES.TRANSPORT_DIRECTOR}>
+                <InsuranceManagement />
+            </ProtectedRoute>
+            } />
+
             <Route path="/projects-management" element={
             <ProtectedRoute requiredRoleId={ROLES.TRANSPORT_DIRECTOR}>
                 <ProjectsManagement />
@@ -96,9 +103,6 @@ export function AppRoutes() {
             </ProtectedRoute>
             } />
 
-            {/* Commented out routes for future implementation */}
-            {/* ... commented routes from App.tsx */}
-            
             {/* Fallback routes */}
             <Route path="/404" element={<NotFound />} />
             <Route path="*" element={<Navigate to="/404" replace />} />

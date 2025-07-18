@@ -753,6 +753,38 @@ export const apiClient = {
         },
     },
 
+    // Insurance endpoints
+    insurances: {
+        getAll: (params?: {
+            page?: number;
+            size?: number;
+            sortBy?: string;
+            direction?: "ASC" | "DESC";
+            vehicleId?: number;
+        }) => {
+            const queryString = params
+                ? `?${new URLSearchParams(
+                      Object.entries(params)
+                          .filter(([_, value]) => value !== undefined && value !== null)
+                          .map(([key, value]) => [key, value.toString()])
+                  ).toString()}`
+                : "";
+            return fetchWithErrorHandling<
+                import("@/types/common").PageResponse<import("@/types/insurance").InsuranceFull>
+            >(`/insurances${queryString}`);
+        },
+        create: (data: import("@/types/insurance").InsuranceCreate) => {
+            return fetchWithErrorHandling<import("@/types/insurance").InsuranceFull>(
+                "/insurances",
+                {
+                    method: "POST",
+                    body: JSON.stringify(data),
+                    headers: { "Content-Type": "application/json" },
+                }
+            );
+        },
+    },
+
     // Add notifications endpoints
     notifications: {
         getAll: (params?: NotificationQueryParams) => {
