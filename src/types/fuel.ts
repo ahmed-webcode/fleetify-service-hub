@@ -68,7 +68,7 @@ export interface FuelRecordFullDto {
         fuelType?: {
             id: number;
             name: string;
-        }
+        };
     } | null;
     fuelType: {
         id: number;
@@ -105,20 +105,7 @@ export interface FuelFull {
     };
     pricePerLiter: number;
     amount: number;
-    createdAt: string;
     updatedAt: string;
-    createdBy: {
-        id: number;
-        email: string;
-        firstName: string;
-        lastName: string;
-    };
-    updatedBy: {
-        id: number;
-        email: string;
-        firstName: string;
-        lastName: string;
-    };
 }
 
 export enum FuelRequestStatus {

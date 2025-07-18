@@ -12,7 +12,7 @@ export const ALL_ROLE_NAMES = [
   "Store Manager",
   "Operational Director",
   "Fuel Attendant",
-  "Staff",
+  "Officier",
   "Driver",
   "Mechanic"
 ];
@@ -32,7 +32,7 @@ export function useDashboardStats() {
     refetchOnWindowFocus: false,
   });
 
-  // All staff (to find role distribution)
+  // All Officier (to find role distribution)
   const usersQuery = useQuery({
     queryKey: ["dashboard", "users"],
     queryFn: () => apiClient.users.getAll(),

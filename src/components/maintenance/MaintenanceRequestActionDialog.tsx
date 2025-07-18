@@ -21,13 +21,12 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { apiClient } from "@/lib/apiClient";
-import { MaintenanceRequestDto, MaintenanceRequestActionDto } from "@/types/maintenance";
-import { ActionType } from "@/types/common";
+import { MaintenanceRequestFull, MaintenanceRequestAction } from "@/types/maintenance";
 
 interface MaintenanceRequestActionDialogProps {
     isOpen: boolean;
     onClose: () => void;
-    request: MaintenanceRequestDto | null;
+    request: MaintenanceRequestFull | null;
     onActionComplete: () => void;
 }
 
@@ -37,9 +36,8 @@ export function MaintenanceRequestActionDialog({
     request,
     onActionComplete,
 }: MaintenanceRequestActionDialogProps) {
-    const [action, setAction] = useState<ActionType | undefined>(undefined);
+    const [action, setAction] = useState<"APPROVE" | "REJECT" | undefined>(undefined);
     const [reason, setReason] = useState("");
-    const [estimatedCost, setEstimatedCost] = useState<number | undefined>(undefined);
     const [loading, setLoading] = useState(false);
 
     const handleSubmit = async () => {
@@ -47,17 +45,16 @@ export function MaintenanceRequestActionDialog({
             toast.error("Please select an action.");
             return;
         }
-        if (action === ActionType.REJECT && !reason.trim()) {
+        if (action === "REJECT" && !reason.trim()) {
             toast.error("Reason is required for rejection.");
             return;
         }
 
         setLoading(true);
         try {
-            const actionData: MaintenanceRequestActionDto = {
+            const actionData: MaintenanceRequestAction = {
                 action: action,
                 actionNote: reason || undefined,
-                estimatedCost: estimatedCost,
             };
             await apiClient.maintenance.requests.act(request.id, actionData);
             toast.success(`Maintenance request ${action.toLowerCase()}ed successfully.`);
@@ -73,7 +70,6 @@ export function MaintenanceRequestActionDialog({
     const handleClose = () => {
         setAction(undefined);
         setReason("");
-        setEstimatedCost(undefined);
         onClose();
     };
 
@@ -86,55 +82,39 @@ export function MaintenanceRequestActionDialog({
                     <DialogTitle>Review Maintenance Request #{request.id}</DialogTitle>
                     <DialogDescription>
                         Approve or reject the maintenance request: "{request.title}" for vehicle{" "}
-                        {request.plateNumber}.
+                        {request.vehicle.plateNumber}.
                     </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                     <div>
                         <Label htmlFor="action">Action</Label>
                         <Select
-                            onValueChange={(value) => setAction(value as ActionType)}
+                            onValueChange={(value) => setAction(value as "APPROVE" | "REJECT")}
                             value={action}
                         >
                             <SelectTrigger id="action">
                                 <SelectValue placeholder="Select an action" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value={ActionType.APPROVE}>Approve</SelectItem>
-                                <SelectItem value={ActionType.REJECT}>Reject</SelectItem>
+                                <SelectItem value="APPROVE">Approve</SelectItem>
+                                <SelectItem value="REJECT">Reject</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
 
-                    {action === ActionType.APPROVE && (
-                        <>
-                            <div>
-                                <Label htmlFor="estimatedCost">Estimated Cost (Optional)</Label>
-                                <Input
-                                    id="estimatedCost"
-                                    type="number"
-                                    value={estimatedCost || ""}
-                                    onChange={(e) =>
-                                        setEstimatedCost(
-                                            e.target.value ? Number(e.target.value) : undefined
-                                        )
-                                    }
-                                    placeholder="Enter estimated cost"
-                                />
-                            </div>
-                            <div>
-                                <Label htmlFor="reason">Note / Reason (Optional)</Label>
-                                <Textarea
-                                    id="reason"
-                                    value={reason}
-                                    onChange={(e) => setReason(e.target.value)}
-                                    placeholder="Add an optional note for approval"
-                                />
-                            </div>
-                        </>
+                    {action === "APPROVE" && (
+                        <div>
+                            <Label htmlFor="reason">Note / Reason (Optional)</Label>
+                            <Textarea
+                                id="reason"
+                                value={reason}
+                                onChange={(e) => setReason(e.target.value)}
+                                placeholder="Add an optional note for approval"
+                            />
+                        </div>
                     )}
 
-                    {action === ActionType.REJECT && (
+                    {action === "REJECT" && (
                         <div>
                             <Label htmlFor="reason">Reason (Required)</Label>
                             <Textarea

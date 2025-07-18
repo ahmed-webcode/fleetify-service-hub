@@ -11,6 +11,7 @@ import VehicleDetail from './pages/VehicleDetail';
 import ProjectsManagement from './pages/ProjectsManagement';
 import TripManagement from "./pages/TripManagement";
 import UserManagement from "./pages/UserManagement";
+import MaintenanceManagement from "./pages/MaintenanceManagement";
 
 // Update role IDs in ROLES to reflect new backend order:
 const ROLES = {
@@ -22,7 +23,7 @@ const ROLES = {
   STORE_MANAGER: 6,
   OPERATIONAL_DIRECTOR: 7,
   FUEL_ATTENDANT: 8,
-  STAFF: 9,
+  OFFICIER: 9,
   DRIVER: 10,
   MECHANIC: 11
 };
@@ -62,6 +63,12 @@ export function AppRoutes() {
             <Route path="/fuel-management" element={
             <ProtectedRoute>
                 <FuelManagement />
+            </ProtectedRoute>
+            } />
+
+            <Route path="/maintenance-management" element={
+            <ProtectedRoute requiredRoleId={ROLES.TRANSPORT_DIRECTOR}>
+                <MaintenanceManagement />
             </ProtectedRoute>
             } />
 

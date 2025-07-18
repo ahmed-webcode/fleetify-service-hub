@@ -20,7 +20,9 @@ interface Vehicle {
     licensePlate: string;
     status: "active" | "maintenance" | "outOfService";
     lastLocation?: string;
-    mileage: number;
+    imgSrc?: string;
+    fuelType: { id: number; name: string };
+    level: { id: number; name: string };
 }
 
 interface VehiclesListProps {
@@ -53,7 +55,8 @@ export function VehiclesList({ vehicles, resetFilters, onViewDetails, onEdit }: 
                         <TableHead>Vehicle</TableHead>
                         <TableHead className="hidden md:table-cell">License Plate</TableHead>
                         <TableHead className="hidden lg:table-cell">Year</TableHead>
-                        <TableHead className="hidden lg:table-cell">Mileage</TableHead>
+                        <TableHead className="hidden lg:table-cell">Fuel Type</TableHead>
+                        <TableHead className="hidden lg:table-cell">Level</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
@@ -72,7 +75,10 @@ export function VehiclesList({ vehicles, resetFilters, onViewDetails, onEdit }: 
                             </TableCell>
                             <TableCell className="hidden lg:table-cell">{vehicle.year}</TableCell>
                             <TableCell className="hidden lg:table-cell">
-                                {vehicle.mileage.toLocaleString()} km
+                                {vehicle.fuelType?.name}
+                            </TableCell>
+                            <TableCell className="hidden lg:table-cell">
+                                {vehicle.level?.name}
                             </TableCell>
                             <TableCell>
                                 <span

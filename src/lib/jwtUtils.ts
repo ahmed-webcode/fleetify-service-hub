@@ -169,7 +169,7 @@ export const ROLE_PERMISSIONS: Record<number, Permission[]> = {
   ], // Fuel Attendant
   9: [
     'view_user', 'view_fuel', 'request_fuel','request_maintenance','report_incident', 'manage_fuel'
-  ], // Staff
+  ], // Officier
   // Add Driver, Mechanic, etc, if needed
 };
 
@@ -182,7 +182,7 @@ export const ROLE_DETAILS: Record<number, { name: string, description: string }>
   6: { name: 'Store Manager', description: 'Responsible for managing the store and inventory' },
   7: { name: 'Operational Director', description: 'Reside in each campus and manage the transport department in the campus' },
   8: { name: 'Fuel Attendant', description: 'Responsible for issuing fuel' },
-  9: { name: 'Staff', description: 'General staff of the university' },
+  9: { name: 'Officier', description: 'General staff of the university' },
   10: { name: 'Driver', description: 'Responsible for driving the vehicle' },
   11: { name: 'Mechanic', description: 'Responsible for maintaining the vehicle' },
 };

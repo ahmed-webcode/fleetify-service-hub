@@ -14,6 +14,7 @@ import {
     Bell,
     LogOut,
     Menu,
+    Wrench,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -59,6 +60,7 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobile, isMobileOpen, s
         { name: 'Vehicles', icon: <Car size={20} />, path: '/vehicles', permission: 'view_vehicle' },
         { name: 'Trip Management', icon: <MapPin size={20} />, path: '/trip-management', permission: 'view_trip_request' },
         { name: 'Fuel Management', icon: <Fuel size={20} />, path: '/fuel-management', permission: 'view_fuel' },
+        { name: 'Maintenance Management', icon: <Wrench size={20} />, path: '/maintenance-management', permission: 'view_maintenance' },
         { name: 'Projects Management', icon: <School size={20} />, path: '/projects-management', permission: 'manage_project', requiresTransportDirector: true },
         { name: 'User Management', icon: <Users size={20} />, path: '/user-management', permission: 'manage_user', requiresTransportDirector: true },
         { name: 'Settings', icon: <Settings size={20} />, path: '/settings', permission: null },

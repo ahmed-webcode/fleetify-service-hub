@@ -1,24 +1,11 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-    Car,
-    Fuel,
-    Calendar,
-    User,
-    Info,
-    MapPin,
-    MoreHorizontal,
-    FileEdit,
-    Trash2,
-    ClipboardList,
-} from "lucide-react";
+import { Car, Fuel, Calendar, Info, MapPin, MoreHorizontal, FileEdit } from "lucide-react";
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useNavigate } from "react-router-dom";
@@ -30,10 +17,10 @@ interface VehicleCardProps {
     licensePlate: string;
     fuelType: string;
     year: number;
-    assignedStaff?: string;
     status: "active" | "maintenance" | "outOfService";
     lastLocation?: string;
     imgSrc?: string;
+    levelName?: string;
     onEdit?: (id: string) => void;
     onDelete?: (id: string) => void;
     onViewDetails?: (id: string) => void;
@@ -45,10 +32,10 @@ export function VehicleCard({
     licensePlate,
     fuelType,
     year,
-    assignedStaff,
     status,
     lastLocation,
     imgSrc,
+    levelName,
     onEdit,
     onDelete,
     onViewDetails,
@@ -133,13 +120,6 @@ export function VehicleCard({
                                     <FileEdit className="mr-2 h-4 w-4" /> Edit Vehicle
                                 </DropdownMenuItem>
                             </HasPermission>
-                            {/* <DropdownMenuSeparator /> */}
-                            {/* <DropdownMenuItem
-                                className="text-red-600"
-                                onClick={() => onDelete?.(id)}
-                            >
-                                <Trash2 className="mr-2 h-4 w-4" /> Delete Vehicle
-                            </DropdownMenuItem> */}
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
@@ -149,13 +129,14 @@ export function VehicleCard({
                     </span>
                 </div>
             </div>
-
             <CardContent className="pt-6">
                 <div className="mt-2">
                     <h3 className="font-semibold text-lg">{model}</h3>
                     <p className="text-muted-foreground">{licensePlate}</p>
+                    {levelName && (
+                        <p className="text-xs text-muted-foreground mt-1">Level: {levelName}</p>
+                    )}
                 </div>
-
                 <div className="grid grid-cols-2 gap-3 mt-4">
                     <div className="flex items-center text-sm">
                         <Fuel className="h-4 w-4 mr-2 text-muted-foreground" />
@@ -165,12 +146,6 @@ export function VehicleCard({
                         <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
                         <span>{year}</span>
                     </div>
-                    {assignedStaff && (
-                        <div className="flex items-center text-sm col-span-2">
-                            <User className="h-4 w-4 mr-2 text-muted-foreground" />
-                            <span>Owner: {assignedStaff}</span>
-                        </div>
-                    )}
                     {lastLocation && (
                         <div className="flex items-center text-sm col-span-2">
                             <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
@@ -178,7 +153,6 @@ export function VehicleCard({
                         </div>
                     )}
                 </div>
-
                 <div className="mt-5 flex gap-2">
                     <Button
                         variant="outline"
@@ -188,10 +162,6 @@ export function VehicleCard({
                     >
                         Details
                     </Button>
-                    {/* <Button variant="default" size="sm" className="flex-1">
-                        <ClipboardList className="h-4 w-4 mr-2" />
-                        Service Log
-                    </Button> */}
                 </div>
             </CardContent>
         </Card>

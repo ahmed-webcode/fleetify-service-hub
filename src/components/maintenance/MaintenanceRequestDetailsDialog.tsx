@@ -7,15 +7,14 @@ import {
     DialogClose,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { MaintenanceRequestDto } from "@/types/maintenance";
-import { RequestStatus } from "@/types/common";
+import { MaintenanceRequestFull } from "@/types/maintenance";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 
 interface MaintenanceRequestDetailsDialogProps {
     isOpen: boolean;
     onClose: () => void;
-    request: MaintenanceRequestDto | null;
+    request: MaintenanceRequestFull | null;
 }
 
 const DetailItem = ({
@@ -52,9 +51,9 @@ export function MaintenanceRequestDetailsDialog({
         }
     };
 
-    const renderStatusBadge = (status: RequestStatus) => {
+    const renderStatusBadge = (status: MaintenanceRequestFull["status"]) => {
         switch (status) {
-            case RequestStatus.PENDING:
+            case "PENDING":
                 return (
                     <Badge
                         variant="outline"
@@ -63,7 +62,7 @@ export function MaintenanceRequestDetailsDialog({
                         Pending
                     </Badge>
                 );
-            case RequestStatus.APPROVED:
+            case "APPROVED":
                 return (
                     <Badge
                         variant="outline"
@@ -72,22 +71,13 @@ export function MaintenanceRequestDetailsDialog({
                         Approved
                     </Badge>
                 );
-            case RequestStatus.REJECTED:
+            case "REJECTED":
                 return (
                     <Badge
                         variant="outline"
                         className="bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400"
                     >
                         Rejected
-                    </Badge>
-                );
-            case RequestStatus.CANCELLED:
-                return (
-                    <Badge
-                        variant="outline"
-                        className="bg-gray-50 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400"
-                    >
-                        Cancelled
                     </Badge>
                 );
             default:
@@ -101,7 +91,8 @@ export function MaintenanceRequestDetailsDialog({
                 <DialogHeader>
                     <DialogTitle>Maintenance Request Details - ID: {request.id}</DialogTitle>
                     <DialogDescription>
-                        Viewing details for: "{request.title}" on vehicle {request.plateNumber}
+                        Viewing details for: "{request.title}" on vehicle{" "}
+                        {request.vehicle.plateNumber}
                     </DialogDescription>
                 </DialogHeader>
                 <div className="py-4 space-y-3">
@@ -111,29 +102,18 @@ export function MaintenanceRequestDetailsDialog({
                             value={renderStatusBadge(request.status)}
                             isBadge
                         />
-                        <DetailItem label="Vehicle Plate" value={request.plateNumber} />
-                        <DetailItem label="Maintenance Type" value={request.maintenanceType} />
+                        <DetailItem label="Vehicle Plate" value={request.vehicle.plateNumber} />
+                        <DetailItem label="Level" value={request.level?.name || "-"} />
                         <DetailItem label="Title" value={request.title} />
                         <DetailItem label="Description" value={request.description} />
-                        <DetailItem
-                            label="Estimated Cost"
-                            value={
-                                request.estimatedCost
-                                    ? `$${request.estimatedCost.toFixed(2)}`
-                                    : "Not set"
-                            }
-                        />
-                        <DetailItem label="Requested By" value={request.requestedBy} />
+                        <DetailItem label="Requested By" value={request.requestedBy.fullName} />
                         <DetailItem label="Requested At" value={formatDate(request.requestedAt)} />
-                        {request.actedBy && (
+                        {request.actedAt && (
                             <>
-                                <DetailItem label="Action By" value={request.actedBy} />
                                 <DetailItem label="Action At" value={formatDate(request.actedAt)} />
                                 <DetailItem label="Action Note" value={request.actionNote} />
                             </>
                         )}
-                        <DetailItem label="Created At" value={formatDate(request.createdAt)} />
-                        <DetailItem label="Last Updated" value={formatDate(request.updatedAt)} />
                     </dl>
                 </div>
                 <div className="pt-4 flex justify-end">

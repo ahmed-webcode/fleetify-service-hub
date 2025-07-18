@@ -9,29 +9,28 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MaintenanceRequestDto } from "@/types/maintenance";
-import { RequestStatus } from "@/types/common";
+import { MaintenanceRequestFull } from "@/types/maintenance";
 import { format } from "date-fns";
 import { MaintenanceRequestActionDialog } from "./MaintenanceRequestActionDialog";
 import { MaintenanceRequestDetailsDialog } from "./MaintenanceRequestDetailsDialog";
 import { HasPermission } from "@/components/auth/HasPermission";
 
 interface MaintenanceRequestsListProps {
-    requests: MaintenanceRequestDto[];
+    requests: MaintenanceRequestFull[];
     onRefresh: () => void;
 }
 
 export function MaintenanceRequestsList({ requests, onRefresh }: MaintenanceRequestsListProps) {
-    const [selectedRequest, setSelectedRequest] = useState<MaintenanceRequestDto | null>(null);
+    const [selectedRequest, setSelectedRequest] = useState<MaintenanceRequestFull | null>(null);
     const [actionDialogOpen, setActionDialogOpen] = useState(false);
     const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
 
-    const handleAction = (request: MaintenanceRequestDto) => {
+    const handleAction = (request: MaintenanceRequestFull) => {
         setSelectedRequest(request);
         setActionDialogOpen(true);
     };
 
-    const handleViewDetails = (request: MaintenanceRequestDto) => {
+    const handleViewDetails = (request: MaintenanceRequestFull) => {
         setSelectedRequest(request);
         setDetailsDialogOpen(true);
     };
@@ -45,9 +44,9 @@ export function MaintenanceRequestsList({ requests, onRefresh }: MaintenanceRequ
         }
     };
 
-    const renderStatusBadge = (status: RequestStatus) => {
+    const renderStatusBadge = (status: MaintenanceRequestFull["status"]) => {
         switch (status) {
-            case RequestStatus.PENDING:
+            case "PENDING":
                 return (
                     <Badge
                         variant="outline"
@@ -56,7 +55,7 @@ export function MaintenanceRequestsList({ requests, onRefresh }: MaintenanceRequ
                         Pending
                     </Badge>
                 );
-            case RequestStatus.APPROVED:
+            case "APPROVED":
                 return (
                     <Badge
                         variant="outline"
@@ -65,22 +64,13 @@ export function MaintenanceRequestsList({ requests, onRefresh }: MaintenanceRequ
                         Approved
                     </Badge>
                 );
-            case RequestStatus.REJECTED:
+            case "REJECTED":
                 return (
                     <Badge
                         variant="outline"
                         className="bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400"
                     >
                         Rejected
-                    </Badge>
-                );
-            case RequestStatus.CANCELLED: // Assuming CANCELLED is a possible status for maintenance too
-                return (
-                    <Badge
-                        variant="outline"
-                        className="bg-gray-50 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400"
-                    >
-                        Cancelled
                     </Badge>
                 );
             default:
@@ -105,9 +95,8 @@ export function MaintenanceRequestsList({ requests, onRefresh }: MaintenanceRequ
                         <TableRow>
                             <TableHead className="w-[80px]">ID</TableHead>
                             <TableHead>Vehicle (Plate)</TableHead>
+                            <TableHead>Level</TableHead>
                             <TableHead>Title</TableHead>
-                            <TableHead>Type</TableHead>
-                            <TableHead>Est. Cost</TableHead>
                             <TableHead>Requested By</TableHead>
                             <TableHead>Status</TableHead>
                             <TableHead>Requested At</TableHead>
@@ -118,18 +107,15 @@ export function MaintenanceRequestsList({ requests, onRefresh }: MaintenanceRequ
                         {requests.map((request) => (
                             <TableRow key={request.id} className="hover:bg-muted/30">
                                 <TableCell>{request.id}</TableCell>
-                                <TableCell>{request.plateNumber}</TableCell>
+                                <TableCell>{request.vehicle.plateNumber}</TableCell>
+                                <TableCell>{request.level?.name || "-"}</TableCell>
                                 <TableCell
                                     className="font-medium max-w-[250px] truncate"
                                     title={request.title}
                                 >
                                     {request.title}
                                 </TableCell>
-                                <TableCell>{request.maintenanceType}</TableCell>
-                                <TableCell>
-                                    {request.estimatedCost ? `$${request.estimatedCost}` : "N/A"}
-                                </TableCell>
-                                <TableCell>{request.requestedBy}</TableCell>
+                                <TableCell>{request.requestedBy.fullName}</TableCell>
                                 <TableCell>{renderStatusBadge(request.status)}</TableCell>
                                 <TableCell>{formatDate(request.requestedAt)}</TableCell>
                                 <TableCell className="text-right">
@@ -145,7 +131,7 @@ export function MaintenanceRequestsList({ requests, onRefresh }: MaintenanceRequ
                                             </Button>
                                         }
                                     >
-                                        {request.status === RequestStatus.PENDING ? (
+                                        {request.status === "PENDING" ? (
                                             <Button
                                                 variant="ghost"
                                                 size="sm"

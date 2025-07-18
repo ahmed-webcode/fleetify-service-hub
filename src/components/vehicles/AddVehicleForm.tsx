@@ -12,14 +12,14 @@ import { VehicleStatus, VehicleType } from "@/types/vehicle";
 import { VehicleBasicInfo } from "./form-sections/VehicleBasicInfo";
 import { VehicleTechnicalDetails } from "./form-sections/VehicleTechnicalDetails";
 import { VehicleInsuranceInfo } from "./form-sections/VehicleInsuranceInfo";
-import { VehicleStaffAndOwnership } from "./form-sections/VehicleStaffAndOwnership";
+// import { VehicleStaffAndOwnership } from "./form-sections/VehicleStaffAndOwnership";
 import { VehicleFileUploads } from "./form-sections/VehicleFileUploads";
 import { CalendarIcon } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 
-// Define the schema for vehicle data
+// Updated schema for vehicle data
 const vehicleSchema = z.object({
     plateNumber: z.string().min(2, "License plate is required."),
     vehicleType: z.nativeEnum(VehicleType, { required_error: "Vehicle type is required" }),
@@ -27,6 +27,7 @@ const vehicleSchema = z.object({
     fuelTypeId: z.coerce.number().min(1, "Fuel type is required."),
     status: z.nativeEnum(VehicleStatus, { required_error: "Status is required" }),
     isPrivate: z.boolean().default(false),
+    isService: z.boolean().default(false),
     chassisNumber: z.string().min(2, "Chassis number is required."),
     motorNumber: z.string().min(2, "Motor number is required."),
     color: z.string().min(1, "Color is required."),
@@ -34,22 +35,14 @@ const vehicleSchema = z.object({
         .number()
         .min(1900)
         .max(new Date().getFullYear() + 1),
-    responsibleStaffId: z.coerce.number().min(1, "Responsible staff is required."),
+    levelId: z.coerce.number().min(1, "Level is required."),
     madeIn: z.string().min(1, "Country of origin is required."),
-    horsePower: z.coerce.number().min(0),
-    singleWeight: z.coerce.number().min(0),
-    totalWeight: z.coerce.number().min(0),
-    cylinderCount: z.coerce.number().min(0),
-    axleCount: z.coerce.number().min(0).optional(),
     seatsCount: z.coerce.number().min(0),
-    kmReading: z.coerce.number().min(0),
-    workEnvironment: z.string().min(1, "Work environment is required."),
+    workEnvironment: z.string().optional(),
     fuelConsumptionRate: z.coerce.number().min(0),
-    driverId: z.coerce.number().optional(),
     insuranceCompany: z.string().optional(),
-    insuranceEndDate: z.string().optional(),
-    boloEndDate: z.string().optional(),
-    lastQuotaRefuel: z.date().optional(),
+    insuranceExpiryDate: z.string().optional(),
+    boloExpiryDate: z.string().optional(),
     // Files are handled separately
 });
 
@@ -58,47 +51,21 @@ interface FuelType {
     name: string;
 }
 
-interface User {
-    id: number;
-    username: string;
-    firstName: string;
-    lastName: string;
-    canDrive: boolean;
-    roles: { id: number; name: string; }[];
-}
-
 export function AddVehicleForm({ onSubmit }) {
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [libreFile, setLibreFile] = useState<File | null>(null);
     const [uploading, setUploading] = useState(false);
-    const [insuranceEndDate, setInsuranceEndDate] = useState<Date | undefined>();
-    const [boloEndDate, setBoloEndDate] = useState<Date | undefined>();
-    const [lastQuotaRefuel, setLastQuotaRefuel] = useState<Date | undefined>();
-
-    // Mock fuel types until we have an API endpoint
-    // const fuelTypes = [
-    //   { id: 1, name: "Diesel" },
-    //   { id: 2, name: "Petrol" },
-    //   { id: 3, name: "Electric" },
-    //   { id: 4, name: "Hybrid" },
-    // ];
+    const [insuranceExpiryDate, setInsuranceExpiryDate] = useState<Date | undefined>();
+    const [boloExpiryDate, setBoloExpiryDate] = useState<Date | undefined>();
 
     const { data: fuelTypes } = useQuery({
         queryKey: ["fuelTypes"],
         queryFn: async () => apiClient.fuel.getFuelTypes() as any,
     });
-
-    // Fetch users for responsible staff and driver selection
-    const { data: users = [], isLoading: isLoadingUsers } = useQuery({
-        queryKey: ["users"],
-        queryFn: async () => {
-            try {
-                return (await apiClient.users.getAll()) as any;
-            } catch (error) {
-                toast.error("Failed to load users");
-                return [];
-            }
-        },
+    // Fetch levels for levelId selection
+    const { data: levels = [] } = useQuery({
+        queryKey: ["levels"],
+        queryFn: async () => (await apiClient.levels.getAll()) as any,
     });
 
     const form = useForm({
@@ -110,41 +77,21 @@ export function AddVehicleForm({ onSubmit }) {
             fuelTypeId: 1,
             status: VehicleStatus.AVAILABLE,
             isPrivate: false,
+            isService: false,
             chassisNumber: "",
             motorNumber: "",
             color: "",
             madeYear: new Date().getFullYear(),
-            responsibleStaffId: undefined,
+            levelId: undefined,
             madeIn: "",
-            horsePower: 0,
-            singleWeight: 0,
-            totalWeight: 0,
-            cylinderCount: 0,
-            axleCount: 0,
             seatsCount: 0,
-            kmReading: 0,
             workEnvironment: "",
             fuelConsumptionRate: 0,
-            driverId: undefined,
             insuranceCompany: "",
-            insuranceEndDate: "",
-            boloEndDate: "",
-            lastQuotaRefuel: undefined,
+            insuranceExpiryDate: "",
+            boloExpiryDate: "",
         },
     });
-
-    // Watch for responsibleStaffId changes to conditionally show driver field
-    const responsibleStaffId = form.watch("responsibleStaffId");
-    const selectedStaff = users.find((user) => user.id === Number(responsibleStaffId));
-    const showDriverField = selectedStaff && !selectedStaff.canDrive;
-
-    // Get available drivers (users who can drive)
-    const availableDrivers = users.filter((user) => user.canDrive);
-    
-    // Filter users to only show those with "staff" role
-    const staffUsers = users.filter((user) => 
-        user.roles && user.roles.some((role) => role.name.toLowerCase() === "staff")
-    );
 
     const handleImageUpload = (e) => {
         if (e.target.files && e.target.files[0]) {
@@ -160,54 +107,37 @@ export function AddVehicleForm({ onSubmit }) {
 
     const handleSubmit = async (values) => {
         try {
-            if (!libreFile) {
-                toast.error("Libre document is required");
-                return;
-            }
-
             setUploading(true);
-
             // Create FormData for multipart/form-data submission
             const formData = new FormData();
-
-            // Add all form values to FormData with date formatting
+            // Add all form values to FormData
             Object.entries(values).forEach(([key, value]) => {
-                if (value !== undefined && value !== null && key !== "lastQuotaRefuel") {
+                if (value !== undefined && value !== null) {
                     formData.append(key, value.toString());
                 }
             });
-            // Add lastQuotaRefuel as formatted date if present
-            if (lastQuotaRefuel) {
-                formData.append("lastQuotaRefuel", format(lastQuotaRefuel, "yyyy-MM-dd"));
-            }
-
             // Add formatted insurance and bolo dates
-            if (insuranceEndDate) {
-                formData.append("insuranceEndDate", format(insuranceEndDate, "yyyy-MM-dd"));
+            if (insuranceExpiryDate) {
+                formData.append("insuranceExpiryDate", format(insuranceExpiryDate, "yyyy-MM-dd"));
             }
-            if (boloEndDate) {
-                formData.append("boloEndDate", format(boloEndDate, "yyyy-MM-dd"));
+            if (boloExpiryDate) {
+                formData.append("boloExpiryDate", format(boloExpiryDate, "yyyy-MM-dd"));
             }
-
             // Add the files
             if (imageFile) {
                 formData.append("vehicleImg", imageFile);
             }
-
             if (libreFile) {
                 formData.append("libreImg", libreFile);
             }
-
             // Submit the form
             const result = await onSubmit(formData);
-
             if (result.success) {
                 form.reset();
                 setImageFile(null);
                 setLibreFile(null);
-                setInsuranceEndDate(undefined);
-                setBoloEndDate(undefined);
-                setLastQuotaRefuel(undefined);
+                setInsuranceExpiryDate(undefined);
+                setBoloExpiryDate(undefined);
             }
         } catch (error) {
             toast.error("Error: " + error.message);
@@ -218,72 +148,38 @@ export function AddVehicleForm({ onSubmit }) {
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+            <form
+                onSubmit={(e) => {
+                    console.log("Form errors:", form.formState.errors);
+                    form.handleSubmit(handleSubmit)(e);
+                }}
+                className="space-y-4"
+            >
                 <h3 className="text-xl font-semibold border-b pb-2">Basic Information</h3>
-                <VehicleBasicInfo control={form.control} fuelTypes={fuelTypes} />
-
+                <VehicleBasicInfo control={form.control} fuelTypes={fuelTypes} levels={levels} />
                 <h3 className="text-xl font-semibold border-b pb-2 pt-4">Technical Details</h3>
-                <VehicleTechnicalDetails control={form.control} />
-                
+                {/* Remove VehicleTechnicalDetails if all fields are deprecated */}
+                {/* <VehicleTechnicalDetails control={form.control} /> */}
                 <h3 className="text-xl font-semibold border-b pb-2 pt-4">Insurance Information</h3>
                 <VehicleInsuranceInfo
                     form={form}
-                    insuranceEndDate={insuranceEndDate}
-                    setInsuranceEndDate={setInsuranceEndDate}
-                    boloEndDate={boloEndDate}
-                    setBoloEndDate={setBoloEndDate}
+                    insuranceExpiryDate={insuranceExpiryDate}
+                    setInsuranceExpiryDate={setInsuranceExpiryDate}
+                    boloExpiryDate={boloExpiryDate}
+                    setBoloExpiryDate={setBoloExpiryDate}
                 />
-
-                <div>
-                    <label className="block text-sm font-medium mb-1">Last Quota Refuel</label>
-                    <Popover>
-                        <PopoverTrigger asChild>
-                            <Button
-                                variant={"outline"}
-                                className={cn(
-                                    "w-[240px] justify-start text-left font-normal",
-                                    !lastQuotaRefuel && "text-muted-foreground"
-                                )}
-                                type="button"
-                            >
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                {lastQuotaRefuel
-                                    ? format(lastQuotaRefuel, "PPP")
-                                    : <span>Pick a date</span>}
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                                mode="single"
-                                selected={lastQuotaRefuel}
-                                onSelect={setLastQuotaRefuel}
-                                initialFocus
-                                className={cn("p-3 pointer-events-auto")}
-                            />
-                        </PopoverContent>
-                    </Popover>
-                </div>
-                
-                <h3 className="text-xl font-semibold border-b pb-2 pt-4">Ownership & Staff</h3>
-                <VehicleStaffAndOwnership
-                    control={form.control}
-                    isLoadingUsers={isLoadingUsers}
-                    staffUsers={staffUsers}
-                    showDriverField={showDriverField}
-                    availableDrivers={availableDrivers}
-                />
-
                 <h3 className="text-xl font-semibold border-b pb-2 pt-4">File Uploads</h3>
-                <VehicleFileUploads
-                    handleImageUpload={handleImageUpload}
-                    handleLibreUpload={handleLibreUpload}
-                    imageFile={imageFile}
-                    libreFile={libreFile}
-                />
-
+                <div className="grid grid-cols-1 gap-4">
+                    <VehicleFileUploads
+                        handleImageUpload={handleImageUpload}
+                        handleLibreUpload={handleLibreUpload}
+                        imageFile={imageFile}
+                        libreFile={libreFile}
+                    />
+                </div>
                 <div className="flex justify-end gap-2 mt-6">
-                    <Button type="submit" disabled={uploading || !libreFile}>
-                        {uploading ? "Adding..." : "Add Vehicle"}
+                    <Button type="submit" disabled={uploading}>
+                        {uploading ? "Saving..." : "Add Vehicle"}
                     </Button>
                 </div>
             </form>

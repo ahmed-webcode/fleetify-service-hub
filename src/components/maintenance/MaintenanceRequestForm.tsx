@@ -1,105 +1,135 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-interface MaintenanceRequest {
-  id: string;
-  vehicle: string;
-  date: string;
-  status: 'pending' | 'approved' | 'rejected' | 'completed';
-  details: string;
-  requestedBy: string;
-  priority: 'low' | 'medium' | 'high';
-  estimatedCost?: number;
-  documentUrls?: string[];
-}
+import { useQuery } from "@tanstack/react-query";
+import { apiClient } from "@/lib/apiClient";
+import { MaintenanceRequestCreate } from "@/types/maintenance";
+import { VehicleDto } from "@/types/vehicle";
+import { toast } from "sonner";
 
 export interface MaintenanceRequestFormProps {
-  onSuccess: (newRequest: MaintenanceRequest) => void;
-  onCancel?: () => void;
+    onSuccess: () => void;
+    onCancel?: () => void;
 }
 
 export const MaintenanceRequestForm = ({ onSuccess, onCancel }: MaintenanceRequestFormProps) => {
-  const [formData, setFormData] = useState({
-    vehicle: '',
-    details: '',
-    priority: 'medium' as 'low' | 'medium' | 'high',
-  });
+    const [form, setForm] = useState<MaintenanceRequestCreate>({
+        vehicleId: 0,
+        title: "",
+        description: "",
+    });
+    const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const newRequest: MaintenanceRequest = {
-      id: `MR-${Date.now()}`,
-      vehicle: formData.vehicle,
-      date: new Date().toISOString().split('T')[0],
-      status: 'pending',
-      details: formData.details,
-      requestedBy: 'Current User',
-      priority: formData.priority,
+    // Fetch vehicles for the select
+    const { data: vehiclesData, isLoading: isLoadingVehicles } = useQuery({
+        queryKey: ["vehicles", "all"],
+        queryFn: () => apiClient.vehicles.getAll({ size: 1000 }),
+    });
+    const vehicles: VehicleDto[] = vehiclesData?.content || [];
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     };
 
-    onSuccess(newRequest);
+    const handleVehicleChange = (value: string) => {
+        setForm((prev) => ({ ...prev, vehicleId: parseInt(value) }));
+    };
 
-    setFormData({
-      vehicle: '',
-      details: '',
-      priority: 'medium',
-    });
-  };
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!form.vehicleId || !form.title.trim() || !form.description.trim()) {
+            toast.error("Please fill all required fields.");
+            return;
+        }
+        setLoading(true);
+        try {
+            await apiClient.maintenance.requests.create(form);
+            toast.success("Maintenance request submitted successfully.");
+            onSuccess();
+        } catch (error: any) {
+            toast.error("Failed to submit request: " + (error.message || "Unknown error"));
+        } finally {
+            setLoading(false);
+        }
+    };
 
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Submit Maintenance Request</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-2">Vehicle</label>
-            <Input
-              value={formData.vehicle}
-              onChange={(e) => setFormData({ ...formData, vehicle: e.target.value })}
-              placeholder="Enter vehicle information"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-2">Priority</label>
-            <Select value={formData.priority} onValueChange={(value: 'low' | 'medium' | 'high') => setFormData({ ...formData, priority: value })}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="low">Low</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-2">Details</label>
-            <Textarea
-              value={formData.details}
-              onChange={(e) => setFormData({ ...formData, details: e.target.value })}
-              placeholder="Describe the maintenance needed"
-              required
-            />
-          </div>
-          <div className="flex gap-2 justify-end">
-            {onCancel && (
-              <Button type="button" variant="outline" onClick={onCancel}>
-                Cancel
-              </Button>
-            )}
-            <Button type="submit">Submit Request</Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
-  );
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Submit Maintenance Request</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium mb-2">Vehicle</label>
+                        <Select
+                            value={form.vehicleId ? String(form.vehicleId) : ""}
+                            onValueChange={handleVehicleChange}
+                            disabled={isLoadingVehicles}
+                            required
+                        >
+                            <SelectTrigger>
+                                <SelectValue
+                                    placeholder={
+                                        isLoadingVehicles ? "Loading vehicles..." : "Select vehicle"
+                                    }
+                                />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {vehicles.map((v) => (
+                                    <SelectItem key={v.id} value={String(v.id)}>
+                                        {v.plateNumber} - {v.model}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium mb-2">Title</label>
+                        <Input
+                            name="title"
+                            value={form.title}
+                            onChange={handleChange}
+                            placeholder="Enter request title"
+                            required
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium mb-2">Description</label>
+                        <Textarea
+                            name="description"
+                            value={form.description}
+                            onChange={handleChange}
+                            placeholder="Describe the maintenance needed"
+                            required
+                        />
+                    </div>
+                    <div className="flex gap-2 justify-end">
+                        {onCancel && (
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={onCancel}
+                                disabled={loading}
+                            >
+                                Cancel
+                            </Button>
+                        )}
+                        <Button type="submit" disabled={loading}>
+                            {loading ? "Submitting..." : "Submit Request"}
+                        </Button>
+                    </div>
+                </form>
+            </CardContent>
+        </Card>
+    );
 };

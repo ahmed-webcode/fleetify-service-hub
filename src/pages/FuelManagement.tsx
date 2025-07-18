@@ -41,7 +41,7 @@ export default function FuelManagement() {
   } = useQuery({
     queryKey: ["fuelRequests", currentPage, itemsPerPage],
     queryFn: async () => {
-      // Operational Director (id: 7) or staff (id: 9) can only see their own requests
+      // Operational Director (id: 7) or Officier (id: 9) can only see their own requests
       if (selectedRole && selectedRole.id === 7 || selectedRole.id === 9) {
         return apiClient.fuel.requests.getMy({
           page: currentPage,
@@ -345,12 +345,17 @@ export default function FuelManagement() {
                         <PlusCircle className="h-12 w-12 text-muted-foreground opacity-50 mb-2" />
                         <h3 className="text-lg font-medium mb-1">No requests yet</h3>
                         <p className="text-sm text-muted-foreground mb-4">
-                          There are no fuel requests at the moment. Create one to get started.
+                          There are no fuel requests at the moment.
                         </p>
-                        <Button onClick={() => setRequestFuelOpen(true)}>
-                          <Plus className="mr-2 h-4 w-4" />
-                          New Fuel Request
-                        </Button>
+                        <HasPermission 
+                          permission="request_fuel" 
+                          fallback={null}
+                        >
+                          <Button onClick={() => setRequestFuelOpen(true)}>
+                            <Plus className="mr-2 h-4 w-4" />
+                            New Fuel Request
+                          </Button>
+                        </HasPermission>
                       </div>
                     </div>
                   ) : filteredRequests.length === 0 ? (

@@ -3,9 +3,9 @@ import { toast } from "sonner";
 import { CreateUserDto, UpdateUserDto, UserDto } from "@/types/user";
 import { PageResponse, RequestQueryParams } from "@/types/common";
 import {
-    CreateMaintenanceRequestDto,
-    MaintenanceRequestActionDto,
-    MaintenanceRequestDto,
+    MaintenanceRequestCreate,
+    MaintenanceRequestAction,
+    MaintenanceRequestFull,
     MaintenanceRequestQueryParams,
 } from "@/types/maintenance";
 import { CreateTripRequestDto, TripRequestActionDto, TripRequestDto } from "@/types/trip";
@@ -19,10 +19,12 @@ import {
 } from "@/types/position";
 import { Level, LightLevelDto } from "@/types/level";
 import { CreateProjectDto, Project, ProjectQueryParams, UpdateProjectDto } from "@/types/project";
+import { TripRecordCreateDto, TripRecordFullDto } from "@/types/trip";
 import {
-    TripRecordCreateDto, TripRecordFullDto
-} from "@/types/trip";
-import { NotificationFull, NotificationUpdate, NotificationQueryParams } from "@/types/notification";
+    NotificationFull,
+    NotificationUpdate,
+    NotificationQueryParams,
+} from "@/types/notification";
 
 // Base URL configuration
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -66,7 +68,7 @@ const handleHttpError = (error: any): never => {
         message = error.message;
     }
 
-    if (message === "No response received from server. Check network connection."){
+    if (message === "No response received from server. Check network connection.") {
         window.location.href = "/login"; // Redirect to login if no response
     }
     console.error("API Error:", error);
@@ -180,7 +182,7 @@ export const apiClient = {
             });
         },
         getMe: () => {
-            return fetchWithErrorHandling<import('@/types/user').UserFull>("/users/me");
+            return fetchWithErrorHandling<import("@/types/user").UserFull>("/users/me");
         },
         changePassword: (data: import("@/types/user").ChangePasswordDto) => {
             return fetchWithErrorHandling<void>("/users/change-password", {
@@ -213,20 +215,19 @@ export const apiClient = {
             return fetchWithErrorHandling<VehicleDetail>(`/vehicles/${id}/details`);
         },
         create: (vehicleData: FormData) => {
+            // Do not set Content-Type for FormData, browser will set it
             return fetchWithErrorHandling<VehicleDto>("/vehicles", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
                 body: vehicleData,
+                headers: {
+                    "Content-type": "multipart/form-data",
+                },
             });
         },
         update: (id: number, vehicleData: FormData) => {
+            // Do not set Content-Type for FormData, browser will set it
             return fetchWithErrorHandling<VehicleDto>(`/vehicles/${id}`, {
                 method: "PATCH",
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
                 body: vehicleData,
             });
         },
@@ -259,8 +260,7 @@ export const apiClient = {
 
         // New maintenance request endpoints
         requests: {
-            getAll: (params?: MaintenanceRequestQueryParams) => {
-                // Or use RequestQueryParams
+            getAll: (params?: import("@/types/maintenance").MaintenanceRequestQueryParams) => {
                 const queryString = params
                     ? `?${new URLSearchParams(
                           Object.entries(params)
@@ -268,32 +268,178 @@ export const apiClient = {
                               .map(([key, value]) => [key, String(value)])
                       ).toString()}`
                     : "";
-                return fetchWithErrorHandling<PageResponse<MaintenanceRequestDto>>(
-                    `/maintenance/requests${queryString}` // Ensure prefix /api is handled by API_BASE_URL
-                );
+                return fetchWithErrorHandling<
+                    PageResponse<import("@/types/maintenance").MaintenanceRequestFull>
+                >(`/maintenance-requests${queryString}`);
+            },
+            getMy: (params?: import("@/types/maintenance").MaintenanceRequestQueryParams) => {
+                const queryString = params
+                    ? `?${new URLSearchParams(
+                          Object.entries(params)
+                              .filter(([_, value]) => value !== undefined && value !== null)
+                              .map(([key, value]) => [key, String(value)])
+                      ).toString()}`
+                    : "";
+                return fetchWithErrorHandling<
+                    PageResponse<import("@/types/maintenance").MaintenanceRequestFull>
+                >(`/maintenance-requests/me${queryString}`);
             },
             getById: (id: number) => {
-                return fetchWithErrorHandling<MaintenanceRequestDto>(`/maintenance/requests/${id}`);
+                return fetchWithErrorHandling<import("@/types/maintenance").MaintenanceRequestFull>(
+                    `/maintenance-requests/${id}`
+                );
             },
-            create: (requestData: CreateMaintenanceRequestDto) => {
-                return fetchWithErrorHandling<MaintenanceRequestDto>("/maintenance/requests", {
-                    method: "POST",
-                    body: JSON.stringify(requestData),
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                });
+            create: (requestData: import("@/types/maintenance").MaintenanceRequestCreate) => {
+                return fetchWithErrorHandling<import("@/types/maintenance").MaintenanceRequestFull>(
+                    "/maintenance-requests",
+                    {
+                        method: "POST",
+                        body: JSON.stringify(requestData),
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                    }
+                );
             },
-            act: (id: number, actionData: MaintenanceRequestActionDto) => {
-                // Or use TripRequestActionDto
-                return fetchWithErrorHandling<MaintenanceRequestDto>(
-                    `/maintenance/requests/${id}`,
+            act: (
+                id: number,
+                actionData: import("@/types/maintenance").MaintenanceRequestAction
+            ) => {
+                return fetchWithErrorHandling<import("@/types/maintenance").MaintenanceRequestFull>(
+                    `/maintenance-requests/${id}`,
                     {
                         method: "PATCH",
                         body: JSON.stringify(actionData),
                         headers: {
                             "Content-Type": "application/json",
                         },
+                    }
+                );
+            },
+        },
+        records: {
+            getAll: (params?: import("@/types/maintenance").MaintenanceRecordQueryParams) => {
+                const queryString = params
+                    ? `?${new URLSearchParams(
+                          Object.entries(params)
+                              .filter(([_, value]) => value !== undefined && value !== null)
+                              .map(([key, value]) => [key, String(value)])
+                      ).toString()}`
+                    : "";
+                return fetchWithErrorHandling<
+                    PageResponse<import("@/types/maintenance").MaintenanceRecordFull>
+                >(`/maintenance-records${queryString}`);
+            },
+            getById: (id: number) => {
+                return fetchWithErrorHandling<import("@/types/maintenance").MaintenanceRecordFull>(
+                    `/maintenance-records/${id}`
+                );
+            },
+            create: (data: import("@/types/maintenance").MaintenanceRecordCreate) => {
+                return fetchWithErrorHandling<import("@/types/maintenance").MaintenanceRecordFull>(
+                    `/maintenance-records`,
+                    {
+                        method: "POST",
+                        body: JSON.stringify(data),
+                        headers: { "Content-Type": "application/json" },
+                    }
+                );
+            },
+            update: (
+                id: number,
+                data: Partial<import("@/types/maintenance").MaintenanceRecordCreate>
+            ) => {
+                return fetchWithErrorHandling<import("@/types/maintenance").MaintenanceRecordFull>(
+                    `/maintenance-records/${id}`,
+                    {
+                        method: "PATCH",
+                        body: JSON.stringify(data),
+                        headers: { "Content-Type": "application/json" },
+                    }
+                );
+            },
+        },
+        companies: {
+            getAll: () => {
+                return fetchWithErrorHandling<import("@/types/maintenance").CompanyFull[]>(
+                    "/maintenance-companies"
+                );
+            },
+        },
+        items: {
+            getAll: (params?: {
+                page?: number;
+                size?: number;
+                sortBy?: string;
+                direction?: string;
+            }) => {
+                const queryString = params
+                    ? `?${new URLSearchParams(
+                          Object.entries(params)
+                              .filter(([_, value]) => value !== undefined && value !== null)
+                              .map(([key, value]) => [key, String(value)])
+                      ).toString()}`
+                    : "";
+                return fetchWithErrorHandling<
+                    PageResponse<import("@/types/maintenance").MaintenanceItemFull>
+                >(`/maintenance-items${queryString}`);
+            },
+            getIssued: (params?: {
+                page?: number;
+                size?: number;
+                sortBy?: string;
+                direction?: string;
+            }) => {
+                const queryString = params
+                    ? `?${new URLSearchParams(
+                          Object.entries(params)
+                              .filter(([_, value]) => value !== undefined && value !== null)
+                              .map(([key, value]) => [key, String(value)])
+                      ).toString()}`
+                    : "";
+                return fetchWithErrorHandling<
+                    PageResponse<import("@/types/maintenance").MaintenanceItemFull>
+                >(`/maintenance-items/issued${queryString}`);
+            },
+            getReceived: (params?: {
+                page?: number;
+                size?: number;
+                sortBy?: string;
+                direction?: string;
+            }) => {
+                const queryString = params
+                    ? `?${new URLSearchParams(
+                          Object.entries(params)
+                              .filter(([_, value]) => value !== undefined && value !== null)
+                              .map(([key, value]) => [key, String(value)])
+                      ).toString()}`
+                    : "";
+                return fetchWithErrorHandling<
+                    PageResponse<import("@/types/maintenance").MaintenanceItemFull>
+                >(`/maintenance-items/received${queryString}`);
+            },
+            getById: (id: number) => {
+                return fetchWithErrorHandling<import("@/types/maintenance").MaintenanceItemFull>(
+                    `/maintenance-items/${id}`
+                );
+            },
+            issue: (data: import("@/types/maintenance").MaintenanceItemIssue) => {
+                return fetchWithErrorHandling<import("@/types/maintenance").MaintenanceItemFull>(
+                    `/maintenance-items`,
+                    {
+                        method: "POST",
+                        body: JSON.stringify(data),
+                        headers: { "Content-Type": "application/json" },
+                    }
+                );
+            },
+            receive: (id: number, data: import("@/types/maintenance").MaintenanceItemReceive) => {
+                return fetchWithErrorHandling<import("@/types/maintenance").MaintenanceItemFull>(
+                    `/maintenance-items/${id}/receive`,
+                    {
+                        method: "PATCH",
+                        body: JSON.stringify(data),
+                        headers: { "Content-Type": "application/json" },
                     }
                 );
             },
@@ -318,13 +464,13 @@ export const apiClient = {
             return fetchWithErrorHandling("/fuel-types");
         },
         listFuels: () => {
-            return fetchWithErrorHandling<import('@/types/fuel').FuelFull[]>("/fuels");
+            return fetchWithErrorHandling<import("@/types/fuel").FuelFull[]>("/fuels");
         },
-        updateFuel: (id: number, update: { amount: number, pricePerLiter: number }) => {
-            return fetchWithErrorHandling<import('@/types/fuel').FuelFull>(`/fuels/${id}`, {
+        updateFuel: (id: number, update: { amount: number; pricePerLiter: number }) => {
+            return fetchWithErrorHandling<import("@/types/fuel").FuelFull>(`/fuels/${id}`, {
                 method: "PATCH",
                 body: JSON.stringify(update),
-                headers: { "Content-Type": "application/json" }
+                headers: { "Content-Type": "application/json" },
             });
         },
         // New fuel request endpoints
@@ -373,7 +519,12 @@ export const apiClient = {
         },
 
         records: {
-            getAll: (params?: { page?: number; size?: number; sortBy?: string; direction?: string }) => {
+            getAll: (params?: {
+                page?: number;
+                size?: number;
+                sortBy?: string;
+                direction?: string;
+            }) => {
                 const queryString = params
                     ? `?${new URLSearchParams(
                           Object.entries(params)
@@ -381,11 +532,16 @@ export const apiClient = {
                               .map(([key, value]) => [key, String(value)])
                       ).toString()}`
                     : "";
-                return fetchWithErrorHandling<PageResponse<import('@/types/fuel').FuelRecordFullDto>>(
-                    `/fuel-records${queryString}`
-                );
+                return fetchWithErrorHandling<
+                    PageResponse<import("@/types/fuel").FuelRecordFullDto>
+                >(`/fuel-records${queryString}`);
             },
-            getMy: (params?: { page?: number; size?: number; sortBy?: string; direction?: string }) => {
+            getMy: (params?: {
+                page?: number;
+                size?: number;
+                sortBy?: string;
+                direction?: string;
+            }) => {
                 const queryString = params
                     ? `?${new URLSearchParams(
                           Object.entries(params)
@@ -393,25 +549,27 @@ export const apiClient = {
                               .map(([key, value]) => [key, String(value)])
                       ).toString()}`
                     : "";
-                return fetchWithErrorHandling<PageResponse<import('@/types/fuel').FuelRecordFullDto>>(
-                    `/fuel-records/me${queryString}`
-                );
+                return fetchWithErrorHandling<
+                    PageResponse<import("@/types/fuel").FuelRecordFullDto>
+                >(`/fuel-records/me${queryString}`);
             },
-            issue: (data: import('@/types/fuel').FuelIssueDto) => {
-                return fetchWithErrorHandling<import('@/types/fuel').FuelRecordFullDto>(
-                    "/fuel-records", {
+            issue: (data: import("@/types/fuel").FuelIssueDto) => {
+                return fetchWithErrorHandling<import("@/types/fuel").FuelRecordFullDto>(
+                    "/fuel-records",
+                    {
                         method: "POST",
                         body: JSON.stringify(data),
-                        headers: { "Content-Type": "application/json" }
+                        headers: { "Content-Type": "application/json" },
                     }
                 );
             },
-            receive: (id: number, data: import('@/types/fuel').FuelReceiveDto) => {
-                return fetchWithErrorHandling<import('@/types/fuel').FuelRecordFullDto>(
-                    `/fuel-records/${id}`, {
+            receive: (id: number, data: import("@/types/fuel").FuelReceiveDto) => {
+                return fetchWithErrorHandling<import("@/types/fuel").FuelRecordFullDto>(
+                    `/fuel-records/${id}`,
+                    {
                         method: "PATCH",
                         body: JSON.stringify(data),
-                        headers: { "Content-Type": "application/json" }
+                        headers: { "Content-Type": "application/json" },
                     }
                 );
             },
@@ -469,7 +627,12 @@ export const apiClient = {
     },
 
     tripRecords: {
-        getAll: (params?: { page?: number; size?: number; sortBy?: string; direction?: string }) => {
+        getAll: (params?: {
+            page?: number;
+            size?: number;
+            sortBy?: string;
+            direction?: string;
+        }) => {
             const queryString = params
                 ? `?${new URLSearchParams(
                       Object.entries(params)

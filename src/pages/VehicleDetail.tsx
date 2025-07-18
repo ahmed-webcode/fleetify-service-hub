@@ -219,7 +219,55 @@ export default function VehicleDetail() {
                                                 </h4>
                                                 <p className="flex items-center">
                                                     <Fuel className="h-4 w-4 mr-2 text-muted-foreground" />
-                                                    {vehicle.fuelTypeName}
+                                                    {vehicle.fuelType?.name}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <h4 className="text-sm font-medium text-muted-foreground mb-1">
+                                                    Level
+                                                </h4>
+                                                <p className="flex items-center">
+                                                    <Tag className="h-4 w-4 mr-2 text-muted-foreground" />
+                                                    {vehicle.level?.name}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <h4 className="text-sm font-medium text-muted-foreground mb-1">
+                                                    Service Vehicle
+                                                </h4>
+                                                <p className="flex items-center">
+                                                    {vehicle.isService ? (
+                                                        <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
+                                                    ) : (
+                                                        <XCircle className="h-4 w-4 mr-2 text-red-500" />
+                                                    )}
+                                                    {vehicle.isService ? "Yes" : "No"}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <h4 className="text-sm font-medium text-muted-foreground mb-1">
+                                                    Insurance Expiry Date
+                                                </h4>
+                                                <p>
+                                                    {vehicle.insuranceExpiryDate
+                                                        ? format(
+                                                              parseISO(vehicle.insuranceExpiryDate),
+                                                              "PPP"
+                                                          )
+                                                        : "-"}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <h4 className="text-sm font-medium text-muted-foreground mb-1">
+                                                    Bolo Expiry Date
+                                                </h4>
+                                                <p>
+                                                    {vehicle.boloExpiryDate
+                                                        ? format(
+                                                              parseISO(vehicle.boloExpiryDate),
+                                                              "PPP"
+                                                          )
+                                                        : "-"}
                                                 </p>
                                             </div>
                                             <div>
@@ -256,7 +304,8 @@ export default function VehicleDetail() {
                                                 </h4>
                                                 <p className="flex items-center">
                                                     <User className="h-4 w-4 mr-2 text-muted-foreground" />
-                                                    {vehicle.responsibleStaffName || "Not assigned"}
+                                                    {/* No responsibleStaffName in VehicleFull, so show N/A */}
+                                                    N/A
                                                 </p>
                                             </div>
                                             <div>
@@ -265,7 +314,8 @@ export default function VehicleDetail() {
                                                 </h4>
                                                 <p className="flex items-center">
                                                     <User className="h-4 w-4 mr-2 text-muted-foreground" />
-                                                    {vehicle.driverName || "Not assigned"}
+                                                    {/* No driverName in VehicleFull, so show N/A */}
+                                                    N/A
                                                 </p>
                                             </div>
                                             <div>
@@ -277,17 +327,7 @@ export default function VehicleDetail() {
                                                     {vehicle.workEnvironment || "Not specified"}
                                                 </p>
                                             </div>
-                                            <div>
-                                                <h4 className="text-sm font-medium text-muted-foreground mb-1">
-                                                    Odometer Reading
-                                                </h4>
-                                                <p className="flex items-center">
-                                                    <Gauge className="h-4 w-4 mr-2 text-muted-foreground" />
-                                                    {vehicle.kmReading
-                                                        ? `${vehicle.kmReading.toLocaleString()} km`
-                                                        : "N/A"}
-                                                </p>
-                                            </div>
+                                            {/* Remove Odometer Reading (kmReading) */}
                                             <div>
                                                 <h4 className="text-sm font-medium text-muted-foreground mb-1">
                                                     Chassis Number
@@ -308,12 +348,12 @@ export default function VehicleDetail() {
                                             </div>
                                             <div>
                                                 <h4 className="text-sm font-medium text-muted-foreground mb-1">
-                                                    Insurance End Date
+                                                    Insurance Expiry Date
                                                 </h4>
                                                 <p>
-                                                    {vehicle.insuranceEndDate
+                                                    {vehicle.insuranceExpiryDate
                                                         ? format(
-                                                              parseISO(vehicle.insuranceEndDate),
+                                                              parseISO(vehicle.insuranceExpiryDate),
                                                               "PPP"
                                                           )
                                                         : "N/A"}
@@ -325,28 +365,7 @@ export default function VehicleDetail() {
                                     <Separator className="my-6" />
 
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                        <div>
-                                            <h4 className="text-sm font-medium text-muted-foreground mb-1">
-                                                Horse Power
-                                            </h4>
-                                            <p>
-                                                {vehicle.horsePower
-                                                    ? `${vehicle.horsePower} HP`
-                                                    : "N/A"}
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <h4 className="text-sm font-medium text-muted-foreground mb-1">
-                                                Cylinder Count
-                                            </h4>
-                                            <p>{vehicle.cylinderCount || "N/A"}</p>
-                                        </div>
-                                        <div>
-                                            <h4 className="text-sm font-medium text-muted-foreground mb-1">
-                                                Axle Count
-                                            </h4>
-                                            <p>{vehicle.axleCount || "N/A"}</p>
-                                        </div>
+                                        {/* Remove Horse Power, Cylinder Count, Axle Count, Seats Count, Fuel Consumption Rate, Last Quota Refuel, Single Weight, Total Weight */}
                                         <div>
                                             <h4 className="text-sm font-medium text-muted-foreground mb-1">
                                                 Seats Count
@@ -363,43 +382,9 @@ export default function VehicleDetail() {
                                                     : "N/A"}
                                             </p>
                                         </div>
-                                        <div>
-                                            <h4 className="text-sm font-medium text-muted-foreground mb-1">
-                                                Last Quota Refuel
-                                            </h4>
-                                            <p>
-                                                {vehicle.lastQuotaRefuel
-                                                    ? format(
-                                                          parseISO(vehicle.lastQuotaRefuel),
-                                                          "PPP"
-                                                      )
-                                                    : "N/A"}
-                                            </p>
-                                        </div>
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                                        <div>
-                                            <h4 className="text-sm font-medium text-muted-foreground mb-1">
-                                                Single Weight
-                                            </h4>
-                                            <p>
-                                                {vehicle.singleWeight
-                                                    ? `${vehicle.singleWeight.toLocaleString()} kg`
-                                                    : "N/A"}
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <h4 className="text-sm font-medium text-muted-foreground mb-1">
-                                                Total Weight
-                                            </h4>
-                                            <p>
-                                                {vehicle.totalWeight
-                                                    ? `${vehicle.totalWeight.toLocaleString()} kg`
-                                                    : "N/A"}
-                                            </p>
-                                        </div>
-                                    </div>
+                                    {/* Remove Single Weight and Total Weight from this section */}
                                 </CardContent>
                             </Card>
                         </div>
@@ -440,12 +425,10 @@ export default function VehicleDetail() {
                                         </div>
                                         <div className="flex items-center justify-between">
                                             <span className="text-sm text-muted-foreground">
-                                                Total Weight
+                                                Vehicle Type
                                             </span>
                                             <span className="font-medium">
-                                                {vehicle.totalWeight
-                                                    ? `${vehicle.totalWeight.toLocaleString()} kg`
-                                                    : "N/A"}
+                                                {vehicle.vehicleType}
                                             </span>
                                         </div>
                                     </div>

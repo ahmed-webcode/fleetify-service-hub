@@ -1,37 +1,35 @@
-
 import { PageResponse } from "./common";
+import { LevelRef } from "./user";
+
+export interface FuelType {
+    id: number;
+    name: string;
+}
 
 // Types for Vehicle Management
 export interface VehicleDto {
     id: number;
     plateNumber: string;
     isPrivate: boolean;
+    isService: boolean;
     vehicleType: VehicleType;
     status: VehicleStatus;
     model: string;
-    fuelTypeName: string;
+    fuelType: FuelType;
+    level: LevelRef;
     madeYear: number;
     workEnvironment: string;
-    kmReading: number;
     color: string;
     imgSrc: string | null;
     libreSrc: string | null;
     madeIn: string;
     chassisNumber: string;
     motorNumber: string;
-    horsePower: number;
-    singleWeight: number;
-    totalWeight: number;
-    axleCount: number | null;
-    cylinderCount: number;
     seatsCount: number;
-    fuelConsumptionRate: number;
+    fuelConsumptionRate: number | string;
     insuranceCompany: string | null;
-    lastQuotaRefuel: string | null;
-    insuranceEndDate: string | null;
-    boloEndDate: string | null;
-    responsibleStaffName: string;
-    driverName: string | null;
+    insuranceExpiryDate: string | null;
+    boloExpiryDate: string | null;
     createdAt: string;
     updatedAt: string;
 }
@@ -66,26 +64,19 @@ export interface CreateVehicleDto {
     fuelTypeId: number;
     status: VehicleStatus;
     isPrivate: boolean;
+    isService: boolean;
     chassisNumber: string;
     motorNumber: string;
     color: string;
     madeYear: number;
-    responsibleStaffId: number;
-    madeIn: string;
-    horsePower: number;
-    singleWeight: number;
-    totalWeight: number;
-    axleCount?: number;
-    cylinderCount: number;
-    seatsCount: number;
-    kmReading: number;
-    workEnvironment: string;
-    fuelConsumptionRate: number;
-    driverId?: number;
+    levelId: number;
+    madeIn?: string;
+    seatsCount?: number;
+    workEnvironment?: string;
+    fuelConsumptionRate?: number | string;
     insuranceCompany?: string;
-    insuranceEndDate?: string;
-    boloEndDate?: string;
-    lastQuotaRefuel?: string;
+    insuranceExpiryDate?: string;
+    boloExpiryDate?: string;
     vehicleImg?: File;
     libreImg?: File;
 }
@@ -98,26 +89,19 @@ export interface UpdateVehicleDto {
     fuelTypeId?: number;
     status?: VehicleStatus;
     isPrivate?: boolean;
+    isService?: boolean;
     chassisNumber?: string;
     motorNumber?: string;
     color?: string;
     madeYear?: number;
-    responsibleStaffId?: number;
+    levelId?: number;
     madeIn?: string;
-    horsePower?: number;
-    singleWeight?: number;
-    totalWeight?: number;
-    axleCount?: number;
-    cylinderCount?: number;
     seatsCount?: number;
-    kmReading?: number;
-    workEnvironment: string;
-    fuelConsumptionRate: number;
-    driverId?: number;
+    workEnvironment?: string;
+    fuelConsumptionRate?: number | string;
     insuranceCompany?: string;
-    insuranceEndDate?: string;
-    boloEndDate?: string;
-    lastQuotaRefuel?: string;
+    insuranceExpiryDate?: string;
+    boloExpiryDate?: string;
     vehicleImg?: File;
     libreImg?: File;
 }

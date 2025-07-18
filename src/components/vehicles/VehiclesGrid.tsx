@@ -10,9 +10,9 @@ interface Vehicle {
     licensePlate: string;
     status: "active" | "maintenance" | "outOfService";
     lastLocation?: string;
-    mileage: number;
     imgSrc?: string;
-    fuelTypeName: string;
+    fuelType: { id: number; name: string };
+    level: { id: number; name: string };
 }
 
 interface VehiclesGridProps {
@@ -34,11 +34,12 @@ export function VehiclesGrid({ vehicles, resetFilters, onEdit }: VehiclesGridPro
                     id={vehicle.id}
                     model={vehicle.model}
                     licensePlate={vehicle.licensePlate}
-                    fuelType={vehicle.fuelTypeName}
+                    fuelType={vehicle.fuelType?.name}
                     year={vehicle.year}
                     status={vehicle.status}
                     lastLocation={vehicle.lastLocation}
                     imgSrc={vehicle.imgSrc}
+                    levelName={vehicle.level?.name}
                     onEdit={onEdit}
                 />
             ))}

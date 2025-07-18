@@ -2,7 +2,14 @@ import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/apiClient";
 import { FuelFull } from "@/types/fuel";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
 import { ArrowDown, ArrowUp, Fuel } from "lucide-react";
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
 import { Edit } from "lucide-react";
@@ -12,31 +19,26 @@ import { Button } from "@/components/ui/button";
 
 // Inline spinner component
 const Spinner = () => (
-  <svg className="animate-spin h-5 w-5 text-muted-foreground" viewBox="0 0 24 24" fill="none">
-    <circle
-      className="opacity-25"
-      cx="12"
-      cy="12"
-      r="10"
-      stroke="currentColor"
-      strokeWidth="4"
-    />
-    <path
-      className="opacity-75"
-      fill="currentColor"
-      d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-    />
-  </svg>
+    <svg className="animate-spin h-5 w-5 text-muted-foreground" viewBox="0 0 24 24" fill="none">
+        <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+        />
+        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+    </svg>
 );
 
-type SortKey = keyof Pick<FuelFull, "amount" | "pricePerLiter" | "createdAt" | "updatedAt"> | "fuelType";
+type SortKey = keyof Pick<FuelFull, "amount" | "pricePerLiter" | "updatedAt"> | "fuelType";
 
-const HEADERS: { key: SortKey, label: string }[] = [
+const HEADERS: { key: SortKey; label: string }[] = [
     { key: "fuelType", label: "Type" },
     { key: "pricePerLiter", label: "Price/Liter" },
     { key: "amount", label: "Amount (L)" },
-    { key: "createdAt", label: "Created" },
-    { key: "updatedAt", label: "Updated" }
+    { key: "updatedAt", label: "Updated" },
 ];
 
 // Helper for formatting dates
@@ -48,13 +50,19 @@ function formatDate(iso: string) {
 export default function FuelList() {
     const { data, isLoading, isError, refetch } = useQuery({
         queryKey: ["fuels"],
-        queryFn: apiClient.fuel.listFuels
+        queryFn: apiClient.fuel.listFuels,
     });
 
-    const [sort, setSort] = useState<{ key: SortKey, asc: boolean }>({ key: "fuelType", asc: true });
+    const [sort, setSort] = useState<{ key: SortKey; asc: boolean }>({
+        key: "fuelType",
+        asc: true,
+    });
 
     // Dialog state for editing
-    const [updateDialog, setUpdateDialog] = useState<{ open: boolean, fuel: FuelFull | null }>({ open: false, fuel: null });
+    const [updateDialog, setUpdateDialog] = useState<{ open: boolean; fuel: FuelFull | null }>({
+        open: false,
+        fuel: null,
+    });
 
     // Sorted fuels
     const fuels = useMemo(() => {
@@ -75,10 +83,6 @@ export default function FuelList() {
                     valA = a.amount;
                     valB = b.amount;
                     break;
-                case "createdAt":
-                    valA = a.createdAt;
-                    valB = b.createdAt;
-                    break;
                 case "updatedAt":
                     valA = a.updatedAt;
                     valB = b.updatedAt;
@@ -94,9 +98,7 @@ export default function FuelList() {
     }, [data, sort]);
 
     const handleSort = (key: SortKey) => {
-        setSort(prev =>
-            prev.key === key ? { key, asc: !prev.asc } : { key, asc: true }
-        );
+        setSort((prev) => (prev.key === key ? { key, asc: !prev.asc } : { key, asc: true }));
     };
 
     return (
@@ -109,7 +111,9 @@ export default function FuelList() {
             </CardHeader>
             <CardContent>
                 {isLoading ? (
-                    <div className="w-full flex justify-center py-10"><Spinner /></div>
+                    <div className="w-full flex justify-center py-10">
+                        <Spinner />
+                    </div>
                 ) : isError ? (
                     <div className="p-4 text-red-600">Failed to load fuels.</div>
                 ) : (
@@ -117,7 +121,7 @@ export default function FuelList() {
                         <Table>
                             <TableHeader className="bg-muted/50">
                                 <TableRow>
-                                    {HEADERS.map(h => (
+                                    {HEADERS.map((h) => (
                                         <TableHead
                                             key={h.key}
                                             className="cursor-pointer select-none"
@@ -126,56 +130,54 @@ export default function FuelList() {
                                             <span className="flex items-center">
                                                 {h.label}
                                                 {sort.key === h.key ? (
-                                                    sort.asc ?
-                                                        <ArrowUp className="ml-1 h-4 w-4 text-muted-foreground" /> :
+                                                    sort.asc ? (
+                                                        <ArrowUp className="ml-1 h-4 w-4 text-muted-foreground" />
+                                                    ) : (
                                                         <ArrowDown className="ml-1 h-4 w-4 text-muted-foreground" />
+                                                    )
                                                 ) : null}
                                             </span>
                                         </TableHead>
                                     ))}
-                                    <TableHead>Created By</TableHead>
-                                    <TableHead>Updated By</TableHead>
                                     <HasPermission permission="manage_fuel">
-                                      <TableHead>Action</TableHead>
+                                        <TableHead>Action</TableHead>
                                     </HasPermission>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {fuels.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={HEADERS.length + 3} className="text-center py-8 text-muted-foreground">
+                                        <TableCell
+                                            colSpan={HEADERS.length + 1}
+                                            className="text-center py-8 text-muted-foreground"
+                                        >
                                             No fuels found.
                                         </TableCell>
                                     </TableRow>
-                                ) : fuels.map(fuel => (
-                                    <TableRow key={fuel.id}>
-                                        <TableCell>{fuel.fuelType.name}</TableCell>
-                                        <TableCell>{fuel.pricePerLiter.toFixed(2)}</TableCell>
-                                        <TableCell>{fuel.amount.toLocaleString()}</TableCell>
-                                        <TableCell>{formatDate(fuel.createdAt)}</TableCell>
-                                        <TableCell>{formatDate(fuel.updatedAt)}</TableCell>
-                                        <TableCell>
-                                            {fuel.createdBy.firstName} {fuel.createdBy.lastName} <br />
-                                            <span className="text-xs text-muted-foreground">{fuel.createdBy.email}</span>
-                                        </TableCell>
-                                        <TableCell>
-                                            {fuel.updatedBy.firstName} {fuel.updatedBy.lastName} <br />
-                                            <span className="text-xs text-muted-foreground">{fuel.updatedBy.email}</span>
-                                        </TableCell>
-                                        <HasPermission permission="manage_fuel">
-                                          <TableCell>
-                                            <Button
-                                              size="icon"
-                                              variant="ghost"
-                                              aria-label="Edit"
-                                              onClick={() => setUpdateDialog({ open: true, fuel })}
-                                            >
-                                              <Edit className="h-4 w-4" />
-                                            </Button>
-                                          </TableCell>
-                                        </HasPermission>
-                                    </TableRow>
-                                ))}
+                                ) : (
+                                    fuels.map((fuel) => (
+                                        <TableRow key={fuel.id}>
+                                            <TableCell>{fuel.fuelType.name}</TableCell>
+                                            <TableCell>{fuel.pricePerLiter.toFixed(2)}</TableCell>
+                                            <TableCell>{fuel.amount.toLocaleString()}</TableCell>
+                                            <TableCell>{formatDate(fuel.updatedAt)}</TableCell>
+                                            <HasPermission permission="manage_fuel">
+                                                <TableCell>
+                                                    <Button
+                                                        size="icon"
+                                                        variant="ghost"
+                                                        aria-label="Edit"
+                                                        onClick={() =>
+                                                            setUpdateDialog({ open: true, fuel })
+                                                        }
+                                                    >
+                                                        <Edit className="h-4 w-4" />
+                                                    </Button>
+                                                </TableCell>
+                                            </HasPermission>
+                                        </TableRow>
+                                    ))
+                                )}
                             </TableBody>
                         </Table>
                     </div>
@@ -183,7 +185,9 @@ export default function FuelList() {
             </CardContent>
             <FuelUpdateDialog
                 open={updateDialog.open}
-                onOpenChange={(open) => setUpdateDialog({ open, fuel: open ? updateDialog.fuel : null })}
+                onOpenChange={(open) =>
+                    setUpdateDialog({ open, fuel: open ? updateDialog.fuel : null })
+                }
                 fuel={updateDialog.fuel}
                 onSuccess={refetch}
             />

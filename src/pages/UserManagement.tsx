@@ -231,7 +231,7 @@ const getRoleBadgeVariant = (role: string) => {
       return "default";
     case "driver":
       return "secondary";
-    case "staff":
+    case "officier":
       return "outline";
     case "fuel manager":
       return "success";

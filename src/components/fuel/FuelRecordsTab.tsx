@@ -19,7 +19,7 @@ export default function FuelRecordsTab() {
     const { data, isLoading, isError, refetch } = useQuery({
         queryKey: ['fuelRecords', page, pageSize],
         queryFn: () => {
-            // Check if the user is a staff (role_id=9)
+            // Check if the user is a officier (role_id=9)
             if (selectedRole && selectedRole.id === 9) {
                 return apiClient.fuel.records.getMy({
                     page,

@@ -44,7 +44,7 @@ export default function FuelIssueDialog({
     queryKey: ["allUsers"],
     queryFn: async () => {
       const users = await apiClient.users.getAll();
-      return users.filter((user) => user.roles.map((role) => role.id).includes(9)); // only have staff (role_id=9) users
+      return users.filter((user) => user.roles.map((role) => role.id).includes(9)); // only have officier (role_id=9) users
     },
     enabled: recordType === RecordType.QUOTA || recordType === RecordType.EXTERNAL,
   });

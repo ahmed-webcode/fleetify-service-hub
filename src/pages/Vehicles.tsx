@@ -33,9 +33,9 @@ interface Vehicle {
     licensePlate: string;
     status: "active" | "maintenance" | "outOfService";
     lastLocation?: string;
-    mileage: number;
     imgSrc?: string;
-    fuelTypeName: string;
+    fuelType: { id: number; name: string };
+    level: { id: number; name: string };
 }
 
 // Map backend status to UI status
@@ -66,9 +66,9 @@ const mapApiVehicleToUiVehicle = (apiVehicle: VehicleDto): Vehicle => {
         licensePlate: apiVehicle.plateNumber,
         status: mapApiStatusToUiStatus(apiVehicle.status),
         lastLocation: apiVehicle.workEnvironment,
-        mileage: apiVehicle.kmReading,
         imgSrc: apiVehicle.imgSrc,
-        fuelTypeName: apiVehicle.fuelTypeName,
+        fuelType: apiVehicle.fuelType,
+        level: apiVehicle.level,
     };
 };
 
@@ -137,9 +137,13 @@ const Vehicles = () => {
 
             let matchesPrivate = true;
             if (filterPrivate === "private") {
-                matchesPrivate = (apiData?.content?.find(v => v.id.toString() === vehicle.id)?.isPrivate) === true;
+                matchesPrivate =
+                    apiData?.content?.find((v) => v.id.toString() === vehicle.id)?.isPrivate ===
+                    true;
             } else if (filterPrivate === "public") {
-                matchesPrivate = (apiData?.content?.find(v => v.id.toString() === vehicle.id)?.isPrivate) === false;
+                matchesPrivate =
+                    apiData?.content?.find((v) => v.id.toString() === vehicle.id)?.isPrivate ===
+                    false;
             }
 
             return matchesSearch && matchesStatus && matchesPrivate;
@@ -180,6 +184,8 @@ const Vehicles = () => {
     };
 
     const handleFormSubmit = async (vehicleData: FormData) => {
+        console.log("Form submitted with values:", vehicleData);
+
         try {
             setLoading(true);
             await apiClient.vehicles.create(vehicleData);
@@ -401,7 +407,8 @@ const Vehicles = () => {
                         </TabsContent>
 
                         <div className="text-sm text-center text-muted-foreground mt-4 mb-6">
-                            Showing {filteredVehicles.length} of {apiData?.totalElements || 0} vehicles
+                            Showing {filteredVehicles.length} of {apiData?.totalElements || 0}{" "}
+                            vehicles
                         </div>
 
                         {/* Pagination */}
